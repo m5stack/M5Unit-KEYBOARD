@@ -116,19 +116,28 @@ const char UnitCardKB::name[] = "UnitCardKB";
 const types::uid_t UnitCardKB::uid{"UnitCardKB"_mmh3};
 const types::uid_t UnitCardKB::attr{0};
 
-uint16_t UnitCardKB::character_to_key_index(const int ch)
+UnitCardKB::key_index_t UnitCardKB::character_to_key_index(const char ch)
 {
-    // invalid?
-    if ((unsigned int)ch & ~0xFF) {
-        return 0xFFFF;
-    }
+    unsigned char uc = ch;
     // function? (>= 0x80)
-    if ((unsigned int)ch & 0x80) {
-        key_index_t kidx = (key_index_t)(ch - 128);
-        return (kidx < m5::stl::size(key_map)) ? (kidx | 0x4000) : 0xFFFF;
+    if (uc & 0x80) {
+        key_index_t kidx = (key_index_t)(uc - 0x80);
+        return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
     }
     // normal, shift or symbol
-    return character_map[ch];
+    return static_cast<key_index_t>((uc < m5::stl::size(character_map)) ? (character_map[uc] & 0xFF) : 0xFF);
+}
+
+uint8_t UnitCardKB::character_to_alt_bit(const char ch)
+{
+    unsigned char uc = ch;
+    // function? (>= 0x80)
+    if (uc & 0x80) {
+        key_index_t kidx = (key_index_t)(uc - 0x80);
+        return (kidx < m5::stl::size(key_map)) ? ALT_FUNCTION_8BIT : 0x00;
+    }
+    // normal, shift or symbol
+    return (uc < m5::stl::size(character_map)) ? (character_map[uc] >> 8) : 0x00;
 }
 
 bool UnitCardKB::begin()
@@ -204,7 +213,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
            (((uint64_t)rbuf[3]) << 24) | (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) |
            (((uint64_t)rbuf[0]) << 0);
 
-    uint8_t alt = rbuf[6];  // 0...5 key , 6 alt
+    uint8_t alt8 = alt_bits();
     uint64_t bit{1};
 
     _wasPressed  = (_now ^ _prev) & _now;
@@ -213,7 +222,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_pressed.get(), i, alt);
+            push_back(_pressed.get(), i, alt8);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -221,14 +230,14 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
 #if 0
         // Was released
         if (_wasReleased & bit) {
-            push_back(_released.get(), i, alt);
+            push_back(_released.get(), i, alt8);
         }
 #endif
         // Repeat?
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_pressed.get(), i, alt);
+            push_back(_pressed.get(), i, alt8);
         } else {
             _repeating &= ~bit;
         }
@@ -244,13 +253,13 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     return true;
 }
 
-void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt)
+void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt8)
 {
     uint8_t aidx{};
-    uint8_t single_alt = (alt & ALT_SHIFT_BIT)      ? ALT_SHIFT_BIT
-                         : (alt & ALT_SYMBOL_BIT)   ? ALT_SYMBOL_BIT
-                         : (alt & ALT_FUNCTION_BIT) ? ALT_FUNCTION_BIT
-                                                    : 0;
+    uint8_t single_alt = (alt8 & ALT_SHIFT_8BIT)      ? ALT_SHIFT_8BIT
+                         : (alt8 & ALT_SYMBOL_8BIT)   ? ALT_SYMBOL_8BIT
+                         : (alt8 & ALT_FUNCTION_8BIT) ? ALT_FUNCTION_8BIT
+                                                      : 0;
     if (single_alt) {
         aidx = alt_table[(__builtin_ctz(single_alt)) & 0x03];
     }

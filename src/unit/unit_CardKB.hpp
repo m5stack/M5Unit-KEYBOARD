@@ -106,9 +106,15 @@ public:
         KEY_SPACE,
     };
 
-    static constexpr uint8_t ALT_SHIFT_BIT{0x10};
-    static constexpr uint8_t ALT_SYMBOL_BIT{0x80};
-    static constexpr uint8_t ALT_FUNCTION_BIT{0x40};
+    ///@name Alt key bit
+    ///@{
+    static constexpr uint64_t ALT_SHIFT_64BIT{0x1000000000};     //!< Shift
+    static constexpr uint64_t ALT_SYMBOL_64BIT{0x8000000000};    //!< Symbol
+    static constexpr uint64_t ALT_FUNCTION_64BIT{0x4000000000};  //!< Function
+    static constexpr uint8_t ALT_SHIFT_8BIT{0x10};               //!< Shift
+    static constexpr uint8_t ALT_SYMBOL_8BIT{0x80};              //!< Symbol
+    static constexpr uint8_t ALT_FUNCTION_8BIT{0x40};            //!< Function
+    ///@}
 
     /*!
       @struct config_t
@@ -181,27 +187,27 @@ public:
     {
         return _wasHold;
     }
-    inline uint64_t repeatgBits() const
+    inline uint64_t repeatingBits() const
     {
         return _repeating;
     }
 
     inline bool isAlt() const
     {
-        return (_now >> (6 * 8)) & (ALT_SHIFT_BIT | ALT_SYMBOL_BIT | ALT_FUNCTION_BIT);
+        return _now & (ALT_SHIFT_64BIT | ALT_SYMBOL_64BIT | ALT_FUNCTION_64BIT);
     }
 
     inline bool isShift() const
     {
-        return (_now >> (6 * 8)) & ALT_SHIFT_BIT;
+        return _now & ALT_SHIFT_64BIT;
     }
     inline bool isSymbol() const
     {
-        return (_now >> (6 * 8)) & ALT_SYMBOL_BIT;
+        return _now & ALT_SYMBOL_64BIT;
     }
     inline bool isFunction() const
     {
-        return (_now >> (6 * 8)) & ALT_FUNCTION_BIT;
+        return _now & ALT_FUNCTION_64BIT;
     }
     ///@}
 
@@ -253,7 +259,8 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool isPressed(const key_index_t kidx) const
+    // inline
+    bool isPressed(const key_index_t kidx) const
     {
         return _now & (1ULL << kidx);
     }
@@ -315,10 +322,15 @@ public:
 
     /*!
       @brief Character to key index and alt
-      @retval Low byte:key_index_t High byte: alt
-      @retval No corresponding key index exists if key_index_t is 0xFFFF
+      @retval != 0xFF key_index_t
+      @retval == 0xFF No corresponding key index exists
      */
-    static uint16_t character_to_key_index(const int ch);
+    static key_index_t character_to_key_index(const char ch);
+    /*!
+      @brief Character to alt bit
+      @return Corresponding Alt key bit (0,ALT_SHIFT_8BIT,ALT_SYMBOL_8BIT, and ALT_FUNCTION_8BIT)
+     */
+    static uint8_t character_to_alt_bit(const char ch);
 
     ///@warning API valid only if using UnitUnified firmware
     ///@name Specified Character
@@ -328,16 +340,16 @@ public:
       @param ch Character
       @return If so,true
     */
-    inline bool isPressed(const int ch) const
+    inline bool isPressed(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->isPressed(kidx); });
+        return isPressed(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     /*!
       @brief Is the specified character released??
       @param ch Character
       @return If so,true
     */
-    inline bool isReleased(const int ch) const
+    inline bool isReleased(const char ch) const
     {
         return !isPressed(ch);
     }
@@ -346,63 +358,63 @@ public:
       @param ch Character
       @return If so,true
     */
-    inline bool wasPressed(const int ch) const
+    inline bool wasPressed(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->wasPressed(kidx); });
+        return wasPressed(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     /*!
       @brief Was the specified character released?
       @param ch Character
       @return If so,true
     */
-    inline bool wasReleased(const int ch) const
+    inline bool wasReleased(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->wasReleased(kidx); });
+        return wasReleased(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     /*!
       @brief Is the specified character holding?
       @param ch Character
       @return If so,true
     */
-    inline bool isHolding(const int ch) const
+    inline bool isHolding(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->isHolding(kidx); });
+        return isHolding(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     /*!
       @brief Was the specified character hold?
       @param ch Character
       @return If so,true
     */
-    inline bool wasHold(const int ch) const
+    inline bool wasHold(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->wasHold(kidx); });
+        return wasHold(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     /*!
       @brief Is the specified character repeating?
       @param ch Character
       @return If so,true
     */
-    inline bool isRepeating(const int ch) const
+    inline bool isRepeating(const char ch) const
     {
-        return is_character_condition(ch, [this](const key_index_t kidx) { return this->isRepeating(kidx); });
+        return isRepeating(character_to_key_index(ch)) && equal_alt(character_to_alt_bit(ch));
     }
     ///@}
 
-    ////// TODO
-    /* latest
-    int pressed() {}
-
-    virtual uint8_t released() const override {
-    return _mode ? cardkb::Mode::Released ? UnitKeyboard::released() : 0x00;
+    char pressed() const
+    {
+        return !empty() ? _pressed->back().value() : 0x00;
     }
-
+    virtual uint8_t released() const override
+    {
+        return _mode == cardkb::Mode::Released ? UnitKeyboard::released() : 0x00;
+    }
+#if 0
     //    int released() {} // base calss
     int holding();
     int repeating();
 
     start/stop
-
-    */
+#endif
 
     ///@warning API valid only if using UnitUnified firmware
     ///@name Get key (Was Pressed) if updated
@@ -519,12 +531,13 @@ protected:
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt);
 
-    template <typename Func>
-    bool is_character_condition(const int ch, Func func) const
+    inline uint8_t alt_bits() const
     {
-        auto ka     = character_to_key_index(ch);
-        uint8_t alt = ka >> 8;
-        return (ka != 0xFFFF) ? func((key_index_t)(ka & 0xFF)) && (!alt || ((_now >> (6 * 8)) & alt) == alt) : false;
+        return (_now >> (6 * 8)) & 0xF0;
+    }
+    inline bool equal_alt(const uint8_t abit) const
+    {
+        return abit ? ((abit & alt_bits()) == abit) : (alt_bits() == 0x00);
     }
 
 protected:
