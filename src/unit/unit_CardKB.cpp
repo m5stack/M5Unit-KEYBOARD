@@ -141,11 +141,6 @@ bool UnitCardKB::begin()
             M5_LIB_LOGE("Failed to allocate");
             return false;
         }
-        _released.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
-        if (!_released) {
-            M5_LIB_LOGE("Failed to allocate");
-            return false;
-        }
     }
 
     _interval = _cfg.interval;
@@ -172,7 +167,7 @@ bool UnitCardKB::begin()
 void UnitCardKB::update(const bool force)
 {
     if (!inPeriodic()) {
-        retrun;
+        return;
     }
 
     switch (_mode) {
@@ -184,13 +179,11 @@ void UnitCardKB::update(const bool force)
                     _latest = at;
                 }
             }
-        }
+        } break;
+        default:
+            UnitKeyboard::update(force);
+            break;
     }
-    break;
-    default:
-        UnitKeyboard::update(force);
-        break;
-}
 }
 
 bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
@@ -225,10 +218,12 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
             _repeating |= bit;
             continue;
         }
+#if 0
         // Was released
         if (_wasReleased & bit) {
             push_back(_released.get(), i, alt);
         }
+#endif
         // Repeat?
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;

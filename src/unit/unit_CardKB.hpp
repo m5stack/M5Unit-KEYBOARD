@@ -110,8 +110,6 @@ public:
     static constexpr uint8_t ALT_SYMBOL_BIT{0x80};
     static constexpr uint8_t ALT_FUNCTION_BIT{0x40};
 
-
-    
     /*!
       @struct config_t
       @brief Settings for begin
@@ -124,7 +122,7 @@ public:
         /*! Mode */
         cardkb::Mode mode{cardkb::Mode::Scan};
         //! How many simultaneous inputs to stored
-        uint32_t stored_keys{4};
+        uint32_t stored_keys{1};
         //! Periodic interval
         uint32_t interval{10};
         //! Threshold for key repeating (ms)
@@ -135,9 +133,7 @@ public:
     };
 
     explicit UnitCardKB(const uint8_t addr = DEFAULT_ADDRESS)
-        : UnitKeyboard(addr),
-          _pressed{new m5::container::CircularBuffer<uint8_t>(1)},
-          _released{new m5::container::CircularBuffer<uint8_t>(1)}
+        : UnitKeyboard(addr), _pressed{new m5::container::CircularBuffer<uint8_t>(1)}
     {
     }
     virtual bool begin() override;
@@ -392,83 +388,59 @@ public:
     }
     ///@}
 
+    ////// TODO
+    /* latest
+    int pressed() {}
+
+    virtual uint8_t released() const override {
+    return _mode ? cardkb::Mode::Released ? UnitKeyboard::released() : 0x00;
+    }
+
+    //    int released() {} // base calss
+    int holding();
+    int repeating();
+
+    start/stop
+
+    */
+
     ///@warning API valid only if using UnitUnified firmware
-    ///@name Get key (Pressed) if updated
+    ///@name Get key (Was Pressed) if updated
     ///@{
     //! @brief Available pressed keys buffer
-    inline uint32_t availablePressed() const
+    inline uint32_t available() const
     {
         return _pressed->size();
     }
     //! @brief Is the key pressed buffer empty?
-    inline bool emptyPressed() const
+    inline bool empty() const
     {
         return _pressed->empty();
     }
     //! @brief Is the key pressed buffer full?
-    inline bool fullPressed() const
+    inline bool full() const
     {
         return _pressed->full();
     }
     //! @brief Discard oldest pressed
-    inline void discardPressed() const
+    inline void discard() const
     {
         _pressed->pop_front();
     }
     //! @brief Discard all pressed
-    inline void flushPressed() const
+    inline void flush() const
     {
         _pressed->clear();
     }
     //! @brief Get the oldest pressed key
-    uint8_t oldestPressed() const
+    uint8_t oldest() const
     {
-        return !emptyPressed() ? _pressed->front().value() : 0x00;
+        return !empty() ? _pressed->front().value() : 0x00;
     }
     //! @brief Get the latest pressed key
-    uint8_t latestPressed() const
+    uint8_t latest() const
     {
-        return !emptyPressed() ? _pressed->back().value() : 0x00;
-    }
-    ///@}
-
-    ///@warning API valid only if using UnitUnified firmware
-    ///@name Get key (Released) if updated
-    ///@{
-    //! @brief Available released keys buffer
-    inline uint32_t availableReleased() const
-    {
-        return _released->size();
-    }
-    //! @brief Is the key released buffer empty?
-    inline bool emptyReleased() const
-    {
-        return _released->empty();
-    }
-    //! @brief Is the key released buffer full?
-    inline bool fullReleased() const
-    {
-        return _released->full();
-    }
-    //! @brief Discard oldest released
-    inline void discardReleased() const
-    {
-        _released->pop_front();
-    }
-    //! @brief Discard all released
-    inline void flushReleased() const
-    {
-        _released->clear();
-    }
-    //! @brief Get the oldest released key
-    uint8_t oldestReleased() const
-    {
-        return !emptyReleased() ? _released->front().value() : 0x00;
-    }
-    //! @brief Get the latest released key
-    uint8_t latestReleased() const
-    {
-        return !emptyReleased() ? _released->back().value() : 0x00;
+        return !empty() ? _pressed->back().value() : 0x00;
     }
     ///@}
 
@@ -556,8 +528,7 @@ protected:
     }
 
 protected:
-    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _pressed{};
-    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _released{};
+    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _pressed{};  // was Presed keys
     uint64_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{}, _repeating{};
     types::elapsed_time_t _repeat_start_at[NUMBER_OF_KEYS]{};
     types::elapsed_time_t _hold_start_at[NUMBER_OF_KEYS]{};

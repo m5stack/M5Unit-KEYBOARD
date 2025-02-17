@@ -42,7 +42,7 @@ public:
       @retval !=0 Released character code
       @retval ==0 There is no released key
      */
-    uint8_t released() const
+    virtual uint8_t released() const
     {
         return updated() ? _released_key : 0;
     }
