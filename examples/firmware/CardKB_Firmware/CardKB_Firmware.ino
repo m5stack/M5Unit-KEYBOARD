@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: MIT
  */
 /*
-  Firmware for CardKB that adds detection of simultaneous key presses and press/release
+  Firmware for CardKB that adds key press scan mode
 
   Note that different types of boards are eligible for writing
     CardKB (SKU:U035)        : ATmega328P
@@ -139,7 +139,7 @@ uint8_t pressed{}, released{};
 uint8_t mode{}, mode_lock{}, released_mode{};  // 0:normal 1:shift 2:sym 3:fn
 uint8_t cmd{}, prev_alt{}, alt{};
 uint8_t scan_mode{};  // 0:Nearly compatible with the old 1: scan mode
-uint32_t idle{}, alt_press_at{},alt_clicked_at{};
+uint32_t idle{};
 uint32_t led_table[4]{};
 constexpr uint8_t mode_alt_bit_table[4] = {
     0,
@@ -148,7 +148,85 @@ constexpr uint8_t mode_alt_bit_table[4] = {
     function_bit,
 };
 
-void flush(const uint32_t clr, uint32_t times = 4, const uint32_t delayTime = 50)
+class AltButton {
+public:
+    enum button_state_t : uint8_t { state_nochange, state_clicked, state_hold, state_decide_click_count };
+
+    bool wasDoubleClicked(void) const
+    {
+        return _currentState == state_decide_click_count && _clickCount == 2;
+    }
+    bool isPressed(void) const
+    {
+        return _press;
+    }
+    bool wasReleased(void) const
+    {
+        return _oldPress && !_press;
+    }
+    void setState(const uint32_t tm, button_state_t state)
+    {
+        if (_currentState == state_decide_click_count) {
+            _clickCount = 0;
+        }
+        _lastTm          = tm;
+        bool flg_timeout = (tm - _lastClicked > 20);  // About 200 ms
+        switch (state) {
+            case state_nochange:
+                if (flg_timeout && !_press && _clickCount) {
+                    if (_oldPress == 0 && _currentState == state_nochange) {
+                        state = state_decide_click_count;
+                    } else {
+                        _clickCount = 0;
+                    }
+                }
+                break;
+            case state_clicked:
+                ++_clickCount;
+                _lastClicked = tm;
+                break;
+
+            default:
+                break;
+        }
+        _currentState = state;
+    }
+    void setRawState(const uint32_t tm, const bool press)
+    {
+        button_state_t state = button_state_t::state_nochange;
+        auto oldPress        = _press;
+        _oldPress            = oldPress;
+        if (_raw_press != press) {
+            _raw_press     = press;
+            _lastRawChange = tm;
+        }
+        if (press != (0 != oldPress)) {
+            _lastChange = tm;
+        }
+        if (press) {
+            if (!oldPress) {
+                _press = 1;
+            }
+        } else {
+            _press = 0;
+            if (oldPress == 1) {
+                state = button_state_t::state_clicked;
+            }
+        }
+        setState(tm, state);
+    }
+
+private:
+    uint32_t _lastTm{}, _lastChange{}, _lastRawChange{}, _lastClicked{};
+    button_state_t _currentState{state_nochange};  // 0:nochange  1:click  2:hold
+    bool _raw_press{};
+    uint8_t _press{};  // 0:release  1:click  2:holding
+    uint8_t _oldPress{};
+    uint8_t _clickCount{};
+};
+AltButton alt_buttuns[3];  // 0:shift,1:sym,2:Fn
+
+void flush(const uint32_t clr, uint32_t times = 3, const uint32_t delayTime = 20)
 {
     while (times--) {
         pixels.setPixelColor(0, clr);
@@ -197,9 +275,8 @@ void receiveEvent(int num)
         if (cmd == CMD_MODE && num == 2) {
             scan_mode = Wire.read() ? 1 : 0;
             cmd       = 0;
-            pressed = released = mode = mode_lock = released_mode = alt_clicked_at = idle = 0;
-
-            flush(pixels.Color(0, scan_mode ? 3 : 0, scan_mode ? 0 : 3, 4));  // Green:to new Blue: to old
+            pressed = released = mode = mode_lock = released_mode = idle = 0;
+            // flush(pixels.Color(0, scan_mode ? 3 : 0, scan_mode ? 0 : 3, 4));  // Green:to new Blue: to old
         }
     }
 }
@@ -290,24 +367,17 @@ void loop()
     // Must be A3:H A2:H A1:H A0:L
     alt = PINB;
     alt = ~alt & 0xD0;
-
     // Simultaneous Alt presses take precedence over Shift/Sym/Fun in that order
-    for (uint_fast8_t m = 1; m < 4; ++m) {
-        auto abit = mode_alt_bit_table[m];
-        // Clicked?
-        if (!(alt & abit) && (prev_alt & abit)) {
-            if (mode == m && alt_clicked_at) {
-                // Double clicked?
-                mode_lock = (idle <= alt_clicked_at + 50);  // About 450~ ms
-                mode      = mode_lock ? m : 0;           // lock mode or cancel
-                idle = alt_clicked_at = 0;
-            } else {
-                mode = (mode == m) ? 0 : m;  // cancel or change mode
-                mode_lock = 0;
-                if (mode) {
-                    alt_clicked_at = ++idle; // Must be not zero
-                }
-            }
+    // Loop Fn -> Sym -> Shift (Overwrite mode)
+    for (int_fast8_t i = 2; i >= 0; --i) {
+        uint8_t m = i + 1;
+        alt_buttuns[i].setRawState(idle, alt & mode_alt_bit_table[m]);
+        if (alt_buttuns[i].wasReleased()) {
+            mode      = (mode == m) ? 0 : m;  // cancel or change mode (old)
+            mode_lock = 0;
+        } else if (alt_buttuns[i].wasDoubleClicked()) {
+            mode      = m;
+            mode_lock = 1;  // mode lock
         }
     }
     key_bits[current][NUMBER_OF_KEY_STATUS_BYTE - 1] = alt | (mode_lock ? mode_alt_bit_table[mode] : 0x00);
@@ -321,9 +391,9 @@ void loop()
         pixels.setPixelColor(0, led_table[(!mode_lock && (idle / 6) % 2 == 1) ? 0 : mode]);
     }
 
-    // delay(2) * 4 in get_key_status
+    // Scan key state ( delay(2) * 4 in get_key_status)
     if (get_key_status()) {
-        // Pressed any key
+        // Pressed any key?
         pixels.setPixelColor(0, pixels.Color(2, 2, 2));
     }
     pixels.show();
@@ -337,5 +407,5 @@ void loop()
     current ^= 1;
 
     ++idle;
-    delay(1);  // About 9ms delay + process time per 1 loop
+    delay(2);  // About 10ms delay + process time per 1 loop
 }
