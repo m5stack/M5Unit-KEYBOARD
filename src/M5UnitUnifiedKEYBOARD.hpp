@@ -13,8 +13,9 @@
 #ifndef M5_UNIT_UNIFIED_KEYBOARD_HPP
 #define M5_UNIT_UNIFIED_KEYBOARD_HPP
 
+#include "unit/unit_Keyboard.hpp"
 #include "unit/unit_CardKB.hpp"
-#include "unit/unit_FaceQWERTY.hpp"
+#include "unit/unit_FacesQWERTY.hpp"
 
 /*!
   @namespace m5

@@ -13,12 +13,13 @@
 
 using namespace m5::utility::mmh3;
 using namespace m5::unit::types;
+using namespace m5::unit::keyboard;
+using namespace m5::unit::keyboard::command;
 using namespace m5::unit::cardkb;
 using namespace m5::unit::cardkb::command;
 
 namespace {
-constexpr uint8_t NUMBER_OF_KEYS{12 * 4};
-constexpr uint8_t key_map[NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
+constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
     {27, 27, 27, 128},      // esc 0
     {'1', '1', '!', 129},   // 1
     {'2', '2', '@', 130},   // 2
@@ -69,8 +70,8 @@ constexpr uint8_t key_map[NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
     {' ', ' ', ' ', 175}    // space
 };
 
-// Alt bit to key_map category index
-constexpr uint8_t alt_table[] = {1, 0, 3, 2};  // Alt 0x01:Shift, 0x80:Symbol 0x40:Fucntion
+// modifier bit to key_map category index
+constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Fucntion
 
 constexpr uint16_t character_map[] = {
     //
@@ -116,7 +117,7 @@ const char UnitCardKB::name[] = "UnitCardKB";
 const types::uid_t UnitCardKB::uid{"UnitCardKB"_mmh3};
 const types::uid_t UnitCardKB::attr{0};
 
-UnitCardKB::key_index_t UnitCardKB::character_to_key_index(const char ch)
+UnitKeyboardBitwise::key_index_t UnitCardKB::character_to_key_index(const char ch)
 {
     unsigned char uc = ch;
     // function? (>= 0x80)
@@ -128,13 +129,13 @@ UnitCardKB::key_index_t UnitCardKB::character_to_key_index(const char ch)
     return static_cast<key_index_t>((uc < m5::stl::size(character_map)) ? (character_map[uc] & 0xFF) : 0xFF);
 }
 
-uint8_t UnitCardKB::character_to_alt_bit(const char ch)
+uint8_t UnitCardKB::character_to_modifier_bit(const char ch)
 {
     unsigned char uc = ch;
     // function? (>= 0x80)
     if (uc & 0x80) {
         key_index_t kidx = (key_index_t)(uc - 0x80);
-        return (kidx < m5::stl::size(key_map)) ? ALT_FUNCTION_8BIT : 0x00;
+        return (kidx < m5::stl::size(key_map)) ? MODIFIER_FUNCTION_8BIT : 0x00;
     }
     // normal, shift or symbol
     return (uc < m5::stl::size(character_map)) ? (character_map[uc] >> 8) : 0x00;
@@ -144,9 +145,9 @@ bool UnitCardKB::begin()
 {
     auto ssize = _cfg.stored_keys;
     assert(ssize && "stored_size must be greater than zero");
-    if (ssize != _pressed->capacity()) {
-        _pressed.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
-        if (!_pressed) {
+    if (ssize != _inputs->capacity()) {
+        _inputs.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
+        if (!_inputs) {
             M5_LIB_LOGE("Failed to allocate");
             return false;
         }
@@ -156,8 +157,8 @@ bool UnitCardKB::begin()
     _periodic = _cfg.start_periodic;
 
     // Try read firmware version and hardware type
-    readRegister8(CMD_FIRMWARE_VERSION_REG, _firmware_version, 0);
-    readRegister8(CMD_HARDWARE_TYPE_REG, _type, 0);
+    readFirmwareVersion(_firmware_version);
+    readHardwareType(_type);
     M5_LIB_LOGI("Type:%02X Firmware:%02X", _type, _firmware_version);
 
     if (firmwareVersion()) {
@@ -170,7 +171,7 @@ bool UnitCardKB::begin()
             return false;
         }
     }
-    return UnitKeyboard::begin();
+    return UnitKeyboardBitwise::begin();
 }
 
 void UnitCardKB::update(const bool force)
@@ -190,7 +191,7 @@ void UnitCardKB::update(const bool force)
             }
         } break;
         default:
-            UnitKeyboard::update(force);
+            UnitKeyboardBitwise::update(force);
             break;
     }
 }
@@ -213,7 +214,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
            (((uint64_t)rbuf[3]) << 24) | (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) |
            (((uint64_t)rbuf[0]) << 0);
 
-    uint8_t alt8 = alt_bits();
+    uint8_t mod = modifier_bits();
     uint64_t bit{1};
 
     _wasPressed  = (_now ^ _prev) & _now;
@@ -222,7 +223,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_pressed.get(), i, alt8);
+            push_back(_inputs.get(), i, mod);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -230,14 +231,14 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
 #if 0
         // Was released
         if (_wasReleased & bit) {
-            push_back(_released.get(), i, alt8);
+            push_back(_released.get(), i, mod);
         }
 #endif
         // Repeat?
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_pressed.get(), i, alt8);
+            push_back(_inputs.get(), i, mod);
         } else {
             _repeating &= ~bit;
         }
@@ -250,55 +251,29 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return true;
+    return true;  // Always true
 }
 
-void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt8)
+void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod)
 {
-    uint8_t aidx{};
-    uint8_t single_alt = (alt8 & ALT_SHIFT_8BIT)      ? ALT_SHIFT_8BIT
-                         : (alt8 & ALT_SYMBOL_8BIT)   ? ALT_SYMBOL_8BIT
-                         : (alt8 & ALT_FUNCTION_8BIT) ? ALT_FUNCTION_8BIT
-                                                      : 0;
-    if (single_alt) {
-        aidx = alt_table[(__builtin_ctz(single_alt)) & 0x03];
+    uint8_t midx{};
+    uint8_t single_mod = (mod & MODIFIER_SHIFT_8BIT)      ? MODIFIER_SHIFT_8BIT
+                         : (mod & MODIFIER_SYMBOL_8BIT)   ? MODIFIER_SYMBOL_8BIT
+                         : (mod & MODIFIER_FUNCTION_8BIT) ? MODIFIER_FUNCTION_8BIT
+                                                          : 0;
+    if (single_mod) {
+        midx = mod_table[(__builtin_ctz(single_mod)) & 0x03];
     }
-    auto k = key_map[kidx][aidx];
+    auto k = key_map[kidx][midx];
     if (k) {
         container->push_back(k);
     }
-}
-
-bool UnitCardKB::readFirmwareVersion(uint8_t& ver)
-{
-    ver = 0;
-    return readRegister8(CMD_FIRMWARE_VERSION_REG, ver, 0);
 }
 
 bool UnitCardKB::readHardwareType(uint8_t& htype)
 {
     htype = 0;
     return readRegister8(CMD_HARDWARE_TYPE_REG, htype, 0);
-}
-
-bool UnitCardKB::readMode(Mode& mode)
-{
-    mode = Mode::Released;
-    uint8_t v{};
-    if (readRegister8(CMD_MODE_REG, v, 0)) {
-        mode = static_cast<Mode>(v);
-        return true;
-    }
-    return false;
-}
-
-bool UnitCardKB::writeMode(const Mode mode)
-{
-    if (firmwareVersion() && writeRegister8(CMD_MODE_REG, m5::stl::to_underlying(mode))) {
-        _mode = mode;
-        return true;
-    }
-    return false;
 }
 
 }  // namespace unit
