@@ -4,14 +4,22 @@
  * SPDX-License-Identifier: MIT
  */
 /*
-  Firmware for CardKB that adds key press scan mode
+  Firmware for CardKB that adds key pressed scan mode
 
   Note that different types of boards are eligible for writing
     CardKB (SKU:U035)        : ATmega328P
     CardKB v1.1 (SKU:U035-B) : ATmega8A
 
   Required: Adafruit_NeoPixel https://github.com/adafruit/Adafruit_NeoPixel
- */
+
+  ArduinoIDE settings
+    - [Tool] - [Board]      SKU:U035 "ATmega328", SKU:U035-B "ATmega8"
+    - [Tool] - [Clock]      "Internal 8 MHz"
+    - [Tool] - [Programmer] Device to write the firmware you use (Arduino as ISP, USbasp, ... )
+
+  Use command
+    - [Skeych] - [Upload Using Programmer]
+*/
 #include <Adafruit_NeoPixel.h>
 constexpr uint8_t PIN{13};
 constexpr uint8_t NUMPIXELS{1};
@@ -52,17 +60,17 @@ constexpr uint8_t HARDWARE_TYPE{0x01};
 #error "Clock setting must be Internal 8MHz"
 #endif
 
-constexpr uint8_t FIRMWARE_VERSION{0x10};  // High nibble Major, low nibble Minor
 constexpr uint8_t I2C_ADDR{0x5F};
+constexpr uint8_t FIRMWARE_VERSION{0x01};
 
-constexpr uint8_t NUMBER_OF_KEYS{12 * 4};
+constexpr uint8_t NUMBER_OF_KEYS{48};
 //        d0   d1     d2 d3 d4 d5 d6 d7 d8 d9 d10 d11
 // A3:    esc  1      2  3  4  5  6  7  8  9  0   del
 // A2:    tab  q      w  e  r  t  y  u  i  o  p
 // A1:    left up     a  s  d  f  g  h  j  k  l   enter
 // A0:    down right  z  x  c  v  b  n  m  ,  .   space
-// sym:   d15
 // shift: d12
+// sym:   d15
 // fn:    d14
 uint8_t key_map[NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
     /* A3 */
@@ -132,26 +140,35 @@ constexpr uint8_t CMD_MODE{0x20};                  // R/W 1 byte
 constexpr uint8_t CMD_HARDWARE_TYPE_REG{0xFD};     // R 1 byte
 constexpr uint8_t CMD_FIRMWARE_VERSION_REG{0xFE};  // R 1 byte
 
-constexpr uint8_t NUMBER_OF_KEY_STATUS_BYTE{NUMBER_OF_KEYS / 8 + 1};
+constexpr uint8_t NUMBER_OF_KEY_STATUS_BYTE{(NUMBER_OF_KEYS + 7) / 8 + 1};
 uint8_t key_bits[2][NUMBER_OF_KEY_STATUS_BYTE]{};  // key status + alt key status
 uint8_t current{};                                 // write target
 uint8_t pressed{}, released{};
-uint8_t mode{}, mode_lock{}, released_mode{};  // 0:normal 1:shift 2:sym 3:fn
-uint8_t cmd{}, prev_alt{}, alt{};
+uint8_t mode{}, released_mode{};  // 0:normal 1:shift 2:sym 3:fn
+uint8_t mode_lock{};
+uint8_t cmd{};
 uint8_t scan_mode{};  // 0:Nearly compatible with the old 1: scan mode
 uint32_t idle{};
 uint32_t led_table[4]{};
-constexpr uint8_t mode_alt_bit_table[4] = {
+
+constexpr uint8_t mode_to_modifier_bit_table[4] = {
     0,
     shift_bit,
     symbol_bit,
     function_bit,
 };
 
-class AltButton {
+// Make the modifier key bits common as they vary from unit to unit
+constexpr uint8_t mode_to_common_modifier_bit_table[4] = {
+    0,
+    0x01,
+    0x02,
+    0x04,
+};
+
+class ModButton {
 public:
     enum button_state_t : uint8_t { state_nochange, state_clicked, state_hold, state_decide_click_count };
-
     bool wasDoubleClicked(void) const
     {
         return _currentState == state_decide_click_count && _clickCount == 2;
@@ -224,7 +241,7 @@ private:
     uint8_t _oldPress{};
     uint8_t _clickCount{};
 };
-AltButton alt_buttuns[3];  // 0:shift,1:sym,2:Fn
+ModButton mod_buttuns[3];  // 0:shift,1:sym,2:Fn
 
 void flush(const uint32_t clr, uint32_t times = 3, const uint32_t delayTime = 20)
 {
@@ -361,26 +378,28 @@ void setup()
 void loop()
 {
     memset(key_bits[current], 0, sizeof(key_bits[0]));
-    prev_alt = alt;
 
-    // Detect Alt
+    // Detect modifier keys
     // Must be A3:H A2:H A1:H A0:L
-    alt = PINB;
-    alt = ~alt & 0xD0;
+    uint8_t mod = PINB;
+    uint8_t tmp_mod_bits{};
+    mod = ~mod & (shift_bit | symbol_bit | function_bit);
+
     // Simultaneous Alt presses take precedence over Shift/Sym/Fun in that order
-    // Loop Fn -> Sym -> Shift (Overwrite mode)
     for (int_fast8_t i = 2; i >= 0; --i) {
-        uint8_t m = i + 1;
-        alt_buttuns[i].setRawState(idle, alt & mode_alt_bit_table[m]);
-        if (alt_buttuns[i].wasReleased()) {
-            mode      = (mode == m) ? 0 : m;  // cancel or change mode (old)
+        uint8_t m    = i + 1;
+        uint8_t mbit = mode_to_modifier_bit_table[m];
+        tmp_mod_bits |= (mod & mbit) ? mode_to_common_modifier_bit_table[m] : 0;
+        mod_buttuns[i].setRawState(idle, mod & mbit);
+        if (mod_buttuns[i].wasReleased()) {
+            mode      = scan_mode ? 0 : ((mode == m) ? 0 : m);  // cancel or change mode (old)
             mode_lock = 0;
-        } else if (alt_buttuns[i].wasDoubleClicked()) {
+        } else if (mod_buttuns[i].wasDoubleClicked()) {
             mode      = m;
             mode_lock = 1;  // mode lock
         }
     }
-    key_bits[current][NUMBER_OF_KEY_STATUS_BYTE - 1] = alt | (mode_lock ? mode_alt_bit_table[mode] : 0x00);
+    key_bits[current][NUMBER_OF_KEY_STATUS_BYTE - 1] = mode ? mode_to_common_modifier_bit_table[mode] : tmp_mod_bits;
 
     // LED for mode
     // Lighting is mode locked (old, new)
@@ -400,12 +419,12 @@ void loop()
 
     // If there is a released key and ALT is applied, clear the mode (old)
     if (!scan_mode && released && !mode_lock) {
-        mode = alt_clicked_at = 0;
+        mode = 0;
     }
 
     // Swap scan buffer for writing
     current ^= 1;
 
     ++idle;
-    delay(2);  // About 10ms delay + process time per 1 loop
+    delay(1);  // About 9ms delay + process time per 1 loop
 }

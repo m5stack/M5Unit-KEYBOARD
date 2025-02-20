@@ -57,9 +57,6 @@ constexpr uint8_t key_map[][5 /* mode: normal, shift, sym, fn, alt */] = {
 };
 static_assert(m5::stl::size(key_map) == UnitFacesQWERTY::NUMBER_OF_KEYS, "Invalid size");
 
-// modifier bit to key_map mode index
-constexpr uint8_t mod_table[] = {0, 0, 0, 3, 4, 1, 0, 2};  // 0x20:shift 0x80;symbol 0x08:function 0x01:alt
-
 // ASCII to mode bit and key_index_t
 // 1:normal 2:shift 4:symbol 8:fuction 16:alt
 constexpr std::pair<uint8_t, key_index_t> character_map[] = {
@@ -247,17 +244,17 @@ uint8_t UnitFacesQWERTY::character_to_mode_bits(const char ch)
     unsigned char uc = ch;
     // Special key?
     if (uc >= SCHAR_NOMARK_G && uc <= SCHAR_SPEAKER) {
-        M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_NOMARK_G].first);
+        //        M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_NOMARK_G].first);
         return special_character_map[uc - SCHAR_NOMARK_G].first;
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
         key_index_t kidx = (key_index_t)(uc - 0x90);
-        M5_LIB_LOGI("%c => %02X", ch, (uc - 0x90));
+        //        M5_LIB_LOGI("%c => %02X", ch, (uc - 0x90));
         return (kidx < m5::stl::size(key_map)) ? 0x10 : 0x00;
     }
     // normal,shift,symbol and function
-    M5_LIB_LOGI("%c => %02X", ch, (uc < m5::stl::size(character_map)) ? (character_map[uc].first) : 0x00);
+    //    M5_LIB_LOGI("%c => %02X", ch, (uc < m5::stl::size(character_map)) ? (character_map[uc].first) : 0x00);
     return (uc < m5::stl::size(character_map)) ? (character_map[uc].first) : 0x00;
 }
 
@@ -301,7 +298,7 @@ void UnitFacesQWERTY::update(const bool force)
     }
 
     switch (_mode) {
-        case Mode::Scan: {
+        case Mode::M5UnitUnified: {
             auto at = m5::utility::millis();
             if (force || !_latest || at >= _latest + _interval) {
                 _updated = update_new_firmware(at);
@@ -332,13 +329,11 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
         M5_LIB_LOGE("Failed to read");
         return false;
     }
-    // M5_LIB_LOGI("KB:%02X;%02X;%02X;%02X;%02X;%02X;%02X", rbuf[0], rbuf[1], rbuf[2], rbuf[3], rbuf[4], rbuf[5],
-    // rbuf[6]);
 
-    _now = (((uint64_t)rbuf[5]) << 40) | (((uint64_t)rbuf[4]) << 32) | (((uint64_t)rbuf[3]) << 24) |
+    _now = (((uint64_t)rbuf[5]) << 56) | (((uint64_t)rbuf[4]) << 32) | (((uint64_t)rbuf[3]) << 24) |
            (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) | (((uint64_t)rbuf[0]) << 0);
 
-    uint8_t mod = rbuf[5];
+    uint8_t mod8 = rbuf[5];
     uint64_t bit{1};
 
     _wasPressed  = (_now ^ _prev) & _now;
@@ -347,7 +342,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_inputs.get(), i, mod);
+            push_back(_inputs.get(), i, mod8);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -362,7 +357,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_inputs.get(), i, mod);
+            push_back(_inputs.get(), i, mod8);
         } else {
             _repeating &= ~bit;
         }
@@ -379,18 +374,9 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
 }
 
 void UnitFacesQWERTY::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx,
-                                const uint8_t mod)
+                                const uint8_t mod8)
 {
-    uint8_t midx{};
-    uint8_t single_mod = (mod & MODIFIER_SHIFT_8BIT)      ? MODIFIER_SHIFT_8BIT
-                         : (mod & MODIFIER_SYMBOL_8BIT)   ? MODIFIER_SYMBOL_8BIT
-                         : (mod & MODIFIER_FUNCTION_8BIT) ? MODIFIER_FUNCTION_8BIT
-                         : (mod & MODIFIER_ALT_8BIT)      ? MODIFIER_ALT_8BIT
-                                                          : 0;
-    if (single_mod) {
-        midx = mod_table[(__builtin_ctz(single_mod)) & 0x07];
-    }
-    auto k = key_map[kidx][midx];
+    auto k = key_map[kidx][mod8 ? __builtin_ctz(mod8) + 1 : 0];
     if (k) {
         container->push_back(k);
     }
@@ -400,51 +386,6 @@ bool UnitFacesQWERTY::readFacesType(uint8_t& ftype)
 {
     ftype = 0;
     return readRegister8(CMD_FACES_TYPE_REG, ftype, 0);
-}
-
-uint8_t UnitFacesQWERTY::mode_bits() const
-{
-    // mod5 bit: 0x01:function 0x02:alt 0x04:shift 0x10:symbol
-    // mode bit: 1:normal 2:shift 4:symbol 8:function 16:alt
-    static constexpr uint8_t modifier5_to_mode_bits_table[] = {
-        1,               // 00000b normal
-        8,               // 00001b function
-        16,              // 00010b alt
-        8 + 16,          // 00011b fnction alt
-        2,               // 00100b shift
-        2 + 8,           // 00101b shift function
-        2 + 16,          // 00110b shift alt
-        2 + 8 + 16,      // 00111b shift function alt
-        1,               // 01000b
-        8,               // 01001b function
-        16,              // 01010b alt
-        8 + 16,          // 01011b function alt
-        2,               // 01100b shift
-        2 + 8,           // 01101b shift function
-        2 + 16,          // 01110b shift alt
-        2 + 8 + 16,      // 01111b shift function alt
-        4,               // 10000b symbol
-        4 + 8,           // 10001b symbol function
-        4 + 16,          // 10010b symbol alt
-        4 + 8 + 16,      // 10011b symbol function alt
-        4 + 2,           // 10100b symbol shift
-        4 + 2 + 8,       // 10101b symbol shift function
-        4 + 2 + 16,      // 10110b symbol shift alt
-        4 + 2 + 8 + 16,  // 10111b symbol shift function alt
-        4,               // 11000b symbol
-        4 + 8,           // 11001b symbol function
-        4 + 16,          // 11010b symbol alt
-        4 + 8 + 16,      // 11011b symbol function alt
-        4 + 2,           // 11100b symbol shift
-        4 + 2 + 8,       // 11101b symbol shift function
-        4 + 2 + 16,      // 11110b symbol shift alt
-        4 + 2 + 8 + 16,  // 11111b symbol shift function alt
-    };
-    static_assert(m5::stl::size(modifier5_to_mode_bits_table) == 32, "Invalid size");
-
-    uint8_t mod5 = (_now >> (40 + 3)) & 0x01F;
-    M5_LIB_LOGE("mode_bits: %02X => %02X", mod5, modifier5_to_mode_bits_table[mod5]);
-    return modifier5_to_mode_bits_table[mod5];
 }
 
 }  // namespace unit

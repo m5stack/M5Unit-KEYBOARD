@@ -22,13 +22,43 @@ namespace unit {
  */
 namespace keyboard {
 using key_index_t = uint8_t;  //!< @brief Key index (Not character)
+
+using key_status_bits_t = uint64_t;  //!< @brief key state bits [56...63]:modifier, bits [0...55]:key bits
+// clang-format off
+///@name Modifier's bit [56...63]
+///@{
+constexpr key_status_bits_t MODIFIER_SHIFT_BIT   {0x0100000000000000};  //!< Shift
+constexpr key_status_bits_t MODIFIER_SYMBOL_BIT  {0x0200000000000000};  //!< Symbol
+constexpr key_status_bits_t MODIFIER_FUNCTION_BIT{0x0400000000000000};  //!< Function
+constexpr key_status_bits_t MODIFIER_ALT_BIT     {0x0800000000000000};  //!< Alt
+constexpr key_status_bits_t MODIFIER_CONTROL_BIT {0x1000000000000000};  //!< Control
+constexpr key_status_bits_t MODIFIER_OPTION_BIT  {0x2000000000000000};  //!< Option
+///@}
+// clang-format on
+
+//! @brief Gets the modifier bits from key_status_bits_t
+constexpr inline key_status_bits_t modifier_bits(const key_status_bits_t kbs)
+{
+    return kbs & (MODIFIER_SHIFT_BIT | MODIFIER_SYMBOL_BIT | MODIFIER_FUNCTION_BIT | MODIFIER_ALT_BIT |
+                  MODIFIER_CONTROL_BIT | MODIFIER_OPTION_BIT);
+}
+
 /*!
   @enum Mode
   @brief Operation mode for M5UnitU-KEYBOARD firmware
  */
 enum class Mode : uint8_t {
-    Released,  //!< Gets the released key (Conventional behavior)
-    Scan,      //!< Gets the pressed key status (M5Unit-KEYBOARD firmware must be written)
+    /*!
+      Conventional behavior
+      @details CardKB,FacesQWERTY:Gets the released key
+     */
+    Conventional,
+    /*!
+      M5Unit-KEYBOARD mode  behavior
+      @details CardKB, FacesQWERTY:Gets the pressed key status
+      @warning M5Unit-KEYBOARD firmware must be written
+     */
+    M5UnitUnified,
 };
 }  // namespace keyboard
 
@@ -56,8 +86,8 @@ public:
 
     /*!
       @brief Gets the character if input
-      @retval != 0 Released character code
-      @retval == 0 There is no released key
+      @retval != 0 Character
+      @retval == 0 Not input or invalid character
       @note Whether the input is a released or pressed key depends on the derived class
      */
     inline virtual char getchar() const
@@ -103,42 +133,42 @@ public:
     ///@name Key status bits if updated
     ///@{
     //! @brief Get the bits of the key being pressed
-    inline uint64_t nowBits() const
+    inline keyboard::key_status_bits_t nowBits() const
     {
         return _now;
     }
     //! @brief Get the bits of the previous key pressed
-    inline uint64_t previousBits() const
+    inline keyboard::key_status_bits_t previousBits() const
     {
         return _prev;
     }
     //! @brief Get the key bits at the moment they are pressed
-    inline uint64_t pressedBits() const
+    inline keyboard::key_status_bits_t pressedBits() const
     {
         return _wasPressed;
     }
     //! @brief Get the key bits at the moment they are released
-    inline uint64_t releasedBits() const
+    inline keyboard::key_status_bits_t releasedBits() const
     {
         return _wasReleased;
     }
     //! @brief Get the bits of the held key
-    inline uint64_t holidngBits() const
+    inline keyboard::key_status_bits_t holidngBits() const
     {
         return _holding;
     }
     //! @brief Get the bits of the key at the moment of hold
-    inline uint64_t holdgBits() const
+    inline keyboard::key_status_bits_t holdgBits() const
     {
         return _wasHold;
     }
     //! @brief Get the bits of the key that the software is repeatedly pressing
-    inline uint64_t repeatingBits() const
+    inline keyboard::key_status_bits_t repeatingBits() const
     {
         return _repeating;
     }
     //! @brief Get the bits of the modifier key being pressed
-    inline uint64_t modifierBits() const
+    inline keyboard::key_status_bits_t modifierBits() const
     {
         return modifier_bits();
     }
@@ -151,47 +181,68 @@ public:
     //! @brief Is any modifier keys pressed?
     inline bool isModifier() const
     {
-        return modifier_bits();
+        return modifier_bits() != 0;
     }
     //! @brief Is the shift key pressed?
-    inline virtual bool isShift() const
+    inline bool isShift() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_SHIFT_BIT;
     }
     //! @brief Is the symbol key pressed?
-    inline virtual bool isSymbol() const
+    inline bool isSymbol() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_SYMBOL_BIT;
     }
     //! @brief Is the function key pressed?
-    inline virtual bool isFunction() const
+    inline bool isFunction() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_FUNCTION_BIT;
     }
     //! @brief Is the alt key pressed?
-    inline virtual bool isAlt() const
+    inline bool isAlt() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_ALT_BIT;
     }
-    //! @brief Is only Shift pressed among the modifier keys?
-    inline virtual bool isShiftEqual() const
+    //! @brief Is the control key pressed?
+    inline bool isControl() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_CONTROL_BIT;
     }
-    //! @brief Is only Symbol pressed among the modifier keys?
-    inline virtual bool isSymbolEqual() const
+    //! @brief Is the option key pressed?
+    inline bool isOption() const
     {
-        return false;
+        return modifier_bits() & keyboard::MODIFIER_OPTION_BIT;
     }
-    //! @brief Is only Function pressed among the modifier keys?
-    inline virtual bool isFunctionEqual() const
+
+    //! @brief Is only shift pressed among the modifier keys?
+    inline bool isShiftEqual() const
     {
-        return false;
+        return modifier_bits() == keyboard::MODIFIER_SHIFT_BIT;
     }
-    //! @brief Is only Alt pressed among the modifier keys?
-    inline virtual bool isAltEqual() const
+    //! @brief Is only symbol pressed among the modifier keys?
+    inline bool isSymbolEqual() const
     {
-        return false;
+        return modifier_bits() == keyboard::MODIFIER_SYMBOL_BIT;
+    }
+    //! @brief Is only function pressed among the modifier keys?
+    inline bool isFunctionEqual() const
+    {
+        return modifier_bits() == keyboard::MODIFIER_FUNCTION_BIT;
+    }
+    //! @brief Is only alt pressed among the modifier keys?
+    inline bool isAltEqual() const
+    {
+        return modifier_bits() == keyboard::MODIFIER_ALT_BIT;
+    }
+    //! @brief Is only control pressed among the modifier keys?
+    inline bool isControlEqual() const
+    {
+        return modifier_bits() == keyboard::MODIFIER_CONTROL_BIT;
+    }
+    //! @brief Is only option pressed among the modifier keys?
+    inline bool isOptionEqual() const
+    {
+        return modifier_bits() == keyboard::MODIFIER_OPTION_BIT;
     }
     ///@}
 
@@ -373,17 +424,20 @@ public:
     ///@}
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
-    ///@name Get key (Was Pressed) if updated
+    ///@name Get input key if updated
     ///@{
     //! @brief Get the oldest pressed key
     inline uint8_t pressed() const
     {
         return !empty() ? oldest() : 0x00;
     }
-    //! @brief Get the oldest released key
+    /*!
+      @brief Get the oldest released key
+      @warning Disabled in all modes except Conventional mode
+    */
     inline virtual uint8_t released() const override
     {
-        return (_mode == keyboard::Mode::Released) ? UnitKeyboard::released() : 0x00;
+        return (_mode == keyboard::Mode::Conventional) ? UnitKeyboard::released() : 0x00;
     }
     //! @brief Available pressed keys buffer
     inline uint32_t available() const
@@ -484,6 +538,10 @@ public:
 protected:
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt);
+    inline keyboard::key_status_bits_t modifier_bits() const
+    {
+        return keyboard::modifier_bits(_now);
+    }
 
     inline virtual keyboard::key_index_t to_key_index(const char) const
     {
@@ -493,26 +551,20 @@ protected:
     {
         return 0x00;
     }
-    inline virtual uint64_t modifier_bits() const
+    bool permitted_mode(const uint8_t mbits) const
     {
-        return (uint64_t)0;
-    }
-    inline virtual uint8_t mode_bits() const
-    {
-        return 0x00;
-    }
-    inline bool permitted_mode(const uint8_t mbits) const
-    {
-        return mbits & mode_bits();
+        uint8_t mod8 = _now >> 56;
+        return mbits & (1U << (mod8 ? __builtin_ctz(mod8) + 1 : 0));
     }
 
 protected:
-    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _inputs{};                              // was Presed keys
-    uint64_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{}, _repeating{};  // key bits
+    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _inputs{};  // was Presed keys
+    keyboard::key_status_bits_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{},
+        _repeating{};  // key bits
     std::vector<types::elapsed_time_t> _repeat_start_at{}, _hold_start_at{};
     uint32_t _repeating_threshold{400}, _holding_threshold{800};
     uint8_t _firmware_version{};
-    keyboard::Mode _mode{keyboard::Mode::Released};
+    keyboard::Mode _mode{keyboard::Mode::Conventional};
 };
 
 namespace keyboard {

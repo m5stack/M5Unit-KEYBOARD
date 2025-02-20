@@ -1,8 +1,8 @@
-#CardKB firmware
+# FacesQWERTY firmware
 
 ## Overview
 
-[In the conventional firmware](https://github.com/m5stack/M5-ProductExampleCodes/blob/master/Unit/CARDKB/firmware_328p/CardKeyBoard/CardKeyBoard.ino), only the released key was retrieved.  
+[In the conventional firmware](https://github.com/m5stack/FACES-Firmware/blob/master/KeyBoard.ino)
 The modifier key qualified the next key after clicking, and double-clicking locked it.
 
 With the new firmware, it is now possible to acquire the pressed state of all keys.  
@@ -13,16 +13,16 @@ As before, the modifier key can be locked by double-clicking.
 
 ## Required library
 - Wire
-- [Adafruit\_NeoPixel](https://github.com/adafruit/Adafruit_NeoPixel)
 
 ## Protocrol
 
-|REG MAP(0x5F)||0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|note|
+|REG MAP(0x08)||0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|note|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>key | byte6<br>modifier |||||||||| Scaned pressed key status|
+|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>modifier ||||||||||| Scaned pressed key status|
 |Mode |0x20 R/W| Mode | |||||||||||||||Operation mode<br>0x00:Conventional mode<br> 0x01:M5UnitUnified mode|
-|Hardware type|0xF0 R| |||||||||||||type|||Hardware<br>0x01:SKU:U035<br>0x11:SKU:U035-B|
+|Faces type|0xF0 R| ||||||||||||type||||Faces type<br> 0x01:FacesQWERTY|
 |Firmware version|0xF0 R|||||||||||||||version||Version: firmware version number|
+
 
 ### Mode
 
@@ -31,21 +31,22 @@ As before, the modifier key can be locked by double-clicking.
 |0x00|Conventional |Compatible behavior with conventional firmware|
 |0x01|M5UnitUnified|Key pressed status acquisition mode|
 
-### Hardware type
+### Faces type
 
 |Value|Type|
 |---|---|
-|0x01|SKU:U035 CardKB|
-|0x11|SKU:U035-B CardKB v1.1|
+|0x01|FacesQWERTY|
+
+(Other Faces will be added in the future)
 
 ### Scaned pressed key bits
 #### Modifier
-|byte|Shift|Symbol|Function|
-|---|---|---|---|
-|byte 6| 0x01| 0x02| 0x04|
+|byte|Shift|Symbol|Function|Alt|
+|---|---|---|---|---|
+|byte 5| 0x01| 0x02| 0x04|0x08|
 
 ### Key
-Up to 48 bits valid as a key
+Up to 35 bits valid as a key
 
 |byte|MSB key index | LSB key index|
 |---|---|---|
@@ -53,63 +54,49 @@ Up to 48 bits valid as a key
 |byte 1 |15| 8  |
 |byte 2 |23| 16 |
 |byte 3 |31| 24 |
-|byte 4 |39| 32 |
-|byte 5 |47| 40 |
+|byte 4 |34| 32 |
 
 
 #### Key index
 
 |index|Key|
 |---|---|
-| 0|ESC|
-| 1|1|
-| 2|2|
-| 3|3|
-| 4|4|
-| 5|5|
-| 6|6|
-| 7|7|
-| 8|8|
-| 9|9|
-|10|0|
-|11|BS|
-|12|TAB|
-|13|Q|
-|14|W|
-|15|E|
-|16|R|
-|17|T|
-|18|Y|
-|19|U|
-|20|I|
-|21|O|
-|22|P|
-|23|NO\_KEY|
-|24|LEFT|
-|25|UP|
-|26|A|
-|27|S|
-|28|D|
-|29|F|
-|30|G|
-|31|H|
-|32|J|
-|33|K|
-|34|L|
-|35|ENTER|
-|36|DOWN|
-|37|RIGHT|
-|38|Z|
-|39|X|
-|40|C|
-|41|V|
-|42|B|
-|43|N|
-|44|M|
-|45|COMMA|
-|46|PERIOD|
-|47|SPACE|
+| 0|Q|
+| 1|W|
+| 2|E|
+| 3|R|
+| 4|T|
+| 5|Y|
+| 6|U|
+| 7|I|
+| 8|O|
+| 9|P|
+|10|A|
+|11|S|
+|12|D|
+|13|F|
+|14|G|
+|15|H|
+|16|J|
+|17|K|
+|18|L|
+|19|BS|
+|20|NO\_KEY|
+|21|Z|
+|22|X|
+|23|C|
+|24|V|
+|25|B|
+|26|N|
+|27|M|
+|28|DOLLAR|
+|29|ENTER|
+|30|NO\_KEY|
+|31|0|
+|32|SPACE|
+|33|NO\_KEY|
+|34|NO\_KEY|
 
 ## Examples with this firmware
-- [PlotTSerial](../../UnitUnified/UnitCardKB/PlotToSerial)
-- [SimpleDisplay](../../UnitUnified/UnitCardKB/SimpleDisplay)
+- [PlotTSerial](../../UnitUnified/UnitFacesQWERTY/PlotToSerial)
+- [SimpleDisplay](../../UnitUnified/UnitFacesQWERTY/SimpleDisplay)

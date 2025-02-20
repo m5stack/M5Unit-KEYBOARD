@@ -39,7 +39,7 @@ class UnitCardKB : public UnitKeyboardBitwise {
 public:
     static constexpr uint8_t NUMBER_OF_KEYS{48};
 
-    ///@name key index (left top  to right bottom)
+    ///@name key index (left top to right bottom)
     ///@{
     static constexpr keyboard::key_index_t KEY_ESC{0};
     static constexpr keyboard::key_index_t KEY_1{1};
@@ -99,15 +99,6 @@ public:
     static constexpr char SCHAR_RIGHT{(char)183};
     ///@}
 
-    // clang-format off
-    ///@name Modifier key bit
-    ///@{
-    static constexpr uint64_t MODIFIER_SHIFT_BIT   {0x010000000000000};  //!< Shift
-    static constexpr uint64_t MODIFIER_SYMBOL_BIT  {0x080000000000000};  //!< Symbol
-    static constexpr uint64_t MODIFIER_FUNCTION_BIT{0x040000000000000};  //!< Function
-    // clang-format on
-    ///@}
-
     /*!
       @struct config_t
       @brief Settings for begin
@@ -118,7 +109,7 @@ public:
         ///@name For M5Unit-KEYBOARD firmware
         ///@{
         /*! Mode */
-        keyboard::Mode mode{keyboard::Mode::Released};
+        keyboard::Mode mode{keyboard::Mode::Conventional};
         //! How many simultaneous inputs to stored
         uint32_t stored_keys{1};
         //! Periodic interval
@@ -152,34 +143,14 @@ public:
     }
     ///@}
 
-    inline virtual bool isShift() const override
-    {
-        return _now & MODIFIER_SHIFT_BIT;
-    }
-    inline virtual bool isSymbol() const override
-    {
-        return _now & MODIFIER_SYMBOL_BIT;
-    }
-    inline virtual bool isFunction() const override
-    {
-        return _now & MODIFIER_FUNCTION_BIT;
-    }
-    inline virtual bool isShiftEqual() const override
-    {
-        return modifier_bits() == MODIFIER_SHIFT_BIT;
-    }
-    inline virtual bool isSymbolEqual() const override
-    {
-        return modifier_bits() == MODIFIER_SYMBOL_BIT;
-    }
-    inline virtual bool isFunctionEqual() const override
-    {
-        return modifier_bits() == MODIFIER_FUNCTION_BIT;
-    }
-
+    /*!
+      @brief Gets the character if input
+      @retval != 0 Character
+      @retval == 0 Not input or invalid character
+    */
     inline virtual char getchar() const override
     {
-        return (_mode == keyboard::Mode::Scan) ? pressed() : released();
+        return (_mode == keyboard::Mode::M5UnitUnified) ? pressed() : released();
     }
 
     /*!
@@ -217,7 +188,7 @@ public:
 
 protected:
     bool update_new_firmware(const types::elapsed_time_t at);
-    void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod);
+    void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8);
 
     inline virtual keyboard::key_index_t to_key_index(const char ch) const override
     {
@@ -227,11 +198,6 @@ protected:
     {
         return character_to_mode_bits(ch);
     }
-    inline virtual uint64_t modifier_bits() const override
-    {
-        return _now & (MODIFIER_SHIFT_BIT | MODIFIER_SYMBOL_BIT | MODIFIER_FUNCTION_BIT);
-    }
-    virtual uint8_t mode_bits() const override;
 
 protected:
     uint8_t _type{};

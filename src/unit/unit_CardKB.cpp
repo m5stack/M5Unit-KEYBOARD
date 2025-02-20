@@ -307,7 +307,7 @@ void UnitCardKB::update(const bool force)
     }
 
     switch (_mode) {
-        case Mode::Scan: {
+        case Mode::M5UnitUnified: {
             auto at = m5::utility::millis();
             if (force || !_latest || at >= _latest + _interval) {
                 _updated = update_new_firmware(at);
@@ -333,14 +333,12 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
         M5_LIB_LOGE("Failed to read");
         return false;
     }
-    // M5_LIB_LOGI("KB:%02X;%02X;%02X;%02X;%02X;%02X;%02X", rbuf[0], rbuf[1], rbuf[2], rbuf[3], rbuf[4], rbuf[5],
-    // rbuf[6]);
 
-    _now = (((uint64_t)rbuf[6]) << 48) | (((uint64_t)rbuf[5]) << 40) | (((uint64_t)rbuf[4]) << 32) |
+    _now = (((uint64_t)rbuf[6]) << 56) | (((uint64_t)rbuf[5]) << 40) | (((uint64_t)rbuf[4]) << 32) |
            (((uint64_t)rbuf[3]) << 24) | (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) |
            (((uint64_t)rbuf[0]) << 0);
 
-    uint8_t mod = rbuf[6];
+    uint8_t mod8 = rbuf[6];
     uint64_t bit{1};
 
     _wasPressed  = (_now ^ _prev) & _now;
@@ -349,7 +347,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_inputs.get(), i, mod);
+            push_back(_inputs.get(), i, mod8);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -358,7 +356,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_inputs.get(), i, mod);
+            push_back(_inputs.get(), i, mod8);
         } else {
             _repeating &= ~bit;
         }
@@ -376,15 +374,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
 
 void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8)
 {
-    uint8_t midx{};
-    uint8_t single_mod = (mod8 & MODIFIER_SHIFT_8BIT)      ? MODIFIER_SHIFT_8BIT
-                         : (mod8 & MODIFIER_SYMBOL_8BIT)   ? MODIFIER_SYMBOL_8BIT
-                         : (mod8 & MODIFIER_FUNCTION_8BIT) ? MODIFIER_FUNCTION_8BIT
-                                                           : 0;
-    if (single_mod) {
-        midx = mod_table[(__builtin_ctz(single_mod)) & 0x03];
-    }
-    auto k = key_map[kidx][midx];
+    auto k = key_map[kidx][mod8 ? __builtin_ctz(mod8) + 1 : 0];
     if (k) {
         container->push_back(k);
     }
@@ -394,35 +384,6 @@ bool UnitCardKB::readHardwareType(uint8_t& htype)
 {
     htype = 0;
     return readRegister8(CMD_HARDWARE_TYPE_REG, htype, 0);
-}
-
-uint8_t UnitCardKB::mode_bits() const
-{
-    // mod4 bit: 0x01:shift 0x80: symbol 0x40:function
-    // mode bit: 1:normal 2:shift 4:symbol 8:function
-    static constexpr uint8_t modifier4_to_mode_bits_table[] = {
-        1,          // 0000b normal
-        2,          // 0001b shift
-        1,          // 0010b
-        2,          // 0011b shift
-        8,          // 0100b function
-        2 + 8,      // 0101b shift function
-        8,          // 0110b function
-        2 + 8,      // 0111b shift function
-        4,          // 1000b symbol
-        4 + 2,      // 1001b shift symbol
-        4,          // 1010b symbol
-        4 + 2,      // 1011b shift symbol
-        4 + 8,      // 1100b symbol function
-        4 + 2 + 8,  // 1101b shift symbol function
-        4 + 8,      // 1110b symbol function
-        4 + 2 + 8,  // 1111b shift symbol function
-    };
-    static_assert(m5::stl::size(modifier4_to_mode_bits_table) == 16, "Invalid size");
-
-    uint8_t mod8 = (_now >> (48 + 4)) & 0x0F;
-    // M5_LIB_LOGE("mode_bits: %02X => %02X", mod8, modifier4_to_mode_bits_table[mod8]);
-    return modifier4_to_mode_bits_table[mod8];
 }
 
 }  // namespace unit

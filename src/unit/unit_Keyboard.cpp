@@ -50,7 +50,7 @@ const types::uid_t UnitKeyboardBitwise::attr{0};
 
 void UnitKeyboardBitwise::update(const bool force)
 {
-    if (_mode == Mode::Released) {
+    if (_mode == Mode::Conventional) {
         UnitKeyboard::update(force);
         if (_updated) {
             _inputs->push_back(UnitKeyboard::released());
@@ -66,7 +66,7 @@ bool UnitKeyboardBitwise::readFirmwareVersion(uint8_t& ver)
 
 bool UnitKeyboardBitwise::readMode(Mode& mode)
 {
-    mode = Mode::Released;
+    mode = Mode::Conventional;
     uint8_t v{};
     if (readRegister8(CMD_MODE_REG, v, 0)) {
         mode = static_cast<Mode>(v);
