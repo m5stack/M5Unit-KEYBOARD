@@ -17,10 +17,11 @@ using namespace m5::unit::keyboard;
 using namespace m5::unit::keyboard::command;
 using namespace m5::unit::cardkb;
 using namespace m5::unit::cardkb::command;
+using m5::unit::UnitCardKB;
 
 namespace {
-constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
-    {27, 27, 27, 128},      // esc 0
+constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
+    {27, 27, 27, 128},      // esc
     {'1', '1', '!', 129},   // 1
     {'2', '2', '@', 130},   // 2
     {'3', '3', '#', 131},   // 3
@@ -30,7 +31,7 @@ constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shif
     {'7', '7', '&', 135},   // 7
     {'8', '8', '*', 136},   // 8
     {'9', '9', '(', 137},   // 9
-    {'0', '0', ')', 138},   // 0 10
+    {'0', '0', ')', 138},   // 0
     {8, 127, 8, 139},       // bs/del
     {9, 9, 9, 140},         // tab
     {'q', 'Q', '{', 141},   // q
@@ -40,7 +41,7 @@ constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shif
     {'t', 'T', '/', 145},   // t
     {'y', 'Y', '\\', 146},  // y
     {'u', 'U', '|', 147},   // u
-    {'i', 'I', '~', 148},   // i 20
+    {'i', 'I', '~', 148},   // i
     {'o', 'O', '\'', 149},  // o
     {'p', 'P', '"', 150},   // p
     {0, 0, 0, 0},           // no key
@@ -50,7 +51,7 @@ constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shif
     {'s', 'S', ':', 155},   // s
     {'d', 'D', '`', 156},   // d
     {'f', 'F', '+', 157},   // f
-    {'g', 'G', '-', 158},   // g  30
+    {'g', 'G', '-', 158},   // g
     {'h', 'H', '_', 159},   // h
     {'j', 'J', '=', 160},   // j
     {'k', 'K', '?', 161},   // k
@@ -60,7 +61,7 @@ constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shif
     {183, 183, 183, 165},   // RIGHT
     {'z', 'Z', 0, 166},     // z
     {'x', 'X', 0, 167},     // x
-    {'c', 'C', 0, 168},     // c 40
+    {'c', 'C', 0, 168},     // c
     {'v', 'V', 0, 169},     // v
     {'b', 'B', 0, 170},     // b
     {'n', 'N', 0, 171},     // n
@@ -69,43 +70,156 @@ constexpr uint8_t key_map[m5::unit::UnitCardKB::NUMBER_OF_KEYS][4 /*normal, shif
     {'.', '.', '>', 174},   //.
     {' ', ' ', ' ', 175}    // space
 };
+static_assert(m5::stl::size(key_map) == UnitCardKB::NUMBER_OF_KEYS, "Invalid size");
 
-// modifier bit to key_map category index
+// modifier bit to key_map mode index
 constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Fucntion
 
-constexpr uint16_t character_map[] = {
-    //
-    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
-    // BS      TAB     \n                  \r
-    0x000B, 0x000C, 0x0023, 0xFFFF, 0xFFFF, 0x0023, 0xFFFF, 0xFFFF,
-    //
-    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
-    //                         ESC
-    0xFFFF, 0xFFFF, 0xFFFF, 0x0000, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF,
-    // SPC      !       "       #       $       %       &       '
-    0x002F, 0x8001, 0x8016, 0x8003, 0x8004, 0x8005, 0x8007, 0x8015,
-    // (       )       *       +       ,       -       .       /
-    0x8009, 0x800A, 0x8008, 0x801D, 0x002D, 0x801E, 0x002E, 0x8011,
-    // 0       1       2       3       4       5       6       7
-    0x000A, 0x0001, 0x0002, 0x0003, 0x0004, 0x0005, 0x0006, 0x0007,
-    // 8       9       :       ;       <       =       >       ?
-    0x0008, 0x0009, 0x801B, 0x801A, 0x802D, 0x8020, 0x802E, 0x8021,
-    // @       A       B       C       D       E       F       G
-    0x8002, 0x101A, 0x102A, 0x1028, 0x101C, 0x100F, 0x101D, 0x101E,
-    // H       I       J       K       L       M       N       O
-    0x101F, 0x1014, 0x1020, 0x1021, 0x1022, 0x102C, 0x102B, 0x1015,
-    // P       Q       R       S       T       U       V       W
-    0x1016, 0x100D, 0x1010, 0x101B, 0x1011, 0x1013, 0x1029, 0x100E,
-    // X       Y       Z      [        \       ]       ^       _
-    0x1027, 0x1012, 0x1026, 0x800F, 0x8012, 0x8010, 0x8006, 0x801F,
-    // `       a       b       c       d       e       f       g
-    0x801C, 0x001A, 0x002A, 0x0028, 0x001C, 0x000F, 0x001D, 0x001E,
-    // h       i       j       k       l       m       n       o
-    0x001F, 0x0014, 0x0020, 0x0021, 0x0022, 0x002C, 0x002B, 0x0015,
-    // p       q       r       s       t       u       v       w
-    0x0016, 0x000D, 0x0010, 0x001B, 0x0011, 0x0013, 0x0029, 0x000E,
-    // x       y       z       (       |       )       ~       DEL
-    0x0027, 0x0012, 0x0026, 0x800D, 0x8013, 0x800E, 0x8014, 0x100B};
+// ASCII to mode bit and key_index_t
+// 1:normal 2:shift 4:symbol 8:fuction
+constexpr std::pair<uint8_t, key_index_t> character_map[] = {
+    {0x00, 0xFF},                        // NULL
+    {0x00, 0xFF},                        // SOH
+    {0x00, 0xFF},                        // STX
+    {0x00, 0xFF},                        // ETX
+    {0x00, 0xFF},                        // EOT
+    {0x00, 0xFF},                        // ENG
+    {0x00, 0xFF},                        // ACK
+    {0x00, 0xFF},                        // BEL
+    {1 + 4, UnitCardKB::KEY_BS},         // BS
+    {1 + 2 + 4, UnitCardKB::KEY_TAB},    // HT
+    {1 + 2 + 4, UnitCardKB::KEY_ENTER},  // LF
+    {0x00, 0xFF},                        // VT
+    {0x00, 0xFF},                        // FF
+    {1 + 2 + 4, UnitCardKB::KEY_ENTER},  // CR
+    {0x00, 0xFF},                        // SO
+    {0x00, 0xFF},                        // SI
+    {0x00, 0xFF},                        // DLE
+    {0x00, 0xFF},                        // DC1
+    {0x00, 0xFF},                        // DC2
+    {0x00, 0xFF},                        // DC3
+    {0x00, 0xFF},                        // DC4
+    {0x00, 0xFF},                        // NAK
+    {0x00, 0xFF},                        // SYN
+    {0x00, 0xFF},                        // ETB
+    {0x00, 0xFF},                        // CAN
+    {0x00, 0xFF},                        // EM
+    {0x00, 0xFF},                        // SUB
+    {1 + 2 + 4, UnitCardKB::KEY_ESC},    // ESC
+    {0x00, 0xFF},                        // FS
+    {0x00, 0xFF},                        // GS
+    {0x00, 0xFF},                        // RS
+    {0x00, 0xFF},                        // US
+    {1 + 2 + 4, UnitCardKB::KEY_SPACE},  // SP
+    {4, UnitCardKB::KEY_1},              // !
+    {4, UnitCardKB::KEY_P},              // "
+    {4, UnitCardKB::KEY_3},              // #
+    {4, UnitCardKB::KEY_4},              // $
+    {4, UnitCardKB::KEY_5},              // %
+    {4, UnitCardKB::KEY_7},              // &
+    {4, UnitCardKB::KEY_O},              // ' (apostrophe)
+    {4, UnitCardKB::KEY_9},              // (
+    {4, UnitCardKB::KEY_0},              // )
+    {4, UnitCardKB::KEY_8},              // *
+    {4, UnitCardKB::KEY_F},              // +
+    {1 + 2, UnitCardKB::KEY_COMMA},      // ,
+    {4, UnitCardKB::KEY_G},              // -
+    {1 + 2, UnitCardKB::KEY_PERIOD},     // .
+    {4, UnitCardKB::KEY_T},              // /
+    {1 + 2, UnitCardKB::KEY_0},          // 0
+    {1 + 2, UnitCardKB::KEY_1},          // 1
+    {1 + 2, UnitCardKB::KEY_2},          // 2
+    {1 + 2, UnitCardKB::KEY_3},          // 3
+    {1 + 2, UnitCardKB::KEY_4},          // 4
+    {1 + 2, UnitCardKB::KEY_5},          // 5
+    {1 + 2, UnitCardKB::KEY_6},          // 6
+    {1 + 2, UnitCardKB::KEY_7},          // 7
+    {1 + 2, UnitCardKB::KEY_8},          // 8
+    {1 + 2, UnitCardKB::KEY_9},          // 9
+    {4, UnitCardKB::KEY_S},              // :
+    {4, UnitCardKB::KEY_A},              // ;
+    {4, UnitCardKB::KEY_COMMA},          // <
+    {4, UnitCardKB::KEY_J},              // =
+    {4, UnitCardKB::KEY_PERIOD},         // >
+    {4, UnitCardKB::KEY_K},              // ?
+    {4, UnitCardKB::KEY_2},              // @
+    {2, UnitCardKB::KEY_A},              // A
+    {2, UnitCardKB::KEY_B},              // B
+    {2, UnitCardKB::KEY_C},              // C
+    {2, UnitCardKB::KEY_D},              // D
+    {2, UnitCardKB::KEY_E},              // E
+    {2, UnitCardKB::KEY_F},              // F
+    {2, UnitCardKB::KEY_G},              // G
+    {2, UnitCardKB::KEY_H},              // H
+    {2, UnitCardKB::KEY_I},              // I
+    {2, UnitCardKB::KEY_J},              // J
+    {2, UnitCardKB::KEY_K},              // K
+    {2, UnitCardKB::KEY_L},              // L
+    {2, UnitCardKB::KEY_M},              // M
+    {2, UnitCardKB::KEY_N},              // N
+    {2, UnitCardKB::KEY_O},              // O
+    {2, UnitCardKB::KEY_P},              // P
+    {2, UnitCardKB::KEY_Q},              // Q
+    {2, UnitCardKB::KEY_R},              // R
+    {2, UnitCardKB::KEY_S},              // S
+    {2, UnitCardKB::KEY_T},              // T
+    {2, UnitCardKB::KEY_U},              // U
+    {2, UnitCardKB::KEY_V},              // V
+    {2, UnitCardKB::KEY_W},              // W
+    {2, UnitCardKB::KEY_X},              // X
+    {2, UnitCardKB::KEY_Y},              // Y
+    {2, UnitCardKB::KEY_Z},              // Z
+    {4, UnitCardKB::KEY_E},              // [
+    {4, UnitCardKB::KEY_Y},              // '\'
+    {4, UnitCardKB::KEY_R},              // ]
+    {4, UnitCardKB::KEY_6},              // ^
+    {4, UnitCardKB::KEY_H},              // _
+    {4, UnitCardKB::KEY_D},              // ` (grave accent)
+    {1, UnitCardKB::KEY_A},              // a
+    {1, UnitCardKB::KEY_B},              // b
+    {1, UnitCardKB::KEY_C},              // c
+    {1, UnitCardKB::KEY_D},              // d
+    {1, UnitCardKB::KEY_E},              // e
+    {1, UnitCardKB::KEY_F},              // f
+    {1, UnitCardKB::KEY_G},              // g
+    {1, UnitCardKB::KEY_H},              // h
+    {1, UnitCardKB::KEY_I},              // i
+    {1, UnitCardKB::KEY_J},              // j
+    {1, UnitCardKB::KEY_K},              // k
+    {1, UnitCardKB::KEY_L},              // l
+    {1, UnitCardKB::KEY_M},              // m
+    {1, UnitCardKB::KEY_N},              // n
+    {1, UnitCardKB::KEY_O},              // o
+    {1, UnitCardKB::KEY_P},              // p
+    {1, UnitCardKB::KEY_Q},              // q
+    {1, UnitCardKB::KEY_R},              // r
+    {1, UnitCardKB::KEY_S},              // s
+    {1, UnitCardKB::KEY_T},              // t
+    {1, UnitCardKB::KEY_U},              // u
+    {1, UnitCardKB::KEY_V},              // v
+    {1, UnitCardKB::KEY_W},              // w
+    {1, UnitCardKB::KEY_X},              // x
+    {1, UnitCardKB::KEY_Y},              // y
+    {1, UnitCardKB::KEY_Z},              // z
+    {4, UnitCardKB::KEY_Q},              // {
+    {4, UnitCardKB::KEY_U},              // |
+    {4, UnitCardKB::KEY_W},              // }
+    {4, UnitCardKB::KEY_I},              // ~
+    {2, UnitCardKB::KEY_BS},             // DEL
+};
+static_assert(m5::stl::size(character_map) == 128, "Invalid size");
+
+constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
+    {1 + 2 + 4, UnitCardKB::KEY_LEFT},   // Left cursor
+    {1 + 2 + 4, UnitCardKB::KEY_UP},     // Up cursor
+    {1 + 2 + 4, UnitCardKB::KEY_DOWN},   // Down cursor
+    {1 + 2 + 4, UnitCardKB::KEY_RIGHT},  // Right cursor
+
+};
+
+constexpr uint8_t MODIFIER_SHIFT_8BIT{0x10};
+constexpr uint8_t MODIFIER_SYMBOL_8BIT{0x80};
+constexpr uint8_t MODIFIER_FUNCTION_8BIT{0x40};
 
 }  // namespace
 
@@ -117,28 +231,40 @@ const char UnitCardKB::name[] = "UnitCardKB";
 const types::uid_t UnitCardKB::uid{"UnitCardKB"_mmh3};
 const types::uid_t UnitCardKB::attr{0};
 
-UnitKeyboardBitwise::key_index_t UnitCardKB::character_to_key_index(const char ch)
+key_index_t UnitCardKB::character_to_key_index(const char ch)
 {
     unsigned char uc = ch;
-    // function? (>= 0x80)
+    // function (>= 0x80)
     if (uc & 0x80) {
         key_index_t kidx = (key_index_t)(uc - 0x80);
+        // Special key?
+        if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
+            return special_character_map[uc - SCHAR_LEFT].second;
+        }
         return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
     }
-    // normal, shift or symbol
-    return static_cast<key_index_t>((uc < m5::stl::size(character_map)) ? (character_map[uc] & 0xFF) : 0xFF);
+    // normal,shift or symbol
+    return static_cast<key_index_t>((uc < m5::stl::size(character_map)) ? (character_map[uc].second) : 0xFF);
 }
 
-uint8_t UnitCardKB::character_to_modifier_bit(const char ch)
+uint8_t UnitCardKB::character_to_mode_bits(const char ch)
 {
     unsigned char uc = ch;
     // function? (>= 0x80)
     if (uc & 0x80) {
         key_index_t kidx = (key_index_t)(uc - 0x80);
-        return (kidx < m5::stl::size(key_map)) ? MODIFIER_FUNCTION_8BIT : 0x00;
+        // Special key?
+        if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
+            // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_LEFT].first);
+            return special_character_map[uc - SCHAR_LEFT].first;
+        }
+
+        // M5_LIB_LOGI("%c => %02X", ch, (kidx < m5::stl::size(key_map)) ? 0x08 : 0x00);
+        return (kidx < m5::stl::size(key_map)) ? 0x08 : 0x00;
     }
-    // normal, shift or symbol
-    return (uc < m5::stl::size(character_map)) ? (character_map[uc] >> 8) : 0x00;
+    // normal,shift or symbol
+    // M5_LIB_LOGI("%c => %02X", ch, (uc < m5::stl::size(character_map)) ? (character_map[uc].first) : 0x00);
+    return (uc < m5::stl::size(character_map)) ? (character_map[uc].first) : 0x00;
 }
 
 bool UnitCardKB::begin()
@@ -202,7 +328,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     _prev                                 = _now;
     auto prev_holding                     = _holding;
 
-    uint8_t rbuf[NUMBER_OF_KEYS / 8 + 1]{};
+    uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
     if (!readRegister(CMD_SCAN_REG, rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
@@ -214,7 +340,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
            (((uint64_t)rbuf[3]) << 24) | (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) |
            (((uint64_t)rbuf[0]) << 0);
 
-    uint8_t mod = modifier_bits();
+    uint8_t mod = rbuf[6];
     uint64_t bit{1};
 
     _wasPressed  = (_now ^ _prev) & _now;
@@ -228,12 +354,6 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
             _repeating |= bit;
             continue;
         }
-#if 0
-        // Was released
-        if (_wasReleased & bit) {
-            push_back(_released.get(), i, mod);
-        }
-#endif
         // Repeat?
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
@@ -254,13 +374,13 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     return true;  // Always true
 }
 
-void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod)
+void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8)
 {
     uint8_t midx{};
-    uint8_t single_mod = (mod & MODIFIER_SHIFT_8BIT)      ? MODIFIER_SHIFT_8BIT
-                         : (mod & MODIFIER_SYMBOL_8BIT)   ? MODIFIER_SYMBOL_8BIT
-                         : (mod & MODIFIER_FUNCTION_8BIT) ? MODIFIER_FUNCTION_8BIT
-                                                          : 0;
+    uint8_t single_mod = (mod8 & MODIFIER_SHIFT_8BIT)      ? MODIFIER_SHIFT_8BIT
+                         : (mod8 & MODIFIER_SYMBOL_8BIT)   ? MODIFIER_SYMBOL_8BIT
+                         : (mod8 & MODIFIER_FUNCTION_8BIT) ? MODIFIER_FUNCTION_8BIT
+                                                           : 0;
     if (single_mod) {
         midx = mod_table[(__builtin_ctz(single_mod)) & 0x03];
     }
@@ -274,6 +394,35 @@ bool UnitCardKB::readHardwareType(uint8_t& htype)
 {
     htype = 0;
     return readRegister8(CMD_HARDWARE_TYPE_REG, htype, 0);
+}
+
+uint8_t UnitCardKB::mode_bits() const
+{
+    // mod4 bit: 0x01:shift 0x80: symbol 0x40:function
+    // mode bit: 1:normal 2:shift 4:symbol 8:function
+    static constexpr uint8_t modifier4_to_mode_bits_table[] = {
+        1,          // 0000b normal
+        2,          // 0001b shift
+        1,          // 0010b
+        2,          // 0011b shift
+        8,          // 0100b function
+        2 + 8,      // 0101b shift function
+        8,          // 0110b function
+        2 + 8,      // 0111b shift function
+        4,          // 1000b symbol
+        4 + 2,      // 1001b shift symbol
+        4,          // 1010b symbol
+        4 + 2,      // 1011b shift symbol
+        4 + 8,      // 1100b symbol function
+        4 + 2 + 8,  // 1101b shift symbol function
+        4 + 8,      // 1110b symbol function
+        4 + 2 + 8,  // 1111b shift symbol function
+    };
+    static_assert(m5::stl::size(modifier4_to_mode_bits_table) == 16, "Invalid size");
+
+    uint8_t mod8 = (_now >> (48 + 4)) & 0x0F;
+    // M5_LIB_LOGE("mode_bits: %02X => %02X", mod8, modifier4_to_mode_bits_table[mod8]);
+    return modifier4_to_mode_bits_table[mod8];
 }
 
 }  // namespace unit

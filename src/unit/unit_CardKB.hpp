@@ -39,66 +39,73 @@ class UnitCardKB : public UnitKeyboardBitwise {
 public:
     static constexpr uint8_t NUMBER_OF_KEYS{48};
 
-    ///@name key index
+    ///@name key index (left top  to right bottom)
     ///@{
-    static constexpr key_index_t KEY_ESC{0};
-    static constexpr key_index_t KEY_1{1};
-    static constexpr key_index_t KEY_2{2};
-    static constexpr key_index_t KEY_3{3};
-    static constexpr key_index_t KEY_4{4};
-    static constexpr key_index_t KEY_5{5};
-    static constexpr key_index_t KEY_6{6};
-    static constexpr key_index_t KEY_7{7};
-    static constexpr key_index_t KEY_8{8};
-    static constexpr key_index_t KEY_9{9};
-    static constexpr key_index_t KEY_0{10};
-    static constexpr key_index_t KEY_DEL{11};
-    static constexpr key_index_t KEY_TAB{12};
-    static constexpr key_index_t KEY_Q{13};
-    static constexpr key_index_t KEY_W{14};
-    static constexpr key_index_t KEY_E{15};
-    static constexpr key_index_t KEY_R{16};
-    static constexpr key_index_t KEY_T{17};
-    static constexpr key_index_t KEY_Y{18};
-    static constexpr key_index_t KEY_U{19};
-    static constexpr key_index_t KEY_I{20};
-    static constexpr key_index_t KEY_O{21};
-    static constexpr key_index_t KEY_P{22};
-    static constexpr key_index_t KEY_NO_KEY{23};
-    static constexpr key_index_t KEY_LEFT{24};
-    static constexpr key_index_t KEY_UP{25};
-    static constexpr key_index_t KEY_A{26};
-    static constexpr key_index_t KEY_S{27};
-    static constexpr key_index_t KEY_D{28};
-    static constexpr key_index_t KEY_F{29};
-    static constexpr key_index_t KEY_G{30};
-    static constexpr key_index_t KEY_H{31};
-    static constexpr key_index_t KEY_J{32};
-    static constexpr key_index_t KEY_K{33};
-    static constexpr key_index_t KEY_L{34};
-    static constexpr key_index_t KEY_ENTER{35};
-    static constexpr key_index_t KEY_DOWN{36};
-    static constexpr key_index_t KEY_RIGHT{37};
-    static constexpr key_index_t KEY_Z{38};
-    static constexpr key_index_t KEY_X{39};
-    static constexpr key_index_t KEY_C{40};
-    static constexpr key_index_t KEY_V{41};
-    static constexpr key_index_t KEY_B{42};
-    static constexpr key_index_t KEY_N{43};
-    static constexpr key_index_t KEY_M{44};
-    static constexpr key_index_t KEY_COMMA{45};
-    static constexpr key_index_t KEY_PERIOD{46};
-    static constexpr key_index_t KEY_SPACE{47};
+    static constexpr keyboard::key_index_t KEY_ESC{0};
+    static constexpr keyboard::key_index_t KEY_1{1};
+    static constexpr keyboard::key_index_t KEY_2{2};
+    static constexpr keyboard::key_index_t KEY_3{3};
+    static constexpr keyboard::key_index_t KEY_4{4};
+    static constexpr keyboard::key_index_t KEY_5{5};
+    static constexpr keyboard::key_index_t KEY_6{6};
+    static constexpr keyboard::key_index_t KEY_7{7};
+    static constexpr keyboard::key_index_t KEY_8{8};
+    static constexpr keyboard::key_index_t KEY_9{9};
+    static constexpr keyboard::key_index_t KEY_0{10};
+    static constexpr keyboard::key_index_t KEY_BS{11};
+    static constexpr keyboard::key_index_t KEY_TAB{12};
+    static constexpr keyboard::key_index_t KEY_Q{13};
+    static constexpr keyboard::key_index_t KEY_W{14};
+    static constexpr keyboard::key_index_t KEY_E{15};
+    static constexpr keyboard::key_index_t KEY_R{16};
+    static constexpr keyboard::key_index_t KEY_T{17};
+    static constexpr keyboard::key_index_t KEY_Y{18};
+    static constexpr keyboard::key_index_t KEY_U{19};
+    static constexpr keyboard::key_index_t KEY_I{20};
+    static constexpr keyboard::key_index_t KEY_O{21};
+    static constexpr keyboard::key_index_t KEY_P{22};
+    static constexpr keyboard::key_index_t KEY_NO_KEY{23};
+    static constexpr keyboard::key_index_t KEY_LEFT{24};
+    static constexpr keyboard::key_index_t KEY_UP{25};
+    static constexpr keyboard::key_index_t KEY_A{26};
+    static constexpr keyboard::key_index_t KEY_S{27};
+    static constexpr keyboard::key_index_t KEY_D{28};
+    static constexpr keyboard::key_index_t KEY_F{29};
+    static constexpr keyboard::key_index_t KEY_G{30};
+    static constexpr keyboard::key_index_t KEY_H{31};
+    static constexpr keyboard::key_index_t KEY_J{32};
+    static constexpr keyboard::key_index_t KEY_K{33};
+    static constexpr keyboard::key_index_t KEY_L{34};
+    static constexpr keyboard::key_index_t KEY_ENTER{35};
+    static constexpr keyboard::key_index_t KEY_DOWN{36};
+    static constexpr keyboard::key_index_t KEY_RIGHT{37};
+    static constexpr keyboard::key_index_t KEY_Z{38};
+    static constexpr keyboard::key_index_t KEY_X{39};
+    static constexpr keyboard::key_index_t KEY_C{40};
+    static constexpr keyboard::key_index_t KEY_V{41};
+    static constexpr keyboard::key_index_t KEY_B{42};
+    static constexpr keyboard::key_index_t KEY_N{43};
+    static constexpr keyboard::key_index_t KEY_M{44};
+    static constexpr keyboard::key_index_t KEY_COMMA{45};
+    static constexpr keyboard::key_index_t KEY_PERIOD{46};
+    static constexpr keyboard::key_index_t KEY_SPACE{47};
     ///@}
 
+    ///@name Character code for special keys
+    ///@{
+    static constexpr char SCHAR_LEFT{(char)180};
+    static constexpr char SCHAR_UP{(char)181};
+    static constexpr char SCHAR_DOWN{(char)182};
+    static constexpr char SCHAR_RIGHT{(char)183};
+    ///@}
+
+    // clang-format off
     ///@name Modifier key bit
     ///@{
-    static constexpr uint64_t MODIFIER_SHIFT_64BIT{0x10000000000000};     //!< Shift
-    static constexpr uint64_t MODIFIER_SYMBOL_64BIT{0x80000000000000};    //!< Symbol
-    static constexpr uint64_t MODIFIER_FUNCTION_64BIT{0x40000000000000};  //!< Function
-    static constexpr uint8_t MODIFIER_SHIFT_8BIT{0x10};                   //!< Shift
-    static constexpr uint8_t MODIFIER_SYMBOL_8BIT{0x80};                  //!< Symbol
-    static constexpr uint8_t MODIFIER_FUNCTION_8BIT{0x40};                //!< Function
+    static constexpr uint64_t MODIFIER_SHIFT_BIT   {0x010000000000000};  //!< Shift
+    static constexpr uint64_t MODIFIER_SYMBOL_BIT  {0x080000000000000};  //!< Symbol
+    static constexpr uint64_t MODIFIER_FUNCTION_BIT{0x040000000000000};  //!< Function
+    // clang-format on
     ///@}
 
     /*!
@@ -145,22 +152,31 @@ public:
     }
     ///@}
 
-    inline virtual uint64_t modifierBits() const
-    {
-        return _now & (MODIFIER_SHIFT_64BIT | MODIFIER_SYMBOL_64BIT | MODIFIER_FUNCTION_64BIT);
-    }
     inline virtual bool isShift() const override
     {
-        return _now & MODIFIER_SHIFT_64BIT;
+        return _now & MODIFIER_SHIFT_BIT;
     }
     inline virtual bool isSymbol() const override
     {
-        return _now & MODIFIER_SYMBOL_64BIT;
+        return _now & MODIFIER_SYMBOL_BIT;
     }
     inline virtual bool isFunction() const override
     {
-        return _now & MODIFIER_FUNCTION_64BIT;
+        return _now & MODIFIER_FUNCTION_BIT;
     }
+    inline virtual bool isShiftEqual() const override
+    {
+        return modifier_bits() == MODIFIER_SHIFT_BIT;
+    }
+    inline virtual bool isSymbolEqual() const override
+    {
+        return modifier_bits() == MODIFIER_SYMBOL_BIT;
+    }
+    inline virtual bool isFunctionEqual() const override
+    {
+        return modifier_bits() == MODIFIER_FUNCTION_BIT;
+    }
+
     inline virtual char getchar() const override
     {
         return (_mode == keyboard::Mode::Scan) ? pressed() : released();
@@ -168,15 +184,17 @@ public:
 
     /*!
       @brief Character to key index
-      @retval != 0xFF key_index_t
+      @retval != 0xFF keyboard::key_index_t
       @retval == 0xFF No corresponding key index exists
      */
-    static key_index_t character_to_key_index(const char ch);
+    static keyboard::key_index_t character_to_key_index(const char ch);
     /*!
-      @brief Character to modifier bit
-      @return Corresponding modifier key bit
+      @brief Character to mode bits
+      @retval == 0 Not exists
+      @retval != 0 Bits in corresponding mode
+      @note 0x01:normal 0x02:shift 0x04:symbol 0x08:function
      */
-    static uint8_t character_to_modifier_bit(const char ch);
+    static uint8_t character_to_mode_bits(const char ch);
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@name Hardware type
@@ -201,22 +219,19 @@ protected:
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod);
 
-    inline virtual key_index_t _character_to_key_index(const char ch) const override
+    inline virtual keyboard::key_index_t to_key_index(const char ch) const override
     {
         return character_to_key_index(ch);
     }
-    inline virtual uint8_t _character_to_modifier_bit(const char ch) const override
+    inline virtual uint8_t to_mode_bits(const char ch) const override
     {
-        return character_to_modifier_bit(ch);
+        return character_to_mode_bits(ch);
     }
-    inline virtual uint8_t modifier_bits() const override
+    inline virtual uint64_t modifier_bits() const override
     {
-        return (_now >> (6 * 8)) & 0xF0;
+        return _now & (MODIFIER_SHIFT_BIT | MODIFIER_SYMBOL_BIT | MODIFIER_FUNCTION_BIT);
     }
-    inline virtual bool equal_modifier(const uint8_t mbit) const override
-    {
-        return mbit ? ((mbit & modifier_bits()) == mbit) : (modifier_bits() == 0x00);
-    }
+    virtual uint8_t mode_bits() const override;
 
 protected:
     uint8_t _type{};

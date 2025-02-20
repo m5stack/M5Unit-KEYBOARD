@@ -17,6 +17,22 @@ namespace m5 {
 namespace unit {
 
 /*!
+  @namespace keyboard
+  @brief For keyboard
+ */
+namespace keyboard {
+using key_index_t = uint8_t;  //!< @brief Key index (Not character)
+/*!
+  @enum Mode
+  @brief Operation mode for M5UnitU-KEYBOARD firmware
+ */
+enum class Mode : uint8_t {
+    Released,  //!< Gets the released key (Conventional behavior)
+    Scan,      //!< Gets the pressed key status (M5Unit-KEYBOARD firmware must be written)
+};
+}  // namespace keyboard
+
+/*!
   @class m5::unit::UnitKeyboard
   @brief Base class of the Keyboard Unit
 */
@@ -64,22 +80,6 @@ private:
 };
 
 /*!
-  @namespace keyboard
-  @brief For keyboard
- */
-namespace keyboard {
-
-/*!
-  @enum Mode
-  @brief Operation mode
- */
-enum class Mode : uint8_t {
-    Released,  //!< Gets the released key (Conventional behavior)
-    Scan,      //!< Gets the pressed key status (M5Unit-KEYBOARD firmware must be written)
-};
-}  // namespace keyboard
-
-/*!
   @class m5::unit::UnitKeyboard
   @brief Class supporting keyboard state acquisition by key press bits
   @warning To make it work, M5Unit-KEYBOARD firmware must be written to the target (CardKB, FacesQWERTY...)
@@ -97,8 +97,6 @@ public:
     }
 
     virtual void update(const bool force = false) override;
-
-    using key_index_t = uint8_t;  //!< @brief Key index (Not character)
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@note Which bits represent what depends on the target unit
@@ -140,9 +138,9 @@ public:
         return _repeating;
     }
     //! @brief Get the bits of the modifier key being pressed
-    inline virtual uint64_t modifierBits() const
+    inline uint64_t modifierBits() const
     {
-        return 0x00;
+        return modifier_bits();
     }
     ///@}
 
@@ -153,7 +151,7 @@ public:
     //! @brief Is any modifier keys pressed?
     inline bool isModifier() const
     {
-        return modifierBits();
+        return modifier_bits();
     }
     //! @brief Is the shift key pressed?
     inline virtual bool isShift() const
@@ -172,6 +170,26 @@ public:
     }
     //! @brief Is the alt key pressed?
     inline virtual bool isAlt() const
+    {
+        return false;
+    }
+    //! @brief Is only Shift pressed among the modifier keys?
+    inline virtual bool isShiftEqual() const
+    {
+        return false;
+    }
+    //! @brief Is only Symbol pressed among the modifier keys?
+    inline virtual bool isSymbolEqual() const
+    {
+        return false;
+    }
+    //! @brief Is only Function pressed among the modifier keys?
+    inline virtual bool isFunctionEqual() const
+    {
+        return false;
+    }
+    //! @brief Is only Alt pressed among the modifier keys?
+    inline virtual bool isAltEqual() const
     {
         return false;
     }
@@ -226,7 +244,7 @@ public:
       @return If so,true
     */
     // inline
-    bool isPressed(const key_index_t kidx) const
+    bool isPressed(const keyboard::key_index_t kidx) const
     {
         return _now & (1ULL << kidx);
     }
@@ -235,7 +253,7 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool isReleased(const key_index_t kidx) const
+    inline bool isReleased(const keyboard::key_index_t kidx) const
     {
         return !isPressed(kidx);
     }
@@ -244,7 +262,7 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool wasPressed(const key_index_t kidx) const
+    inline bool wasPressed(const keyboard::key_index_t kidx) const
     {
         return _wasPressed & (1ULL << kidx);
     }
@@ -253,7 +271,7 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool wasReleased(const key_index_t kidx) const
+    inline bool wasReleased(const keyboard::key_index_t kidx) const
     {
         return _wasReleased & (1ULL << kidx);
     }
@@ -262,7 +280,7 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool isHolding(const key_index_t kidx) const
+    inline bool isHolding(const keyboard::key_index_t kidx) const
     {
         return _holding & (1ULL << kidx);
     }
@@ -271,7 +289,7 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool wasHold(const key_index_t kidx) const
+    inline bool wasHold(const keyboard::key_index_t kidx) const
     {
         return _wasHold & (1ULL << kidx);
     }
@@ -280,23 +298,11 @@ public:
       @param kidx Key index code
       @return If so,true
     */
-    inline bool isRepeating(const key_index_t kidx) const
+    inline bool isRepeating(const keyboard::key_index_t kidx) const
     {
         return _repeating & (1ULL << kidx);
     }
     ///@}
-
-    /*!
-      @brief Character to key index
-      @retval != 0xFF key_index_t
-      @retval == 0xFF No corresponding key index exists
-     */
-    static key_index_t character_to_key_index(const char ch);
-    /*!
-      @brief Character to modifier bit
-      @return Corresponding modifier bit
-     */
-    static uint8_t character_to_modifier_bit(const char ch);
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@name Specified Character
@@ -308,7 +314,7 @@ public:
     */
     inline bool isPressed(const char ch) const
     {
-        return isPressed(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return isPressed(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character released??
@@ -326,7 +332,7 @@ public:
     */
     inline bool wasPressed(const char ch) const
     {
-        return wasPressed(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return wasPressed(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character released?
@@ -335,7 +341,7 @@ public:
     */
     inline bool wasReleased(const char ch) const
     {
-        return wasReleased(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return wasReleased(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character holding?
@@ -344,7 +350,7 @@ public:
     */
     inline bool isHolding(const char ch) const
     {
-        return isHolding(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return isHolding(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character hold?
@@ -353,7 +359,7 @@ public:
     */
     inline bool wasHold(const char ch) const
     {
-        return wasHold(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return wasHold(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character repeating?
@@ -362,7 +368,7 @@ public:
     */
     inline bool isRepeating(const char ch) const
     {
-        return isRepeating(_character_to_key_index(ch)) && equal_modifier(_character_to_modifier_bit(ch));
+        return isRepeating(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
     }
     ///@}
 
@@ -479,21 +485,25 @@ protected:
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt);
 
-    inline virtual key_index_t _character_to_key_index(const char) const
+    inline virtual keyboard::key_index_t to_key_index(const char) const
     {
         return 0x00;
     }
-    inline virtual uint8_t _character_to_modifier_bit(const char) const
+    inline virtual uint8_t to_mode_bits(const char) const
     {
         return 0x00;
     }
-    inline virtual uint8_t modifier_bits() const
+    inline virtual uint64_t modifier_bits() const
+    {
+        return (uint64_t)0;
+    }
+    inline virtual uint8_t mode_bits() const
     {
         return 0x00;
     }
-    inline virtual bool equal_modifier(const uint8_t) const
+    inline bool permitted_mode(const uint8_t mbits) const
     {
-        return false;
+        return mbits & mode_bits();
     }
 
 protected:
