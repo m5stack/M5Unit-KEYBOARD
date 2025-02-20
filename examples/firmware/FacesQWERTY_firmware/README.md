@@ -54,7 +54,7 @@ Up to 35 bits valid as a key
 |byte 1 |15| 8  |
 |byte 2 |23| 16 |
 |byte 3 |31| 24 |
-|byte 4 |34| 32 |
+|byte 4 |39| 32 |
 
 
 #### Key index
