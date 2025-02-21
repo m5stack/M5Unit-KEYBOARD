@@ -209,12 +209,14 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
     {4, UnitFacesQWERTY::KEY_DOLLAR},  // Speaker mark
 };
 
+#if defined(ARDUINO) && defined(digitalPinToInterrupt)
 constexpr uint8_t INTERRUPT_PIN{5};
 bool input_irq{};
 void IRAM_ATTR handle_faces_qwerty()
 {
     input_irq = true;
 }
+#endif
 
 }  // namespace
 
