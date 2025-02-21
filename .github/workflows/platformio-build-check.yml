@@ -56,8 +56,9 @@ jobs:
           - PlotToSerial
           - SimpleDisplay
 
-#        unit:
-#          - UnitExtIO2
+        unit:
+          - UnitCardKB
+          - UnitFacesQWERTY
 
         board:
           - Core
@@ -85,9 +86,15 @@ jobs:
 
         exclude:
           - board: StampS3
+            unit: UnitFacesQWERTY
+          - board: StampS3
             example: SimpleDisplay
           - board: AtomMatrix
+            unit: UnitFacesQWERTY
+          - board: AtomMatrix
             example: SimpleDisplay
+          - board: NanoC6
+            unit: UnitFacesQWERTY
           - board: NanoC6
             example: SimpleDisplay
 
@@ -119,24 +126,6 @@ jobs:
 #            espressif32: '5_4_0'
 #          - board: Paper
 #            espressif32: '4_4_0'
-
-        include:
-          # Specific sketches for m5stack-core-esp32 only
-          - example: DigOutput
-            unit: UnitExtIO2
-            board: Core
-            framework: Arduino
-            espressif32: latest
-          - example: ServoControl
-            unit: UnitExtIO2
-            board: Core
-            framework: Arduino
-            espressif32: latest
-          - example: LEDControl
-            unit: UnitExtIO2
-            board: Core
-            framework: Arduino
-            espressif32: latest
 
     steps:
       - name: Checkout
