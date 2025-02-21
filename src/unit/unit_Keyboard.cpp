@@ -53,9 +53,32 @@ void UnitKeyboardBitwise::update(const bool force)
     if (_mode == Mode::Conventional) {
         UnitKeyboard::update(force);
         if (_updated) {
-            _inputs->push_back(UnitKeyboard::released());
+            _data->push_back(UnitKeyboard::released());
         }
     }
+}
+
+bool UnitKeyboardBitwise::start_periodic_measurement()
+{
+    return start_periodic_measurement(_interval);
+}
+
+bool UnitKeyboardBitwise::start_periodic_measurement(const uint32_t interval)
+{
+    if (_periodic) {
+        return false;
+    }
+
+    _latest = 0;
+    _interval = interval;
+    _periodic = true;
+    return true;
+}
+
+bool UnitKeyboardBitwise::stop_periodic_measurement()
+{
+    _periodic = false;
+    return true;
 }
 
 bool UnitKeyboardBitwise::readFirmwareVersion(uint8_t& ver)
@@ -80,7 +103,7 @@ bool UnitKeyboardBitwise::writeMode(const Mode mode)
     if (firmwareVersion() && writeRegister8(CMD_MODE_REG, m5::stl::to_underlying(mode))) {
         _mode = mode;
 
-        _inputs->clear();
+        _data->clear();
         _now = _prev = _wasPressed = _wasReleased = _wasHold = _holding = _repeating = 0;
         std::fill(_repeat_start_at.begin(), _repeat_start_at.end(), 0);
         std::fill(_hold_start_at.begin(), _hold_start_at.end(), 0);

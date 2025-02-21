@@ -89,12 +89,12 @@ public:
     struct config_t {
         //! Start periodic measurement on begin?
         bool start_periodic{true};
+        //! Triggering an interrupt to update? (interval setting is ignored)
+        bool trigger_irq{true};
         ///@name For M5Unit-KEYBOARD firmware
         ///@{
         /*! Mode */
         keyboard::Mode mode{keyboard::Mode::Conventional};
-        //! How many simultaneous inputs to stored
-        uint32_t stored_keys{1};
         //! Periodic interval
         uint32_t interval{10};
         //! Threshold for key repeating (ms)
@@ -126,14 +126,9 @@ public:
     }
     ///@}
 
-    /*!
-      @brief Gets the character if input
-      @retval != 0 Character
-      @retval == 0 Not input or invalid character
-    */
-    inline virtual char getchar() const override
+    inline virtual keyboard::key_index_t toKeyIndex(const char ch) const override
     {
-        return (_mode == keyboard::Mode::M5UnitUnified) ? pressed() : released();
+        return character_to_key_index(ch);
     }
 
     /*!
@@ -179,16 +174,13 @@ protected:
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8);
 
-    inline virtual keyboard::key_index_t to_key_index(const char ch) const override
-    {
-        return character_to_key_index(ch);
-    }
     inline virtual uint8_t to_mode_bits(const char ch) const override
     {
         return character_to_mode_bits(ch);
     }
 
 protected:
+    bool _handle_irq{};
     uint8_t _type{};
     config_t _cfg{};
 };

@@ -209,10 +209,13 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
     {4, UnitFacesQWERTY::KEY_DOLLAR},  // Speaker mark
 };
 
-constexpr uint8_t MODIFIER_SHIFT_8BIT{0x20};
-constexpr uint8_t MODIFIER_SYMBOL_8BIT{0x80};
-constexpr uint8_t MODIFIER_FUNCTION_8BIT{0x08};
-constexpr uint8_t MODIFIER_ALT_8BIT{0x10};
+constexpr uint8_t INTERRUPT_PIN{5};
+bool input_irq{};
+void IRAM_ATTR handle_faces_qwerty()
+{
+    input_irq = true;
+}
+
 }  // namespace
 
 namespace m5 {
@@ -260,18 +263,15 @@ uint8_t UnitFacesQWERTY::character_to_mode_bits(const char ch)
 
 bool UnitFacesQWERTY::begin()
 {
-    auto ssize = _cfg.stored_keys;
+    auto ssize = stored_size();
     assert(ssize && "stored_size must be greater than zero");
-    if (ssize != _inputs->capacity()) {
-        _inputs.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
-        if (!_inputs) {
+    if (ssize != _data->capacity()) {
+        _data.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
+        if (!_data) {
             M5_LIB_LOGE("Failed to allocate");
             return false;
         }
     }
-
-    _interval = _cfg.interval;
-    _periodic = _cfg.start_periodic;
 
     // Try read firmware version and hardware type
     readFirmwareVersion(_firmware_version);
@@ -288,7 +288,20 @@ bool UnitFacesQWERTY::begin()
             return false;
         }
     }
-    return UnitKeyboardBitwise::begin();
+
+    _handle_irq = _cfg.trigger_irq;
+
+#if defined(ARDUINO)
+    if (_handle_irq) {
+        adapter()->pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+        attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handle_faces_qwerty, FALLING);
+        _cfg.interval = std::numeric_limits<decltype(_cfg.interval)>::max();
+    }
+#else
+    // TODO: ESP-IDF with M5HAL
+#pragma message "trigger_irq is not supported"
+#endif
+    return UnitKeyboardBitwise::begin() && _cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true;
 }
 
 void UnitFacesQWERTY::update(const bool force)
@@ -300,20 +313,32 @@ void UnitFacesQWERTY::update(const bool force)
     switch (_mode) {
         case Mode::M5UnitUnified: {
             auto at = m5::utility::millis();
-            if (force || !_latest || at >= _latest + _interval) {
+            if (force || input_irq || (!_handle_irq && (!_latest || at >= _latest + _interval))) {
+                M5_LIB_LOGE("\t --- update %d/%d/%d", force, input_irq,
+                            (!_handle_irq && (!_latest || at >= _latest + _interval)));
+
                 _updated = update_new_firmware(at);
                 if (_updated) {
                     _latest = at;
                 }
+                input_irq = false;
             }
         } break;
         default:
-            UnitKeyboardBitwise::update(force);
-            //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from Firmware
+            if (_handle_irq) {
+                if (input_irq) {
+                    M5_LIB_LOGE("IRQ");
+                    UnitKeyboardBitwise::update(true);
+                }
+            } else {
+                UnitKeyboardBitwise::update();
+            }
+            //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware or Conventional behavior
             if (released() == 0x0D) {
                 uint8_t discard{};
                 readWithTransaction(&discard, 1);  // Discard 0x0A
             }
+            input_irq = false;
             break;
     }
 }
@@ -342,7 +367,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_inputs.get(), i, mod8);
+            push_back(_data.get(), i, mod8);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -357,7 +382,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_inputs.get(), i, mod8);
+            push_back(_data.get(), i, mod8);
         } else {
             _repeating &= ~bit;
         }

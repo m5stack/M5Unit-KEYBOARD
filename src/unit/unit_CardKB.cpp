@@ -217,10 +217,6 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
 
 };
 
-constexpr uint8_t MODIFIER_SHIFT_8BIT{0x10};
-constexpr uint8_t MODIFIER_SYMBOL_8BIT{0x80};
-constexpr uint8_t MODIFIER_FUNCTION_8BIT{0x40};
-
 }  // namespace
 
 namespace m5 {
@@ -269,11 +265,11 @@ uint8_t UnitCardKB::character_to_mode_bits(const char ch)
 
 bool UnitCardKB::begin()
 {
-    auto ssize = _cfg.stored_keys;
+    auto ssize = stored_size();
     assert(ssize && "stored_size must be greater than zero");
-    if (ssize != _inputs->capacity()) {
-        _inputs.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
-        if (!_inputs) {
+    if (ssize != _data->capacity()) {
+        _data.reset(new m5::container::CircularBuffer<uint8_t>(ssize));
+        if (!_data) {
             M5_LIB_LOGE("Failed to allocate");
             return false;
         }
@@ -347,7 +343,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
         // Was pressed
         if (_wasPressed & bit) {
-            push_back(_inputs.get(), i, mod8);
+            push_back(_data.get(), i, mod8);
             _repeat_start_at[i] = _hold_start_at[i] = at;
             _repeating |= bit;
             continue;
@@ -356,7 +352,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
         if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
             _repeat_start_at[i] = at;
             _repeating |= bit;
-            push_back(_inputs.get(), i, mod8);
+            push_back(_data.get(), i, mod8);
         } else {
             _repeating &= ~bit;
         }

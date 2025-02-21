@@ -114,12 +114,12 @@ private:
   @brief Class supporting keyboard state acquisition by key press bits
   @warning To make it work, M5Unit-KEYBOARD firmware must be written to the target (CardKB, FacesQWERTY...)
 */
-class UnitKeyboardBitwise : public UnitKeyboard {
+class UnitKeyboardBitwise : public UnitKeyboard, public PeriodicMeasurementAdapter<UnitKeyboardBitwise, uint8_t> {
     M5_UNIT_COMPONENT_HPP_BUILDER(UnitKeyboardBitwise, 0x00);
 
 public:
     explicit UnitKeyboardBitwise(const uint8_t addr = DEFAULT_ADDRESS)
-        : UnitKeyboard(addr), _inputs{new m5::container::CircularBuffer<uint8_t>(1)}
+        : UnitKeyboard(addr), _data{new m5::container::CircularBuffer<uint8_t>(1)}
     {
     }
     virtual ~UnitKeyboardBitwise()
@@ -127,6 +127,62 @@ public:
     }
 
     virtual void update(const bool force = false) override;
+
+    ///@name Measurement data by periodic
+    ///@{
+    /*!
+      @brief Gets the character if input
+      @retval != 0 Character
+      @retval == 0 Not input or invalid character
+    */
+    inline virtual char getchar() const override
+    {
+        return (_mode == keyboard::Mode::M5UnitUnified) ? pressed() : released();
+    }
+    /*!
+      @brief Get the oldest pressed key
+      @warning API valid only if using M5Unit-KEYBOARD firmware
+    */
+    inline uint8_t pressed() const
+    {
+        return !empty() ? oldest() : 0x00;
+    }
+    /*!
+      @brief Get the oldest released key
+      @warning Disabled in all modes except Conventional mode
+    */
+    inline virtual uint8_t released() const override
+    {
+        return (_mode == keyboard::Mode::Conventional) ? UnitKeyboard::released() : 0x00;
+    }
+    ///@}
+
+    ///@name Periodic measurement
+    ///@{
+    /*!
+      @brief Start periodic measurement
+      @param interval Update interval time(ms)
+      @return True if successful
+      @warning If config_t::trigger_irq is set to true, arguments is ignored
+    */
+    inline bool startPeriodicMeasurement(const uint32_t interval)
+    {
+        return PeriodicMeasurementAdapter<UnitKeyboardBitwise, uint8_t>::startPeriodicMeasurement(interval);
+    }
+    //! @brief Start periodic measurement using current settings
+    inline bool startPeriodicMeasurement()
+    {
+        return PeriodicMeasurementAdapter<UnitKeyboardBitwise, uint8_t>::startPeriodicMeasurement();
+    }
+    /*!
+      @brief Stop periodic measurement
+      @return True if successful
+    */
+    inline bool stopPeriodicMeasurement()
+    {
+        return PeriodicMeasurementAdapter<UnitKeyboardBitwise, uint8_t>::stopPeriodicMeasurement();
+    }
+    ///@}
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@note Which bits represent what depends on the target unit
@@ -359,13 +415,22 @@ public:
     ///@name Specified Character
     ///@{
     /*!
+      @brief Obtains the key index corresponding to the specified character
+      @retval != 0xFF key index
+      @retval == 0xFF No corresponding key index
+     */
+    inline virtual keyboard::key_index_t toKeyIndex(const char) const
+    {
+        return 0x00;
+    }
+    /*!
       @brief Is the specified character pressed?
       @param ch Character
       @return If so,true
     */
     inline bool isPressed(const char ch) const
     {
-        return isPressed(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
+        return isPressed(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character released??
@@ -383,7 +448,7 @@ public:
     */
     inline bool wasPressed(const char ch) const
     {
-        return wasPressed(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
+        return wasPressed(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character released?
@@ -392,7 +457,7 @@ public:
     */
     inline bool wasReleased(const char ch) const
     {
-        return wasReleased(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
+        return wasReleased(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character holding?
@@ -401,7 +466,7 @@ public:
     */
     inline bool isHolding(const char ch) const
     {
-        return isHolding(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
+        return isHolding(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character hold?
@@ -410,7 +475,7 @@ public:
     */
     inline bool wasHold(const char ch) const
     {
-        return wasHold(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
+        return wasHold(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character repeating?
@@ -419,60 +484,7 @@ public:
     */
     inline bool isRepeating(const char ch) const
     {
-        return isRepeating(to_key_index(ch)) && permitted_mode(to_mode_bits(ch));
-    }
-    ///@}
-
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
-    ///@name Get input key if updated
-    ///@{
-    //! @brief Get the oldest pressed key
-    inline uint8_t pressed() const
-    {
-        return !empty() ? oldest() : 0x00;
-    }
-    /*!
-      @brief Get the oldest released key
-      @warning Disabled in all modes except Conventional mode
-    */
-    inline virtual uint8_t released() const override
-    {
-        return (_mode == keyboard::Mode::Conventional) ? UnitKeyboard::released() : 0x00;
-    }
-    //! @brief Available pressed keys buffer
-    inline uint32_t available() const
-    {
-        return _inputs->size();
-    }
-    //! @brief Is the key pressed buffer empty?
-    inline bool empty() const
-    {
-        return _inputs->empty();
-    }
-    //! @brief Is the key pressed buffer full?
-    inline bool full() const
-    {
-        return _inputs->full();
-    }
-    //! @brief Discard oldest pressed
-    inline void discard() const
-    {
-        _inputs->pop_front();
-    }
-    //! @brief Discard all pressed
-    inline void flush() const
-    {
-        _inputs->clear();
-    }
-    //! @brief Get the oldest pressed key
-    inline uint8_t oldest() const
-    {
-        return !empty() ? _inputs->front().value() : 0x00;
-    }
-    //! @brief Get the latest pressed key
-    inline uint8_t latest() const
-    {
-        return !empty() ? _inputs->back().value() : 0x00;
+        return isRepeating(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
     }
     ///@}
 
@@ -536,29 +548,33 @@ public:
     ///@}
 
 protected:
+    bool start_periodic_measurement();
+    bool start_periodic_measurement(const uint32_t interval);
+    bool stop_periodic_measurement();
+
     bool update_new_firmware(const types::elapsed_time_t at);
     void push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t alt);
+
     inline keyboard::key_status_bits_t modifier_bits() const
     {
         return keyboard::modifier_bits(_now);
     }
 
-    inline virtual keyboard::key_index_t to_key_index(const char) const
-    {
-        return 0x00;
-    }
     inline virtual uint8_t to_mode_bits(const char) const
     {
         return 0x00;
     }
+
     bool permitted_mode(const uint8_t mbits) const
     {
         uint8_t mod8 = _now >> 56;
         return mbits & (1U << (mod8 ? __builtin_ctz(mod8) + 1 : 0));
     }
 
+    M5_UNIT_COMPONENT_PERIODIC_MEASUREMENT_ADAPTER_HPP_BUILDER(UnitKeyboardBitwise, uint8_t);
+
 protected:
-    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _inputs{};  // was Presed keys
+    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _data{};  // was Presed keys
     keyboard::key_status_bits_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{},
         _repeating{};  // key bits
     std::vector<types::elapsed_time_t> _repeat_start_at{}, _hold_start_at{};
