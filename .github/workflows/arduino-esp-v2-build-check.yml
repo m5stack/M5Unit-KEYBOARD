@@ -85,6 +85,16 @@ jobs:
           - "-DUSING_UNIT_CARDKB"
           - "-DUSING_UNIT_FACES_QWERTY"
 
+        exclude:
+          - board: m5stack-atom
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack-atom
+            sketch: SimpleDisplay
+          - board: m5stack-atoms3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack-coreink
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
