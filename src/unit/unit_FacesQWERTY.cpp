@@ -8,8 +8,13 @@
   @brief Faces QWERTY Unit for M5UnitUnified
 */
 #include "unit_FacesQWERTY.hpp"
+
+// Define macro for 'digitalPinToInterrupt' was not declared in this scope' in some environments
 #if defined(ARDUINO)
-#include <Arduino.h> // For digitalPinToInterrupt
+#include <Arduino.h>
+#if !defined(digitalPinToInterrupt)
+#define digitalPinToInterrupt(p) ((((uint8_t)digitalPinToGPIONumber(p)) < NUM_DIGITAL_PINS) ? (p) : NOT_AN_INTERRUPT)
+#endif
 #endif
 
 using namespace m5::utility::mmh3;
