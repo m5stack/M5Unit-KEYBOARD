@@ -67,8 +67,8 @@ void setup()
 #endif
     lcd.fillScreen(TFT_DARKGREEN);
 
-    //If the sound is low by default, adjust with this 
-    //M5.Speaker.setVolume(255);
+    // If the sound is low by default, adjust with this
+    // M5.Speaker.setVolume(255);
 }
 
 void loop()
