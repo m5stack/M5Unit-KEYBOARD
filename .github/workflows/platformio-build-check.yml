@@ -89,14 +89,28 @@ jobs:
             unit: UnitFacesQWERTY
           - board: StampS3
             example: SimpleDisplay
+          - board: Dial
+            unit: UnitFacesQWERTY
           - board: AtomMatrix
             unit: UnitFacesQWERTY
           - board: AtomMatrix
             example: SimpleDisplay
+          - board: AtomS3
+            unit: UnitFacesQWERTY
+          - board: AtomS3R
+            unit: UnitFacesQWERTY
           - board: NanoC6
             unit: UnitFacesQWERTY
           - board: NanoC6
             example: SimpleDisplay
+          - board: StickCPlus
+            unit: UnitFacesQWERTY
+          - board: StickCPlus2
+            unit: UnitFacesQWERTY
+          - board: Paper
+            unit: UnitFacesQWERTY
+          - board: CoreInk
+            unit: UnitFacesQWERTY
 
 #          - board: CoreS3
 #            espressif32: '5_4_0'
@@ -136,7 +150,7 @@ jobs:
       - name: Build examples
         uses: karniv00l/platformio-run-action@v1
         with:
-          environments: ${{ matrix.unit != '' && format('{0}_{1}_{2}_{3}_{4}', matrix.unit, matrix.example, matrix.board, matrix.framework, matrix.espressif32) || format('{0}_{1}_{2}_{3}', matrix.example, matrix.board, matrix.framework, matrix.espressif32) }}
+          environments: ${{ matrix.unit && format('{0}_{1}_{2}_{3}_{4}', matrix.unit, matrix.example, matrix.board, matrix.framework, matrix.espressif32) || format('{0}_{1}_{2}_{3}', matrix.example, matrix.board, matrix.framework, matrix.espressif32) }}
 #         targets:
           project-dir: "./"
           project-conf: "./platformio.ini"
