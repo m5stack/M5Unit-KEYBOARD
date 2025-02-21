@@ -9,14 +9,6 @@
 */
 #include "unit_FacesQWERTY.hpp"
 
-// Define macro for 'digitalPinToInterrupt' was not declared in this scope' in some environments
-#if defined(ARDUINO)
-#include <Arduino.h>
-#if !defined(digitalPinToInterrupt)
-#define digitalPinToInterrupt(p) ((((uint8_t)digitalPinToGPIONumber(p)) < NUM_DIGITAL_PINS) ? (p) : NOT_AN_INTERRUPT)
-#endif
-#endif
-
 using namespace m5::utility::mmh3;
 using namespace m5::unit::types;
 using namespace m5::unit::keyboard;
@@ -300,11 +292,16 @@ bool UnitFacesQWERTY::begin()
     _handle_irq = _cfg.trigger_irq;
 
 #if defined(ARDUINO)
+#if defined(digitalPinToInterrupt)
     if (_handle_irq) {
         adapter()->pinMode(INTERRUPT_PIN, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handle_faces_qwerty, FALLING);
-        _cfg.interval = std::numeric_limits<decltype(_cfg.interval)>::max();
     }
+#else
+#pragma message "Skip IRQ trigger code"
+    // In some environments, "digitalPinToInterrupt" raises an error,
+    // but this is ignored because the environment is not supported by Faces.
+#endif
 #else
     // TODO: ESP-IDF with M5HAL
 #pragma message "trigger_irq is not supported"
@@ -321,21 +318,17 @@ void UnitFacesQWERTY::update(const bool force)
     switch (_mode) {
         case Mode::M5UnitUnified: {
             auto at = m5::utility::millis();
-            if (force || input_irq || (!_handle_irq && (!_latest || at >= _latest + _interval))) {
-                M5_LIB_LOGE("\t --- update %d/%d/%d", force, input_irq,
-                            (!_handle_irq && (!_latest || at >= _latest + _interval)));
-
+            if (input_irq || force || !_latest || at >= _latest + _interval) {
                 _updated = update_new_firmware(at);
-                if (_updated) {
-                    _latest = at;
-                }
-                input_irq = false;
             }
+            if (_updated) {
+                _latest = at;
+            }
+            input_irq = false;
         } break;
         default:
             if (_handle_irq) {
                 if (input_irq) {
-                    M5_LIB_LOGE("IRQ");
                     UnitKeyboardBitwise::update(true);
                 }
             } else {
@@ -356,8 +349,8 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     _wasHold = _wasPressed = _wasReleased = 0;
     _prev                                 = _now;
     auto prev_holding                     = _holding;
-
     uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
+
     if (!readRegister(CMD_SCAN_REG, rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
@@ -403,7 +396,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return true;  // Always true
+    return _repeating;  // Any key pressed?
 }
 
 void UnitFacesQWERTY::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx,
