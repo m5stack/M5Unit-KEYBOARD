@@ -66,6 +66,9 @@ void setup()
     M5_LOGI("FacesType:%02X Firmware:%02X", unit.facesType(), unit.firmwareVersion());
 #endif
     lcd.fillScreen(TFT_DARKGREEN);
+
+    //If the sound is low by default, adjust with this 
+    //M5.Speaker.setVolume(255);
 }
 
 void loop()
@@ -89,6 +92,7 @@ void loop()
         while (unit.available()) {
             ch = unit.getchar();
             M5.Log.printf("Char:[%02X %c]\n", ch, std::isprint(ch) ? ch : ' ');
+            M5.Speaker.tone(1000, 20);
             unit.discard();
         }
     }

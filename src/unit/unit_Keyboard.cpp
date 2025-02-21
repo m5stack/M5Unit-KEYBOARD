@@ -69,7 +69,7 @@ bool UnitKeyboardBitwise::start_periodic_measurement(const uint32_t interval)
         return false;
     }
 
-    _latest = 0;
+    _latest   = 0;
     _interval = interval;
     _periodic = true;
     return true;

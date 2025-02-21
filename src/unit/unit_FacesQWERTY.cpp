@@ -8,6 +8,9 @@
   @brief Faces QWERTY Unit for M5UnitUnified
 */
 #include "unit_FacesQWERTY.hpp"
+#if defined(ARDUINO)
+#include <Arduino.h> // For digitalPinToInterrupt
+#endif
 
 using namespace m5::utility::mmh3;
 using namespace m5::unit::types;
