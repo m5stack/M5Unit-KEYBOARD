@@ -23,6 +23,13 @@ As before, the modifier key can be locked by double-clicking.
 |Faces type|0xF0 R| ||||||||||||type||||Faces type<br> 0x01:FacesQWERTY|
 |Firmware version|0xF0 R|||||||||||||||version||Version: firmware version number|
 
+### IRQ
+Interrupt occurs under the following conditions (GPIO 5)
+
+|Mode|Condition|
+|---|---|
+|Conventional|A key was released|
+|M5UnitUnified|Any key status was changed|
 
 ### Mode
 
@@ -45,7 +52,7 @@ As before, the modifier key can be locked by double-clicking.
 |---|---|---|---|---|
 |byte 5| 0x01| 0x02| 0x04|0x08|
 
-### Key
+#### Key
 Up to 35 bits valid as a key
 
 |byte|MSB key index | LSB key index|
@@ -100,3 +107,8 @@ Up to 35 bits valid as a key
 ## Examples with this firmware
 - [PlotTSerial](../../UnitUnified/UnitFacesQWERTY/PlotToSerial)
 - [SimpleDisplay](../../UnitUnified/UnitFacesQWERTY/SimpleDisplay)
+
+
+## How to write
+- In Japanese
+  - [https://ht-deko.com/arduino/m5stack\_faces.html](https://ht-deko.com/arduino/m5stack_faces.html#05)

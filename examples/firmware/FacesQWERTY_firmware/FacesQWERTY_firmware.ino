@@ -119,7 +119,7 @@ constexpr uint8_t bit_to_kidx[30] = {
 };
 
 constexpr uint8_t key_map[NUMBER_OF_KEYS][5 /* normal, shift, symbol, Fn, Alt */] = {
-    /* */
+    //
     {'q', 'Q', '#', '~', 144},
     {'w', 'W', '1', '^', 145},
     {'e', 'E', '2', '&', 146},
@@ -130,7 +130,7 @@ constexpr uint8_t key_map[NUMBER_OF_KEYS][5 /* normal, shift, symbol, Fn, Alt */
     {'i', 'I', '-', '}', 151},
     {'o', 'O', '+', '[', 152},
     {'p', 'P', '@', ']', 153},
-    /**/
+    //
     {'a', 'A', '*', '|', 154},
     {'s', 'S', '4', '=', 155},
     {'d', 'D', '5', '\\', 156},
@@ -140,9 +140,9 @@ constexpr uint8_t key_map[NUMBER_OF_KEYS][5 /* normal, shift, symbol, Fn, Alt */
     {'j', 'J', ';', 182, 160},
     {'k', 'K', '\'', 183, 161},
     {'l', 'L', '"', 184, 162},
-    {8, 8, 127, 8, 163},  // del & backspace
-    /**/
+    {8, 8, 127, 8, 163},        // del & backspace
     {255, 255, 255, 185, 164},  // alt
+    //
     {'z', 'Z', '7', 186, 165},
     {'x', 'X', '8', 187, 166},
     {'c', 'C', '9', 188, 167},
@@ -152,20 +152,16 @@ constexpr uint8_t key_map[NUMBER_OF_KEYS][5 /* normal, shift, symbol, Fn, Alt */
     {'m', 'M', '.', 192, 171},
     {'$', '$', 255, 193, 172},
     {13, 13, 13, 13, 173},  // enter
-    /**/
+    //
     {255, 255, 255, 255, 174},  // aA
-    {'0', '0', 27, '0', 175},
+    {'0', '0', '0', '0', 175},
     {' ', ' ', ' ', ' ', 176},
-    {255, 255, 255, 255, 177},  // sym
-    {255, 255, 255, 255, 178}   // fn
-};
+    {255, 255, 255, 255, 177},
+    {255, 255, 27, 255, 178}};
 
 // For scan mode
 constexpr uint8_t FIRMWARE_VERSION{0x01};
 constexpr uint8_t FACES_TYPE{0x01};  // 0x01:QWERTY
-
-#define key_bits_on(bits, idx) (bits)[(idx) >> 3] |= (1U << ((idx) & 0x07))
-#define is_key_bits(bits, idx) ((bool)((bits)[(idx) >> 3] & (1U << ((idx) & 0x07))))
 
 constexpr uint8_t shift_bit{0x20};
 constexpr uint8_t symbol_bit{0x80};
@@ -186,6 +182,11 @@ uint8_t mode{};                                    // 0:normal 1:shift 2:symbol 
 uint8_t mode_lock{};                               // 1:locked modifier
 uint8_t cmd{};                                     // register command
 uint8_t scan_mode{};                               // 0:old mode 1:Scan mode
+
+inline void key_bits_on(const uint8_t cur, const uint8_t idx)
+{
+    key_bits[cur][idx >> 3] |= (1U << (idx & 0x07));
+}
 
 constexpr uint8_t mode_to_modifier_bit_table[5] = {
     0, shift_bit, symbol_bit, function_bit, alt_bit,
@@ -281,7 +282,7 @@ void requestEvent()
                 // Write previous state  (Firmware writes and buffers for transmission are exclusive)
                 Wire.write(key_bits[current ^ 1][i]);
             }
-
+            IRQ_1;
         } else if (cmd == CMD_MODE_REG) {
             Wire.write(scan_mode);
         } else if (cmd == CMD_FIRMWARE_VERSION_REG) {
@@ -608,12 +609,12 @@ void get_key_status()
         bits = ~((pb << 8) | pd) & 0x03FF;  // Use inverted 10 bits
         for (uint_fast8_t bidx = 0; bidx < 10; ++bidx) {
             if (bits & (1U << bidx)) {
-                key_bits_on(key_bits[current], bit_to_kidx[10 * i + bidx]);
+                key_bits_on(current, bit_to_kidx[10 * i + bidx]);
             }
         }
     }
     if (~pb & enter_bit) {
-        key_bits_on(key_bits[current], 29);
+        key_bits_on(current, 29);
     }
 }
 
@@ -715,6 +716,11 @@ void loop()
             mode ? mode_to_common_modifier_bit_table[mode] : tmp_mod_bits;
 
         get_key_status();  // delay 2 * 3
+
+        if (memcmp(key_bits[current], key_bits[current ^ 1], sizeof(key_bits[0]))) {
+            IRQ_0;
+        }
+
         if (mode_lock) {
             lightning_led(mode);
         } else {

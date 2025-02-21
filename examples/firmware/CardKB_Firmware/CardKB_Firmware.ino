@@ -127,9 +127,6 @@ uint8_t key_map[NUMBER_OF_KEYS][4 /*normal, shift, sym,fn */] = {
     {' ', ' ', ' ', 175}   // space
 };
 
-#define key_bits_on(bits, idx) (bits)[(idx) >> 3] |= (1U << ((idx) & 0x07))
-#define is_key_bits(bits, idx) ((bool)((bits)[(idx) >> 3] & (1U << ((idx) & 0x07))))
-
 constexpr uint8_t shift_bit{0x10};
 constexpr uint8_t symbol_bit{0x80};
 constexpr uint8_t function_bit{0x40};
@@ -165,6 +162,16 @@ constexpr uint8_t mode_to_common_modifier_bit_table[4] = {
     0x02,
     0x04,
 };
+
+inline void key_bits_on(const uint8_t cur, const uint8_t idx)
+{
+    key_bits[cur][idx >> 3] |= (1U << (idx & 0x07));
+}
+
+inline bool is_key_bits(const uint8_t cur, const uint8_t idx)
+{
+    return key_bits[cur][idx >> 3] & (1U << (idx & 0x07));
+}
 
 class ModButton {
 public:
@@ -317,7 +324,7 @@ bool get_key_status()
         bits = ~((pb << 8) | pd) & 0x0FFF;  // Use inverted 12 bits
         for (uint_fast8_t bidx = 0; bidx < 12; ++bidx) {
             if (bits & (1U << bidx)) {
-                key_bits_on(key_bits[current], 12 * a + bidx);
+                key_bits_on(current, 12 * a + bidx);
                 if (!pressed) {
                     released = 0;
                     pressed  = 12 * a + bidx + 1;
@@ -327,7 +334,7 @@ bool get_key_status()
     }
 
     // Released the first pressed key? (for old mode)
-    if (!released && pressed && !is_key_bits(key_bits[current], (pressed - 1))) {
+    if (!released && pressed && !is_key_bits(current, (pressed - 1))) {
         released      = pressed;
         released_mode = mode;
         pressed       = 0;
