@@ -46,7 +46,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.unit }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
+    name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
     runs-on: ubuntu-latest
 
     strategy:
@@ -101,21 +101,38 @@ jobs:
 
         build-properties:
           - "-DUSING_UNIT_CARDKB"
-          - "-DUSING_UNIT_FACES_QWERTY""
+          - "-DUSING_UNIT_FACES_QWERTY"
 
         exclude:
           - board: m5stack_atom
-            unit: UnitFacesQWERTY
+            sketch: SimpleDisplay
           - board: m5stack_atom
-            build-properties: "-DUSING_UNIT_FACES_QWERTY""
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_atoms3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_atoms3r
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_capsule
-            unit: UnitFacesQWERTY
+            sketch: SimpleDisplay
           - board: m5stack_capsule
-            build-properties: "-DUSING_UNIT_FACES_QWERTY""
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_coreink
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_dial
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_dinmeter
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_paper
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_stamp_s3
-            unit: UnitFacesQWERTY
+            sketch: SimpleDisplay
           - board: m5stack_stamp_s3
-            build-properties: "-DUSING_UNIT_FACES_QWERTY""
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_stickc_plus
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_stickc_plus2
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+
 
     steps:
       - name: Checkout
@@ -132,7 +149,7 @@ jobs:
           platform-url: ${{ matrix.platform-url }}
           required-libraries: ${{ env.REQUIRED_LIBRARIES }}
           extra-arduino-cli-args: ${{ matrix.cli-args }}
-          build-properties: ${{ toJson(matrix.build-properties) }}
+          build-properties: ${{ matrix.build-properties }}
           sketch-names: ${{ matrix.sketch }}.ino
           sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.unit }}
           #sketches-exclude: ${{ matrix.sketches-exclude }}

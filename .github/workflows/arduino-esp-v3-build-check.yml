@@ -45,7 +45,7 @@ on:
 
 jobs:
   build:
-    name: ${{ matrix.unit }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
+    name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
     runs-on: ubuntu-latest
 
     strategy:
@@ -104,12 +104,32 @@ jobs:
         exclude:
           - board: m5stack_atom
             sketch: SimpleDisplay
+          - board: m5stack_atom
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_atoms3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_capsule
             sketch: SimpleDisplay
+          - board: m5stack_capsule
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_coreink
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_dial
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_nanoc6
             sketch: SimpleDisplay
+          - board: m5stack_nanoc6
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_paper
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_stamp_s3
             sketch: SimpleDisplay
+          - board: m5stack_stamp_s3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_stickc_plus
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_stickc_plus2
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
     steps:
       - name: Checkout
@@ -130,3 +150,4 @@ jobs:
           sketch-names: ${{ matrix.sketch }}.ino
           sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.unit }}
           #sketches-exclude: ${{ matrix.sketches-exclude }}
+
