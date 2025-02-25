@@ -1,0 +1,72 @@
+name: Build(CardKB firmware)
+
+env:
+  SKETCH_NAMES_FIND_START: ./examples/firmware
+  REQUIRED_LIBRARIES: "Adafruit NeoPixel"
+on:
+  push:
+    tags-ignore:
+      - '*.*.*'
+      - 'v*.*.*'
+    branches:
+      - '*'
+    paths:
+      - 'examples/firmware/CardKB_Firmware/**.ino'
+      - '**firmware-cardkb-build.yml'
+  pull_request:
+    paths:
+      - 'examples/firmware/CardKB_Firmware/**.ino'
+      - '**firmware-cardkb-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      #max-parallel: 1
+      matrix:
+
+        platform-url:
+          - https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json
+        platform-version:
+          - 3.0.3
+        sketch:
+          - CardKB_Firmware
+        board:
+          - 8
+          - 328
+        platform:
+          - MiniCore
+        archi:
+          - avr
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set build properties
+        id: set_build_properties
+        run: |
+          if [[ "${{ matrix.board }}" == "8" ]]; then
+            echo 'BUILD_PROPERTIES={ "All": "-UF_CPU -DF_CPU=8000000L -DFIRMWARE_TARGET_CARDKB_V11" }' >> $GITHUB_ENV
+          elif [[ "${{ matrix.board }}" == "328" ]]; then
+            echo 'BUILD_PROPERTIES={ "All": "-UF_CPU -DF_CPU=8000000L -DFIRMWARE_TARGET_CARDKB" }' >> $GITHUB_ENV
+          fi
+
+      # Build 
+      - name: Compile examples
+        uses: ArminJo/arduino-test-compile@master
+        with:
+          arduino-board-fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
+          arduino-platform: ${{ matrix.platform }}:${{ matrix.archi }}@${{ matrix.platform-version }}
+          platform-url: ${{ matrix.platform-url }}
+          required-libraries: ${{ env.REQUIRED_LIBRARIES }}
+          extra-arduino-cli-args: ${{ matrix.cli-args }}
+          build-properties: ${{ env.BUILD_PROPERTIES }}
+          sketch-names: ${{ matrix.sketch }}.ino
+          sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.unit }}

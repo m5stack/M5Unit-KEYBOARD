@@ -1,0 +1,80 @@
+name: Build(Faces firmware)
+
+env:
+  SKETCH_NAMES_FIND_START: ./examples/firmware
+  REQUIRED_LIBRARIES:
+on:
+  push:
+    tags-ignore:
+      - '*.*.*'
+      - 'v*.*.*'
+    branches:
+      - '*'
+    paths:
+      - 'examples/firmware/FacesQWERTY_firmware/**.ino'
+      - '**firmware-faces-build.yml'
+  pull_request:
+    paths:
+      - 'examples/firmware/FacesQWERTY_firmware/**.ino'
+      - '**firmware-faces-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      #max-parallel: 1
+      matrix:
+
+        platform-url:
+          - https://downloads.arduino.cc/packages/package_index.json
+        platform-version:
+          - 1.8.6
+        sketch:
+          - FacesQWERTY_firmware
+        board:
+          - pro
+        platform:
+          - arduino
+        archi:
+          - avr
+        cpu:
+          - 8MHzatmega328
+
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+
+      - name: Set build properties
+        id: set_build_properties
+        run: |
+          if [[ "${{ matrix.cpu }}" == "8MHzatmega328" ]]; then
+            echo 'BUILD_PROPERTIES={ "All": "-U_FCPU -DF_CPU=8000000L }' >> $GITHUB_ENV
+          fi
+
+      - name: Set build properties
+        id: set_build_properties
+        run: |
+          if [[ "${{ matrix.cpu }}" == "8MHzatmega328" ]]; then
+            echo 'BUILD_PROPERTIES={ "All": "-UF_CPU -DF_CPU=8000000L" }' >> $GITHUB_ENV
+          fi
+
+      # Build 
+      - name: Compile examples
+        uses: ArminJo/arduino-test-compile@master
+        with:
+          arduino-board-fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
+          arduino-platform: ${{ matrix.platform }}:${{ matrix.archi }}@${{ matrix.platform-version }}
+          platform-url: ${{ matrix.platform-url }}
+          required-libraries: ${{ env.REQUIRED_LIBRARIES }}
+          extra-arduino-cli-args: ${{ matrix.cli-args }}
+          build-properties: ${{ env.BUILD_PROPERTIES }}
+          sketch-names: ${{ matrix.sketch }}.ino
+          sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.unit }}
