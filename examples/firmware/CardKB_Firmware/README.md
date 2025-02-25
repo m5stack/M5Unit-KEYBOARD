@@ -111,10 +111,11 @@ Up to 48 bits valid as a key
 |47|SPACE|
 
 ## Examples with this firmware
-- [PlotTSerial](../../UnitUnified/UnitCardKB/PlotToSerial)
-- [SimpleDisplay](../../UnitUnified/UnitCardKB/SimpleDisplay)
+- [PlotTSerial](../../UnitUnified/PlotToSerial)
+- [SimpleDisplay](../../UnitUnified/SimpleDisplay)
 
 
 ## How to write
-- [https://shikarunochi.matrix.jp/?p=2910](https://shikarunochi.matrix.jp/?p=2910)  
-  This article for CardKB (ATmega328), If you write to CardKB v 1.1 then board seting is ATmega8.
+- In Japanese
+  - [https://shikarunochi.matrix.jp/?p=2910](https://shikarunochi.matrix.jp/?p=2910)  
+    This article for CardKB (ATmega328), If you write to CardKB v 1.1 then board seting is ATmega8.

@@ -28,12 +28,12 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ80
 #include <Wire.h>
 #include <stdint.h>
 
-// **** CHOOSE TARGET *************
+// **** MUST CHOOSE TARGET ******************************
 // SKU:U035-B
-#define FIRMWARE_TARGET_CARDKB_V11
+// #define FIRMWARE_TARGET_CARDKB_V11
 // SKU:U035
 // #define FIRMWARE_TARGET_CARDKB
-//  *********************************
+// ******************************************************
 #if !defined(FIRMWARE_TARGET_CARDKB) && !defined(FIRMWARE_TARGET_CARDKB_V11)
 #error Chhose target please!
 #endif

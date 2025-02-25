@@ -105,8 +105,8 @@ Up to 35 bits valid as a key
 |34|NO\_KEY|
 
 ## Examples with this firmware
-- [PlotTSerial](../../UnitUnified/UnitFacesQWERTY/PlotToSerial)
-- [SimpleDisplay](../../UnitUnified/UnitFacesQWERTY/SimpleDisplay)
+- [PlotTSerial](../../UnitUnified/PlotToSerial)
+- [SimpleDisplay](../../UnitUnified/SimpleDisplay)
 
 
 ## How to write
