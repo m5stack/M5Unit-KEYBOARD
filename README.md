@@ -53,8 +53,8 @@ You must choose a define symbol for the unit you will use.
 ## New firmware
 See also [examples/firmware](examples/firmware)
 
-When this firmware is applied and the UnitCardKB or similar is used, the operating feel is very different.  
-Keystrokes such as Alt (SHift/Symbol/Function) key presses can be retrieved.
+When this firmware is applied and the Units are used, the operating feel is very different.  
+Allows for input while pressing modifier keys and detection of key presses.
 
 ### Doxygen document
 [GitHub Pages](https://m5stack.github.io/M5Unit-KEYBOARD/)
