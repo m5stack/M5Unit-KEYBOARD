@@ -16,6 +16,17 @@ namespace m5 {
 namespace unit {
 
 /*!
+  @namespacde faces
+  @brief For Faces
+ */
+namespace faces {
+///@name Faces type
+///@{
+constexpr uint8_t TYPE_QWERTY{0x01};  //!< SKU:A003
+///@}
+}  // namespace faces
+
+/*!
   @class m5::unit::UnitFacesQWERTY
   @brief QWERTY is a full-featured keyboard panel adapted to FACE_BOTTOM
   @warning Note that this can only be detected if the key is released.
@@ -185,22 +196,13 @@ protected:
     config_t _cfg{};
 };
 
-/*!
-  @namespacde faces
-  @brief For Faces
- */
-namespace faces {
-///@name Faces type
-///@{
-constexpr uint8_t TYPE_QWERTY{0x01};  //!< SKU:A003
-///@}
 ///@cond
+namespace faces {
 namespace command {
 constexpr uint8_t CMD_FACES_TYPE_REG{0xFC};
 }  // namespace command
-///@endcond
 }  // namespace faces
-
+///@endcond
 }  // namespace unit
 }  // namespace m5
 #endif
