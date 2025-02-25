@@ -278,7 +278,10 @@ bool UnitCardKB::begin()
     _interval = _cfg.interval;
     _periodic = _cfg.start_periodic;
 
-    // Try read firmware version and hardware type
+    uint8_t discard{};
+    // Read and reject values to avoid false evaluations due to transmission of values for released keys
+    readWithTransaction(&discard, 1);
+
     readFirmwareVersion(_firmware_version);
     readHardwareType(_type);
     M5_LIB_LOGI("Type:%02X Firmware:%02X", _type, _firmware_version);

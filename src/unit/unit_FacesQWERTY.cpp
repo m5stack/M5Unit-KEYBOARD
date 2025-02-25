@@ -275,6 +275,10 @@ bool UnitFacesQWERTY::begin()
         }
     }
 
+    uint8_t discard{};
+    // Read and reject values to avoid false evaluations due to transmission of values for released keys (max. 2)
+    readWithTransaction(&discard, 1);
+    readWithTransaction(&discard, 1);
     // Try read firmware version and hardware type
     readFirmwareVersion(_firmware_version);
     readFacesType(_type);
