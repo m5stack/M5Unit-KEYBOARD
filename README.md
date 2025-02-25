@@ -1,48 +1,74 @@
-# Product Name
+# M5Unit - KEYBOARD
 
 ## Overview
 
-### SKU:xxx
+Library for KEYBOARD using [M5UnitUnified](https://github.com/m5stack/M5UnitUnified).  
+M5UnitUnified is a library for unified handling of various M5 units products.
 
-Description of the product
+
+### SKU:U035-B
+CardKB v1.1 is a card-size '50 key' QWERTY keyboard. Adpots ATMega8A as the MCU, communication port I2C, and one 'RGB-LED' indicator.
+
+### SKU:A003
+QWERTY is a full-featured keyboard panel adapted to FACE_BOTTOM. There are 35 keys in total, and each key can be multiplexed by combination keys to output different characters.
+
 
 ## Related Link
+See also examples using conventional methods here.
 
-- [Document & Datasheet](https://docs.m5stack.com/en/unit/product_Link)
+- [Unit CardKB v1.1 & Datasheet](https://docs.m5stack.com/ja/unit/cardkb_1.1)
+- [Faces QWERTY & Datasheet](https://docs.m5stack.com/en/module/faces_keyboard)
 
-## Required Libraries:
 
-- [Adafruit_BMP280_Library](https://github.com/adafruit/Required_Libraries_Link)
+### Required Libraries:
+- [M5UnitUnified](https://github.com/m5stack/M5UnitUnified)
+- [M5Utility](https://github.com/m5stack/M5Utility)
+- [M5HAL](https://github.com/m5stack/M5HAL)
 
 ## License
 
-- [Product Name- MIT](LICENSE)
+- [M5Unit-KEYBOARD - MIT](LICENSE)
 
-## Remaining steps(Editorial Staff Look,After following the steps, remember to delete all the content below)
+## Examples
+See also [examples/UnitUnified](examples/UnitUnified)
 
-1. Change [clang format check path](./.github/workflows/clang-format-check.yml#L9-L15).
-2. Add License content to [LICENSE](/LICENSE).
-3. Change link on line 78 of [bug-report.yml](./.github/ISSUE_TEMPLATE/bug-report.yml#L78).
+### For ArduinoIDE settings
+You must choose a define symbol for the unit you will use.  
+(Rewrite source or specify with compile options)
 
 ```cpp
-Example
-# M5Unit-ENV
-
-## Overview
-
-### SKU:U001 & U001-B & U001-C
-
-Contains M5Stack-**UNIT ENV** series related case programs.ENV is an environmental sensor with integrated SHT30 and QMP6988 internally to detect temperature, humidity, and atmospheric pressure data.
-
-## Related Link
-
-- [Document & Datasheet](https://docs.m5stack.com/en/unit/envIII)
-
-## Required Libraries:
-
-- [Adafruit_BMP280_Library](https://github.com/adafruit/Adafruit_BMP280_Library)
-
-## License
-
-- [M5Unit-ENV - MIT](LICENSE)
+// PlotToSerial.ino, SimpleDisplay.ino
+// *************************************************************
+// Choose one define symbol to match the unit you are using
+// *************************************************************
+#if !defined(USING_UNIT_CARDKB) && !defined(USING_UNIT_FACES_QWERTY)
+// For CardKB
+// #define USING_UNIT_CARDKB
+// For FacesQWERTY
+// #define USING_UNIT_FACES_QWERTY
+#endif
+// *************************************************************
 ```
+
+## New firmware
+See also [examples/firmware](examples/firmware)
+
+When this firmware is applied and the Units are used, the operating feel is very different.  
+Allows for input while pressing modifier keys and detection of key presses.
+
+### Doxygen document
+[GitHub Pages](https://m5stack.github.io/M5Unit-KEYBOARD/)
+
+If you want to generate documents on your local machine, execute the following command
+
+```
+bash docs/doxy.sh
+```
+
+It will output it under docs/html  
+If you want to output Git commit hashes to html, do it for the git cloned folder.
+
+#### Required
+- [Doxyegn](https://www.doxygen.nl/)
+- [pcregrep](https://formulae.brew.sh/formula/pcre2)
+- [Git](https://git-scm.com/) (Output commit hash to html)
