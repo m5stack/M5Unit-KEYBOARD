@@ -275,9 +275,6 @@ bool UnitCardKB::begin()
         }
     }
 
-    _interval = _cfg.interval;
-    _periodic = _cfg.start_periodic;
-
     uint8_t discard{};
     // Read and reject values to avoid false evaluations due to transmission of values for released keys
     readWithTransaction(&discard, 1);
@@ -296,7 +293,7 @@ bool UnitCardKB::begin()
             return false;
         }
     }
-    return UnitKeyboardBitwise::begin();
+    return UnitKeyboardBitwise::begin() && (_cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true);
 }
 
 void UnitCardKB::update(const bool force)

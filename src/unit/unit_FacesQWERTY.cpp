@@ -312,7 +312,7 @@ bool UnitFacesQWERTY::begin()
     // TODO: ESP-IDF with M5HAL
 #pragma message "trigger_irq is not supported"
 #endif
-    return UnitKeyboardBitwise::begin() && _cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true;
+    return UnitKeyboardBitwise::begin() && (_cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true);
 }
 
 void UnitFacesQWERTY::update(const bool force)
