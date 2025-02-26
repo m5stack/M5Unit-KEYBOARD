@@ -51,10 +51,6 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
     #runs-on: ${{ env.GITHUB_ACTIONS == 'true' && fromJSON('["self-hosted", "Linux", "X64"]') || 'ubuntu-latest' }}
 
-    steps:
-      - name: Show environment
-        run: echo "Running on ${{ runner.os }} ${{ runner.arch }}"
-
     strategy:
       fail-fast: false
       #max-parallel: 1
