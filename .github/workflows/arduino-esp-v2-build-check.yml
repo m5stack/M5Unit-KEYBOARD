@@ -47,7 +47,13 @@ on:
 jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
+    #runs-on: ${{ env.GITHUB_ACTIONS == 'true' && fromJSON('["self-hosted", "Linux", "X64"]') || 'ubuntu-latest' }}
+
+    steps:
+      - name: Show environment
+        run: echo "Running on ${{ runner.os }} ${{ runner.arch }}"
 
     strategy:
       fail-fast: false
