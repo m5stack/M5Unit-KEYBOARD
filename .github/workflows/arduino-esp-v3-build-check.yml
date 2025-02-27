@@ -15,10 +15,6 @@ on:
       - 'src/unit/**.hpp'
       - 'src/unit/**.h'
       - 'src/unit/**.c'
-      - 'test/**.cpp'
-      - 'test/**.hpp'
-      - 'test/**.h'
-      - 'test/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
@@ -31,10 +27,6 @@ on:
       - 'src/unit/**.hpp'
       - 'src/unit/**.h'
       - 'src/unit/**.c'
-      - 'test/**.cpp'
-      - 'test/**.hpp'
-      - 'test/**.h'
-      - 'test/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
@@ -42,11 +34,31 @@ on:
       - 'examples/UnitUnified/**.c'
       - '**arduino-esp-v3-build-check.yml'
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Select runner
+        required: true
+#        default: '"ubuntu-latest"'
+        default: '["self-hosted", "Linux", "X64"]'
+        type: choice
+        options:
+          - '["ubuntu-latest"]'
+          - '["self-hosted", "Linux", "X64"]'
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
+#    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     strategy:
       fail-fast: false
@@ -132,6 +144,9 @@ jobs:
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
     steps:
+      - name: Which runner
+        run: echo "RunsOn=${{ github.event.inputs.runner || 'self-hosted' }}"
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
