@@ -42,17 +42,38 @@ on:
       - 'examples/UnitUnified/**.c'
       - '**arduino-esp-v2-build-check.yml'
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Select runner
+        required: true
+#        default: '"ubuntu-latest"'
+        default: '["self-hosted", "Linux", "X64"]'
+        type: choice
+        options:
+          - '["ubuntu-latest"]'
+          - '["self-hosted", "Linux", "X64"]'
 
 jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ubuntu-latest
-
+#    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
+#    runs-on: ${{ fromJSON(github.event.inputs.runner || '["ubuntu-latest"]') }}
 
     strategy:
       fail-fast: false
         #max-parallel: 1
       matrix:
+        # Change runs-on if startup from act and startup from GitHub Actions
+        host: [ubuntu-latest, self-hosted]
+        include:
+          - host: self-hosted
+            runner: ["self-hosted", "Linux", "X64"]
+          - host: ubuntu-latest
+            runner: ["ubuntu-latest"]
+
+
+
         platform-url:
           - https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
@@ -96,19 +117,6 @@ jobs:
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
     steps:
-      - name: Print ACT variable
-        run: echo "ACT=${{ env.ACT }}"  # true if action by act
-
-      - name: Set RUNNER_ENV
-        run: |
-          if [ "${{ env.ACT }}" == "true" ]; then
-            echo "RUNNER_ENV=ubuntu-latest" >> $GITHUB_ENV
-            echo "LATEST"
-          else
-            echo "RUNNER_ENV=self-hosted,Linux,X64" >> $GITHUB_ENV
-            echo "SELF"
-          fi
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
