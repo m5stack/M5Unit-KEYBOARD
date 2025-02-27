@@ -11,14 +11,10 @@ on:
     branches:
       - '*'
     paths:
-      - 'src/unit/**.cpp'
-      - 'src/unit/**.hpp'
-      - 'src/unit/**.h'
-      - 'src/unit/**.c'
-      - 'test/**.cpp'
-      - 'test/**.hpp'
-      - 'test/**.h'
-      - 'test/**.c'
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
@@ -27,14 +23,10 @@ on:
       - '**arduino-esp-v2-build-check.yml'
   pull_request:
     paths:
-      - 'src/unit/**.cpp'
-      - 'src/unit/**.hpp'
-      - 'src/unit/**.h'
-      - 'src/unit/**.c'
-      - 'test/**.cpp'
-      - 'test/**.hpp'
-      - 'test/**.h'
-      - 'test/**.c'
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
@@ -72,8 +64,6 @@ jobs:
       fail-fast: false
         #max-parallel: 1
       matrix:
-
-
         platform-url:
           - https://espressif.github.io/arduino-esp32/package_esp32_index.json
 
@@ -117,12 +107,14 @@ jobs:
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
     steps:
+      - name: Which runner
+        run: echo "RUNSON=${{ toJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
-      # Build 
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
         with:
