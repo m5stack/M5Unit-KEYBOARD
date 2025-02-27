@@ -53,6 +53,14 @@ on:
           - '["ubuntu-latest"]'
           - '["self-hosted", "Linux", "X64"]'
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
@@ -64,14 +72,6 @@ jobs:
       fail-fast: false
         #max-parallel: 1
       matrix:
-        # Change runs-on if startup from act and startup from GitHub Actions
-        host: [ubuntu-latest, self-hosted]
-        include:
-          - host: self-hosted
-            runner: ["self-hosted", "Linux", "X64"]
-          - host: ubuntu-latest
-            runner: ["ubuntu-latest"]
-
 
 
         platform-url:
