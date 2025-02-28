@@ -39,7 +39,7 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
     timeout-minutes: 5
 
     strategy:
