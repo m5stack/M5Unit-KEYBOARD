@@ -38,7 +38,6 @@ on:
       runner:
         description: Select runner
         required: true
-#        default: '"ubuntu-latest"'
         default: '["self-hosted", "Linux", "X64"]'
         type: choice
         options:
@@ -57,7 +56,6 @@ jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
     runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
-#    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     strategy:
