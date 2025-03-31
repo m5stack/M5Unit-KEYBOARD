@@ -7,8 +7,8 @@
   @file unit_CardKB.hpp
   @brief CardKB Unit for M5UnitUnified
 */
-#ifndef M5_UNIT_KEYBOARD_UNIT_CARDKB_HPP
-#define M5_UNIT_KEYBOARD_UNIT_CARDKB_HPP
+#ifndef M5_UNIT_KEYBOARD_UNIT_CARD_KB_HPP
+#define M5_UNIT_KEYBOARD_UNIT_CARD_KB_HPP
 
 #include "unit_Keyboard.hpp"
 #include <m5_utility/container/circular_buffer.hpp>
