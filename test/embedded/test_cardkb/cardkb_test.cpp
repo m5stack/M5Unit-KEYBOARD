@@ -84,7 +84,7 @@ TEST_P(TestCardKB, M5UnitUnifiedFirmware)
     EXPECT_TRUE(unit->readHardwareType(htype));
     EXPECT_EQ(htype, unit->hardwareType());
     EXPECT_TRUE(htype == TYPE_CARDKB || htype == TYPE_CARDKB_V11);
-    
+
     Mode mode{};
     for (auto&& m : mode_table) {
         EXPECT_TRUE(unit->writeMode(m));
