@@ -226,7 +226,7 @@ namespace unit {
 // class UnitFacesQWERTY
 const char UnitFacesQWERTY::name[] = "UnitFacesQWERTY";
 const types::uid_t UnitFacesQWERTY::uid{"UnitFacesQWERTY"_mmh3};
-const types::uid_t UnitFacesQWERTY::attr{0};
+const types::attr_t UnitFacesQWERTY::attr{attribute::AccessI2C};
 
 key_index_t UnitFacesQWERTY::character_to_key_index(const char ch)
 {
@@ -300,7 +300,7 @@ bool UnitFacesQWERTY::begin()
 #if defined(ARDUINO)
 #if defined(digitalPinToInterrupt)
     if (_handle_irq) {
-        adapter()->pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+        pinMode(INTERRUPT_PIN, INPUT_PULLUP);
         attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handle_faces_qwerty, FALLING);
     }
 #else

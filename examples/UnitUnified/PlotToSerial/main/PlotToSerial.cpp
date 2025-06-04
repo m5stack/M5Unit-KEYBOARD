@@ -60,10 +60,10 @@ void setup()
     M5_LOGI("M5UnitUnified has been begun");
     M5_LOGI("%s", Units.debugInfo().c_str());
 #if defined(USING_UNIT_CARDKB)
-    M5_LOGI("Hardware:%02X Firmware:%02X", unit.hardwareType(), unit.firmwareVersion());
+    M5.Log.printf("Hardware:%02X Firmware:%02X\n", unit.hardwareType(), unit.firmwareVersion());
 #endif
 #if defined(USING_UNIT_FACES_QWERTY)
-    M5_LOGI("FacesType:%02X Firmware:%02X", unit.facesType(), unit.firmwareVersion());
+    M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
 #endif
     lcd.fillScreen(TFT_DARKGREEN);
 

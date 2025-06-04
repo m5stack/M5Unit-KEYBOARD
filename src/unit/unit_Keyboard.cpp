@@ -21,7 +21,7 @@ namespace unit {
 // class UnitKeyboard
 const char UnitKeyboard::name[] = "UnitKeyboard";
 const types::uid_t UnitKeyboard::uid{"UnitKeyboard"_mmh3};
-const types::uid_t UnitKeyboard::attr{0};
+const types::attr_t UnitKeyboard::attr{attribute::AccessI2C};
 
 bool UnitKeyboard::begin()
 {
@@ -46,7 +46,7 @@ void UnitKeyboard::update(const bool force)
 // class UnitKeyboardBitwise
 const char UnitKeyboardBitwise::name[] = "UnitKeyboardBitwise";
 const types::uid_t UnitKeyboardBitwise::uid{"UnitKeyboardBitwise"_mmh3};
-const types::uid_t UnitKeyboardBitwise::attr{0};
+const types::attr_t UnitKeyboardBitwise::attr{attribute::AccessI2C};
 
 void UnitKeyboardBitwise::update(const bool force)
 {

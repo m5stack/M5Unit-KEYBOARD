@@ -225,7 +225,7 @@ namespace unit {
 // class UnitCardKB
 const char UnitCardKB::name[] = "UnitCardKB";
 const types::uid_t UnitCardKB::uid{"UnitCardKB"_mmh3};
-const types::uid_t UnitCardKB::attr{0};
+const types::attr_t UnitCardKB::attr{attribute::AccessI2C};
 
 key_index_t UnitCardKB::character_to_key_index(const char ch)
 {
