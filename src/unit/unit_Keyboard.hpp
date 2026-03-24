@@ -60,6 +60,12 @@ enum class Mode : uint8_t {
      */
     M5UnitUnified,
 };
+
+struct register_map_t {
+    uint8_t scan_reg{0x10};
+    uint8_t mode_reg{0x20};
+    uint8_t firmware_version_reg{0xFE};
+};
 }  // namespace keyboard
 
 /*!
@@ -547,6 +553,18 @@ public:
     bool writeMode(const keyboard::Mode mode);
     ///@}
 
+    ///@name Register map
+    ///@{
+    inline keyboard::register_map_t registerMap() const
+    {
+        return _register_map;
+    }
+    inline void registerMap(const keyboard::register_map_t& map)
+    {
+        _register_map = map;
+    }
+    ///@}
+
 protected:
     bool start_periodic_measurement();
     bool start_periodic_measurement(const uint32_t interval);
@@ -565,6 +583,21 @@ protected:
         return 0x00;
     }
 
+    inline uint8_t scan_reg() const
+    {
+        return _register_map.scan_reg;
+    }
+
+    inline uint8_t mode_reg() const
+    {
+        return _register_map.mode_reg;
+    }
+
+    inline uint8_t firmware_version_reg() const
+    {
+        return _register_map.firmware_version_reg;
+    }
+
     bool permitted_mode(const uint8_t mbits) const
     {
         uint8_t mod8 = _now >> 56;
@@ -581,6 +614,7 @@ protected:
     uint32_t _repeating_threshold{400}, _holding_threshold{800};
     uint8_t _firmware_version{};
     keyboard::Mode _mode{keyboard::Mode::Conventional};
+    keyboard::register_map_t _register_map{};
 };
 
 namespace keyboard {
@@ -589,6 +623,7 @@ constexpr uint8_t CMD_SCAN_REG{0x10};
 constexpr uint8_t CMD_MODE_REG{0x20};
 constexpr uint8_t CMD_FIRMWARE_VERSION_REG{0xFE};
 }  // namespace command
+
 }  // namespace keyboard
 
 }  // namespace unit

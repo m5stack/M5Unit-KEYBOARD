@@ -5,6 +5,8 @@
 Library for KEYBOARD using [M5UnitUnified](https://github.com/m5stack/M5UnitUnified).  
 M5UnitUnified is a library for unified handling of various M5 units products.
 
+### SKU:U215
+CardKB v2 is a card-size '42 key' QWERTY keyboard.
 
 ### SKU:U035-B
 CardKB v1.1 is a card-size '50 key' QWERTY keyboard. Adpots ATMega8A as the MCU, communication port I2C, and one 'RGB-LED' indicator.

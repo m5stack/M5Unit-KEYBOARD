@@ -36,6 +36,7 @@ void UnitKeyboard::update(const bool force)
         elapsed_time_t at{m5::utility::millis()};
         if (force || !_latest || at >= _latest + _interval) {
             _updated = (readWithTransaction(&_released_key, 1) == m5::hal::error::error_t::OK) && (_released_key != 0);
+            printf("released_key:0x%02x\n", _released_key);
             if (_updated) {
                 _latest = at;
             }
@@ -84,14 +85,14 @@ bool UnitKeyboardBitwise::stop_periodic_measurement()
 bool UnitKeyboardBitwise::readFirmwareVersion(uint8_t& ver)
 {
     ver = 0;
-    return readRegister8(CMD_FIRMWARE_VERSION_REG, ver, 0);
+    return readRegister8(firmware_version_reg(), ver, 0);
 }
 
 bool UnitKeyboardBitwise::readMode(Mode& mode)
 {
     mode = Mode::Conventional;
     uint8_t v{};
-    if (readRegister8(CMD_MODE_REG, v, 0)) {
+    if (readRegister8(mode_reg(), v, 0)) {
         mode = static_cast<Mode>(v);
         return true;
     }
@@ -100,7 +101,7 @@ bool UnitKeyboardBitwise::readMode(Mode& mode)
 
 bool UnitKeyboardBitwise::writeMode(const Mode mode)
 {
-    if (firmwareVersion() && writeRegister8(CMD_MODE_REG, m5::stl::to_underlying(mode))) {
+    if (firmwareVersion() && writeRegister8(mode_reg(), m5::stl::to_underlying(mode))) {
         _mode = mode;
 
         _data->clear();
