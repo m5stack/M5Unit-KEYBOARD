@@ -112,7 +112,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {0x00, 0xFF},                         // US (31)
     {1 + 2 + 4, UnitCardKB2::KEY_SPACE},  // SP (32)
     {4, UnitCardKB2::KEY_1},              // ! (33)
-    {4, UnitCardKB2::KEY_P},              // " (34)
+    {4, UnitCardKB2::KEY_H},              // " (34)
     {4, UnitCardKB2::KEY_3},              // # (35)
     {4, UnitCardKB2::KEY_4},              // $ (36)
     {4, UnitCardKB2::KEY_5},              // % (37)
@@ -122,10 +122,10 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {4, UnitCardKB2::KEY_0},              // ) (41)
     {4, UnitCardKB2::KEY_8},              // * (42)
     {4, UnitCardKB2::KEY_O},              // + (43)
-    {1 + 2, UnitCardKB2::KEY_N},          // , (44)
-    {4, UnitCardKB2::KEY_H},              // - (45)
-    {1 + 2, UnitCardKB2::KEY_M},          // . (46)
-    {4, UnitCardKB2::KEY_Y},              // / (47)
+    {4, UnitCardKB2::KEY_N},              // , (44)
+    {4, UnitCardKB2::KEY_I},              // - (45)
+    {4, UnitCardKB2::KEY_M},              // . (46)
+    {4, UnitCardKB2::KEY_T},              // / (47)
     {1 + 2, UnitCardKB2::KEY_0},          // 0 (48)
     {1 + 2, UnitCardKB2::KEY_1},          // 1 (49)
     {1 + 2, UnitCardKB2::KEY_2},          // 2 (50)
@@ -136,8 +136,8 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {1 + 2, UnitCardKB2::KEY_7},          // 7 (55)
     {1 + 2, UnitCardKB2::KEY_8},          // 8 (56)
     {1 + 2, UnitCardKB2::KEY_9},          // 9 (57)
-    {4, UnitCardKB2::KEY_K},              // : (58)
-    {4, UnitCardKB2::KEY_S},              // ; (59)
+    {4, UnitCardKB2::KEY_L},              // : (58)
+    {4, UnitCardKB2::KEY_K},              // ; (59)
     {4, UnitCardKB2::KEY_V},              // < (60)
     {4, UnitCardKB2::KEY_P},              // = (61)
     {4, UnitCardKB2::KEY_B},              // > (62)
@@ -173,7 +173,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {4, UnitCardKB2::KEY_R},              // \ (92)
     {4, UnitCardKB2::KEY_G},              // ] (93)
     {4, UnitCardKB2::KEY_D},              // ^ (94)
-    {4, UnitCardKB2::KEY_I},              // _ (95)
+    {4, UnitCardKB2::KEY_U},              // _ (95)
     {4, UnitCardKB2::KEY_W},              // ` (96)
     {1, UnitCardKB2::KEY_A},              // a (97)
     {1, UnitCardKB2::KEY_B},              // b (98)
@@ -202,7 +202,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {1, UnitCardKB2::KEY_Y},              // y (121)
     {1, UnitCardKB2::KEY_Z},              // z (122)
     {4, UnitCardKB2::KEY_A},              // { (123)
-    {4, UnitCardKB2::KEY_U},              // | (124)
+    {4, UnitCardKB2::KEY_Y},              // | (124)
     {4, UnitCardKB2::KEY_S},              // } (125)
     {4, UnitCardKB2::KEY_Q},              // ~ (126)
     {2, UnitCardKB2::KEY_DELETE},         // DEL (127)
@@ -393,11 +393,11 @@ void UnitCardKB2::update(const bool force)
         if (state == KEY_STATE_PRESSED) {
             _now |= bit;
 
-            if (kidx == 34) {  // sym pressed
+            if (kidx == KEY_SYM) {  // sym pressed
                 _sym_was_pressed = !_sym_was_pressed;
             }
 
-            if (kidx == 22) {  // caps key
+            if (kidx == KEY_AA) {  // caps key
                 _caps_pressing   = true;
                 _caps_pressed_at = at;
             } else {
@@ -420,7 +420,7 @@ void UnitCardKB2::update(const bool force)
         } else if (state == KEY_STATE_RELEASED) {
             _now &= ~bit;
 
-            if (kidx == 22 && _caps_pressing) {
+            if (kidx == KEY_AA && _caps_pressing) {
                 _caps_pressing = false;
 
                 if (_caps_hold_active) {

@@ -36,7 +36,7 @@ void UnitKeyboard::update(const bool force)
         elapsed_time_t at{m5::utility::millis()};
         if (force || !_latest || at >= _latest + _interval) {
             _updated = (readWithTransaction(&_released_key, 1) == m5::hal::error::error_t::OK) && (_released_key != 0);
-            printf("released_key:0x%02x\n", _released_key);
+            // printf("released_key:0x%02x\n", _released_key);
             if (_updated) {
                 _latest = at;
             }
