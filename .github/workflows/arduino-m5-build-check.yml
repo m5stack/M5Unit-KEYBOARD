@@ -12,38 +12,29 @@ on:
     branches:
       - '*'
     paths:
-      - 'src/unit/**.cpp'
-      - 'src/unit/**.hpp'
-      - 'src/unit/**.h'
-      - 'src/unit/**.c'
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
       - 'examples/UnitUnified/**.h'
       - 'examples/UnitUnified/**.c'
-      - '**arduino-m5-build-check.yml'
+      - '.github/workflows/arduino-m5-build-check.yml'
   pull_request:
     paths:
-      - 'src/unit/**.cpp'
-      - 'src/unit/**.hpp'
-      - 'src/unit/**.h'
-      - 'src/unit/**.c'
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
       - 'examples/UnitUnified/**.ino'
       - 'examples/UnitUnified/**.cpp'
       - 'examples/UnitUnified/**.hpp'
       - 'examples/UnitUnified/**.h'
       - 'examples/UnitUnified/**.c'
-      - '**arduino-m5-build-check.yml'
+      - '.github/workflows/arduino-m5-build-check.yml'
   workflow_dispatch:
-    inputs:
-      runner:
-        description: Select runner
-        required: true
-        default: '["self-hosted", "Linux", "X64"]'
-        type: choice
-        options:
-          - '["ubuntu-latest"]'
-          - '["self-hosted", "Linux", "X64"]'
 
 defaults:
   run:
@@ -56,29 +47,26 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.build-properties }}:${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
 
     strategy:
       fail-fast: false
-#      max-parallel: 1
+      max-parallel: 20
       matrix:
         platform-url:
           - https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
 
         sketch:
           - PlotToSerial
-          - SimpleDisplay
-
-#        unit:
-#          - 
 
         board:
+          - arduino_nesso_n1
           - m5stack_atom
           - m5stack_atoms3
           - m5stack_atoms3r
           - m5stack_capsule
-#          - m5stack_cardputer
+          - m5stack_cardputer
           - m5stack_core
           - m5stack_core2
           - m5stack_coreink
@@ -86,22 +74,18 @@ jobs:
           - m5stack_dial
           - m5stack_dinmeter
           - m5stack_fire
+          - m5stack_nano_c6
           - m5stack_paper
-#          - m5stack_poe_cam
-#          - m5stack_stamp_c3
-#          - m5stack_stamp_pico
+          - m5stack_papers3
           - m5stack_stamp_s3
-#          - m5stack_station
-#          - m5stack_stickc
+          - m5stack_stickc
           - m5stack_stickc_plus
           - m5stack_stickc_plus2
-#          - m5stack_timer_cam
-#          - m5stack_tough
-#          - m5stack_unit_cam
-#          - m5stack_unit_cams3
+          - m5stack_sticks3
+          - m5stack_tab5
 
         platform-version:
-          - 2.1.2
+          - 3.2.5
 
         platform:
           - m5stack
@@ -111,11 +95,13 @@ jobs:
 
         build-properties:
           - "-DUSING_UNIT_CARDKB"
+          - "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
+          - "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
           - "-DUSING_UNIT_FACES_QWERTY"
 
         exclude:
-          - board: m5stack_atom
-            sketch: SimpleDisplay
+          - board: arduino_nesso_n1
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_atom
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_atoms3
@@ -123,8 +109,8 @@ jobs:
           - board: m5stack_atoms3r
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_capsule
-            sketch: SimpleDisplay
-          - board: m5stack_capsule
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_cardputer
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_coreink
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
@@ -132,28 +118,61 @@ jobs:
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_dinmeter
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_nano_c6
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_paper
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_papers3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_stamp_s3
-            sketch: SimpleDisplay
-          - board: m5stack_stamp_s3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_stickc
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_stickc_plus
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
           - board: m5stack_stickc_plus2
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_sticks3
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+          - board: m5stack_tab5
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
+        include:
+          # SimpleDisplay: Core only
+          - sketch: SimpleDisplay
+            board: m5stack_core
+            platform-version: 3.2.5
+            platform: m5stack
+            archi: esp32
+            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
+            build-properties: "-DUSING_UNIT_CARDKB"
+          - sketch: SimpleDisplay
+            board: m5stack_core
+            platform-version: 3.2.5
+            platform: m5stack
+            archi: esp32
+            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
+            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
+          - sketch: SimpleDisplay
+            board: m5stack_core
+            platform-version: 3.2.5
+            platform: m5stack
+            archi: esp32
+            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
+            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
+          - sketch: SimpleDisplay
+            board: m5stack_core
+            platform-version: 3.2.5
+            platform: m5stack
+            archi: esp32
+            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
+            build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
     steps:
-      - name: Which runner
-        run: echo "RunsOn=${{ github.event.inputs.runner || 'self-hosted' }}"
-
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
-      # Build 
+      # Build
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
         with:
@@ -164,6 +183,5 @@ jobs:
           extra-arduino-cli-args: ${{ matrix.cli-args }}
           build-properties: ${{ matrix.build-properties }}
           sketch-names: ${{ matrix.sketch }}.ino
-          sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.unit }}
+          sketch-names-find-start: ${{ env.SKETCH_NAMES_FIND_START }}/
           #sketches-exclude: ${{ matrix.sketches-exclude }}
-
