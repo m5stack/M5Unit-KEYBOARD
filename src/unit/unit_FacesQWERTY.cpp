@@ -357,7 +357,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     auto prev_holding                     = _holding;
     uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
 
-    if (!readRegister(CMD_SCAN_REG, rbuf, m5::stl::size(rbuf), 0)) {
+    if (!readRegister(scan_reg(), rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
     }

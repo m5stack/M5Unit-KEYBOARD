@@ -1,10 +1,10 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
 /*
-  Display example using M5UnitUnified for UnitCardKB/UnitFacesQWERTY
+  Display example using M5UnitUnified for UnitCardKB/UnitCardKB2/UnitFacesQWERTY
 */
 #include <M5Unified.h>
 #include <M5UnitUnified.h>
@@ -16,9 +16,17 @@
 // *************************************************************
 // Choose one define symbol to match the unit you are using
 // *************************************************************
-#if !defined(USING_UNIT_CARDKB) && !defined(USING_UNIT_FACES_QWERTY)
+#if !defined(USING_UNIT_CARDKB) && !defined(USING_UNIT_CARDKB2) && !defined(USING_UNIT_FACES_QWERTY)
 // For CardKB
 // #define USING_UNIT_CARDKB
+
+// For CardKB2
+#define USING_UNIT_CARDKB2
+#if defined(USING_UNIT_CARDKB2)
+// #define USE_I2C_FOR_CARDKB2
+#define USE_UART_FOR_CARDKB2
+#endif
+
 // For FacesQWERTY
 // #define USING_UNIT_FACES_QWERTY
 #endif
@@ -29,10 +37,12 @@ auto& lcd = M5.Display;
 m5::unit::UnitUnified Units;
 #if defined(USING_UNIT_CARDKB)
 m5::unit::UnitCardKB unit;
+#elif defined(USING_UNIT_CARDKB2)
+m5::unit::UnitCardKB2 unit;
 #elif defined(USING_UNIT_FACES_QWERTY)
 m5::unit::UnitFacesQWERTY unit;
 #else
-#error Must choose unit define, USING_UNIT_CARDKB or USING_UNIT_FACES_QWERTY
+#error Must choose unit define, USING_UNIT_CARDKB or USING_UNIT_CARDKB2 or USING_UNIT_FACES_QWERTY
 #endif
 
 bool small_display{};
@@ -54,13 +64,33 @@ void setup()
     small_display = lcd.width() < 240;
     lcd.fillScreen(TFT_LIGHTGRAY);
 
-    auto pin_num_sda = M5.getPin(m5::pin_name_t::port_a_sda);
-    auto pin_num_scl = M5.getPin(m5::pin_name_t::port_a_scl);
-    M5_LOGI("getPin: SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
+    auto pin_num_sda_tx = M5.getPin(m5::pin_name_t::port_a_sda);
+    auto pin_num_scl_rx = M5.getPin(m5::pin_name_t::port_a_scl);
+    M5_LOGI("getPin: SDA/TX:%u SCL/RX:%u", pin_num_sda_tx, pin_num_scl_rx);
+#ifdef USE_I2C_FOR_CARDKB2
     Wire.end();
-    Wire.begin(pin_num_sda, pin_num_scl, 100 * 1000U);
+    Wire.begin(pin_num_sda_tx, pin_num_scl_rx, 100 * 1000U);
 
     if (!Units.add(unit, Wire) || !Units.begin()) {
+#elif defined(USE_UART_FOR_CARDKB2)
+    M5.Power.setExtPower(false);  // Turn off port power to reset the sym status.
+    m5::utility::delay(100);
+    M5.Power.setExtPower(true);
+    m5::utility::delay(100);
+#if defined(CONFIG_IDF_TARGET_ESP32C6)
+    auto& serial = Serial1;
+#elif SOC_UART_NUM > 2
+    auto& serial = Serial2;
+#elif SOC_UART_NUM > 1
+    auto& serial = Serial1;
+#else
+#error "Not enough Serial"
+#endif
+
+    serial.begin(115200, SERIAL_8N1, pin_num_scl_rx, pin_num_sda_tx);
+
+    if (!Units.add(unit, serial) || !Units.begin()) {
+#endif
         M5_LOGE("Failed to begin");
         lcd.fillScreen(TFT_RED);
         while (true) {
@@ -71,6 +101,9 @@ void setup()
     M5_LOGI("%s", Units.debugInfo().c_str());
 #if defined(USING_UNIT_CARDKB)
     M5.Log.printf("Hardware:%02X Firmware:%02X\n", unit.hardwareType(), unit.firmwareVersion());
+#endif
+#if defined(USING_UNIT_CARDKB2)
+    M5.Log.printf("Firmware:%02X\n", unit.firmwareVersion());
 #endif
 #if defined(USING_UNIT_FACES_QWERTY)
     M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
@@ -89,6 +122,7 @@ void loop()
     auto touch = M5.Touch.getDetail();
     Units.update();
 
+#if !defined(USING_UNIT_CARDKB2)
     // Toggle behavior if using M5Unit-KEYBOARD firmware
     if (unit.firmwareVersion() && (M5.BtnA.wasClicked() || touch.wasClicked())) {
         scan_mode = !scan_mode;
@@ -97,7 +131,7 @@ void loop()
         str   = "";
         dirty = true;
     }
-
+#endif
     auto prev_str        = str.size();
     static auto prev_mod = unit.modifierBits();
 
@@ -108,10 +142,10 @@ void loop()
     if (unit.updated()) {
         while (unit.available()) {
             ch = unit.getchar();
-            M5.Log.printf("Char:[%02X %c]\n", ch, std::isprint(ch) ? ch : ' ');
+            M5.Log.printf("Char:[0x%02X=%d %c]\n", ch, ch, std::isprint(ch) ? ch : ' ');
             if (std::isprint(ch)) {
                 str += ch;
-            } else if (ch == 0x0D) {
+            } else if (ch == '\r' || ch == '\n') {
                 str += '\n';
             } else if (ch == 0x08 && !str.empty()) {
                 str.pop_back();
@@ -123,6 +157,7 @@ void loop()
 
     dirty |= (unit.nowBits() ^ unit.previousBits());
 
+#if !defined(USING_UNIT_CARDKB2)
     if (scan_mode) {
         // For Scan mode
 
@@ -200,9 +235,12 @@ void loop()
 #endif
 
     } else {
+#endif
         // For Released mode
         lcd.drawString("Conventional", 0, 0);
+#if !defined(USING_UNIT_CARDKB2)
     }
+#endif
 
     // String
     if (str.size() != prev_str) {
