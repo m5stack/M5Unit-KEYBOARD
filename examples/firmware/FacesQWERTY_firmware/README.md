@@ -18,7 +18,7 @@ As before, the modifier key can be locked by double-clicking.
 
 |REG MAP(0x08)||0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|note|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>modifier ||||||||||| Scaned pressed key status|
+|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>modifier ||||||||||| Scanned pressed key status|
 |Mode |0x20 R/W| Mode | |||||||||||||||Operation mode<br>0x00:Conventional mode<br> 0x01:M5UnitUnified mode|
 |Faces type|0xF0 R| ||||||||||||type||||Faces type<br> 0x01:FacesQWERTY|
 |Firmware version|0xF0 R|||||||||||||||version||Version: firmware version number|
@@ -46,7 +46,7 @@ Interrupt occurs under the following conditions (GPIO 5)
 
 (Other Faces will be added in the future)
 
-### Scaned pressed key bits
+### Scanned pressed key bits
 #### Modifier
 |byte|Shift|Symbol|Function|Alt|
 |---|---|---|---|---|

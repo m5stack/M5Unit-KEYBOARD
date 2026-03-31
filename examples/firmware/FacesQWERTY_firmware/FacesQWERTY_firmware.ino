@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -8,7 +8,7 @@
 
   ArduinoIDE settings
     - [Tool] - [Board]     "Arduino Pro or Pro mini"
-    - [Tool] - Processer]  "Atmega328P (3.3V, 8Mhz)"
+    - [Tool] - Processor]  "Atmega328P (3.3V, 8Mhz)"
     - [Tool] - [Programmer] Device to write the firmware you use (Arduino as ISP, USbasp, ... )
 
   Use command
