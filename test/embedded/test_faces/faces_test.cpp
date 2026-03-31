@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -14,31 +14,20 @@
 #include <googletest/test_helper.hpp>
 #include <unit/unit_FacesQWERTY.hpp>
 #include <cmath>
-#include <random>
 
 using namespace m5::unit::googletest;
 using namespace m5::unit;
 using namespace m5::unit::keyboard;
 using m5::unit::types::elapsed_time_t;
 
-const ::testing::Environment* global_fixture = ::testing::AddGlobalTestEnvironment(new GlobalFixture<100000U>());
-
-class TestFacesQWERTY : public ComponentTestBase<UnitFacesQWERTY, bool> {
+class TestFacesQWERTY : public I2CComponentTestBase<UnitFacesQWERTY> {
 protected:
     virtual UnitFacesQWERTY* get_instance() override
     {
         auto ptr = new m5::unit::UnitFacesQWERTY();
         return ptr;
     }
-    virtual bool is_using_hal() const override
-    {
-        return GetParam();
-    };
 };
-
-// INSTANTIATE_TEST_SUITE_P(ParamValues, TestFacesQWERTY, ::testing::Values(false, true));
-// INSTANTIATE_TEST_SUITE_P(ParamValues, TestFacesQWERTY, ::testing::Values(true));
-INSTANTIATE_TEST_SUITE_P(ParamValues, TestFacesQWERTY, ::testing::Values(false));
 
 namespace {
 
@@ -46,7 +35,7 @@ constexpr Mode mode_table[] = {Mode::Conventional, Mode::M5UnitUnified};
 
 }  // namespace
 
-TEST_P(TestFacesQWERTY, Periodic)
+TEST_F(TestFacesQWERTY, Periodic)
 {
     SCOPED_TRACE(ustr);
 
@@ -63,7 +52,7 @@ TEST_P(TestFacesQWERTY, Periodic)
     EXPECT_EQ(unit->getchar(), 0);
 }
 
-TEST_P(TestFacesQWERTY, M5UnitUnifiedFirmware)
+TEST_F(TestFacesQWERTY, M5UnitUnifiedFirmware)
 {
     SCOPED_TRACE(ustr);
 

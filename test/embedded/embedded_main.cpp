@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -30,8 +30,6 @@ void test()
 
 void setup()
 {
-    delay(1500);
-
     M5.begin();
 
     M5_LOGI("CPP %ld", __cplusplus);
