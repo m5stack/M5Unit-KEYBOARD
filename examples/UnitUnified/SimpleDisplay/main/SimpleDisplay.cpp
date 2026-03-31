@@ -9,6 +9,7 @@
 #include <M5Unified.h>
 #include <M5UnitUnified.h>
 #include <M5UnitUnifiedKEYBOARD.h>
+#include <M5HAL.hpp>
 #include <M5Utility.h>
 #include <cctype>
 #include <string>
@@ -21,10 +22,13 @@
 // #define USING_UNIT_CARDKB
 
 // For CardKB2
-#define USING_UNIT_CARDKB2
+// #define USING_UNIT_CARDKB2
 #if defined(USING_UNIT_CARDKB2)
-// #define USE_I2C_FOR_CARDKB2
-#define USE_UART_FOR_CARDKB2
+// Choose one communication mode for CardKB2
+// For I2C
+// #define USING_I2C_FOR_CARDKB2
+// For UART
+// #define USING_UART_FOR_CARDKB2
 #endif
 
 // For FacesQWERTY
@@ -36,13 +40,20 @@ namespace {
 auto& lcd = M5.Display;
 m5::unit::UnitUnified Units;
 #if defined(USING_UNIT_CARDKB)
+#pragma message "Using UnitCardKB (I2C)"
 m5::unit::UnitCardKB unit;
 #elif defined(USING_UNIT_CARDKB2)
+#if defined(USING_UART_FOR_CARDKB2)
+#pragma message "Using UnitCardKB2 (UART)"
+#else
+#pragma message "Using UnitCardKB2 (I2C)"
+#endif
 m5::unit::UnitCardKB2 unit;
 #elif defined(USING_UNIT_FACES_QWERTY)
+#pragma message "Using UnitFacesQWERTY (I2C)"
 m5::unit::UnitFacesQWERTY unit;
 #else
-#error Must choose unit define, USING_UNIT_CARDKB or USING_UNIT_CARDKB2 or USING_UNIT_FACES_QWERTY
+#error Must choose unit define, USING_UNIT_CARDKB, USING_UNIT_CARDKB2, or USING_UNIT_FACES_QWERTY
 #endif
 
 bool small_display{};
@@ -55,6 +66,7 @@ using namespace m5::unit::keyboard;
 void setup()
 {
     M5.begin();
+    M5.setTouchButtonHeightByRatio(100);
 
     // The screen shall be in landscape mode
     if (lcd.height() > lcd.width()) {
@@ -64,15 +76,19 @@ void setup()
     small_display = lcd.width() < 240;
     lcd.fillScreen(TFT_LIGHTGRAY);
 
-    auto pin_num_sda_tx = M5.getPin(m5::pin_name_t::port_a_sda);
-    auto pin_num_scl_rx = M5.getPin(m5::pin_name_t::port_a_scl);
-    M5_LOGI("getPin: SDA/TX:%u SCL/RX:%u", pin_num_sda_tx, pin_num_scl_rx);
-#ifdef USE_I2C_FOR_CARDKB2
-    Wire.end();
-    Wire.begin(pin_num_sda_tx, pin_num_scl_rx, 100 * 1000U);
+#if defined(USING_UART_FOR_CARDKB2)
+    // UART mode: CardKB2 must be switched to UART mode first (Fn+Sym+2 on the device)
+    // Port C primary, Port A fallback
+    auto pin_num_rx = M5.getPin(m5::pin_name_t::port_c_rxd);
+    auto pin_num_tx = M5.getPin(m5::pin_name_t::port_c_txd);
+    if (pin_num_rx < 0 || pin_num_tx < 0) {
+        M5_LOGW("PortC is not available, using PortA");
+        Wire.end();
+        pin_num_rx = M5.getPin(m5::pin_name_t::port_a_pin1);
+        pin_num_tx = M5.getPin(m5::pin_name_t::port_a_pin2);
+    }
+    M5_LOGI("getPin: RX:%d TX:%d", pin_num_rx, pin_num_tx);
 
-    if (!Units.add(unit, Wire) || !Units.begin()) {
-#elif defined(USE_UART_FOR_CARDKB2)
     M5.Power.setExtPower(false);  // Turn off port power to reset the sym status.
     m5::utility::delay(100);
     M5.Power.setExtPower(true);
@@ -86,10 +102,35 @@ void setup()
 #else
 #error "Not enough Serial"
 #endif
-
-    serial.begin(115200, SERIAL_8N1, pin_num_scl_rx, pin_num_sda_tx);
+    serial.begin(115200, SERIAL_8N1, pin_num_rx, pin_num_tx);
 
     if (!Units.add(unit, serial) || !Units.begin()) {
+#else
+    // I2C (CardKB, CardKB2 I2C, FacesQWERTY)
+    auto board = M5.getBoard();
+    bool unit_ready{};
+    if (board == m5::board_t::board_ArduinoNessoN1) {
+        auto pb_sda = M5.getPin(m5::pin_name_t::port_b_out);
+        auto pb_scl = M5.getPin(m5::pin_name_t::port_b_in);
+        M5_LOGI("getPin(M5HAL): SDA:%u SCL:%u", pb_sda, pb_scl);
+        m5::hal::bus::I2CBusConfig i2c_cfg;
+        i2c_cfg.pin_sda = m5::hal::gpio::getPin(pb_sda);
+        i2c_cfg.pin_scl = m5::hal::gpio::getPin(pb_scl);
+        auto i2c_bus    = m5::hal::bus::i2c::getBus(i2c_cfg);
+        unit_ready = Units.add(unit, i2c_bus ? i2c_bus.value() : nullptr) && Units.begin();
+    } else if (board == m5::board_t::board_M5NanoC6) {
+        M5_LOGI("Using M5.Ex_I2C");
+        unit_ready = Units.add(unit, M5.Ex_I2C) && Units.begin();
+    } else {
+        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_a_sda);
+        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_a_scl);
+        M5_LOGI("getPin: SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
+        Wire.end();
+        Wire.begin(pin_num_sda, pin_num_scl, 100 * 1000U);
+        unit_ready = Units.add(unit, Wire) && Units.begin();
+    }
+
+    if (!unit_ready) {
 #endif
         M5_LOGE("Failed to begin");
         lcd.fillScreen(TFT_RED);
@@ -119,12 +160,11 @@ void loop()
     bool dirty{};
 
     M5.update();
-    auto touch = M5.Touch.getDetail();
     Units.update();
 
 #if !defined(USING_UNIT_CARDKB2)
     // Toggle behavior if using M5Unit-KEYBOARD firmware
-    if (unit.firmwareVersion() && (M5.BtnA.wasClicked() || touch.wasClicked())) {
+    if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
         scan_mode = !scan_mode;
         unit.writeMode(scan_mode ? Mode::M5UnitUnified : Mode::Conventional);
         lcd.fillScreen(0);
@@ -132,8 +172,7 @@ void loop()
         dirty = true;
     }
 #endif
-    auto prev_str        = str.size();
-    static auto prev_mod = unit.modifierBits();
+    auto prev_str = str.size();
 
     // Gets the input characters
     // Depending on the mode, whether the character is released or pressed, the behavior changes if using
@@ -155,7 +194,7 @@ void loop()
         }
     }
 
-    dirty |= (unit.nowBits() ^ unit.previousBits());
+    dirty = dirty || (unit.nowBits() != unit.previousBits());
 
 #if !defined(USING_UNIT_CARDKB2)
     if (scan_mode) {
@@ -178,7 +217,7 @@ void loop()
             lcd.drawString(s.c_str(), 0, 16);
         }
 
-        // Specific charcter
+        // Specific character
         constexpr char sch = '+';
         s = m5::utility::formatString(" Ch+:%u/%u %u/%u %u/%u %u", unit.isPressed(sch), unit.wasPressed(sch),
                                       unit.isReleased(sch), unit.wasReleased(sch), unit.isHolding(sch),
@@ -188,7 +227,8 @@ void loop()
         }
 
         // Modifier key
-        auto mod = unit.modifierBits();
+        static auto prev_mod = unit.modifierBits();
+        auto mod             = unit.modifierBits();
         if (mod != prev_mod) {
             uint16_t left = small_display ? 0 : 19 * 8;
 
