@@ -1,11 +1,11 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
 /*!
   @file M5UnitUnifiedKEYBOARD.h
-  @brief Main header of M5UnitKEYBOARD using M5UnitUnfied
+  @brief Main header of M5UnitKEYBOARD using M5UnitUnified
 */
 #ifndef M5_UNIT_UNIFIED_KEYBOARD_H
 #define M5_UNIT_UNIFIED_KEYBOARD_H

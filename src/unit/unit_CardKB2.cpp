@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -72,7 +72,7 @@ constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
 static_assert(m5::stl::size(key_map) == UnitCardKB2::NUMBER_OF_KEYS, "Invalid size");
 
 // modifier bit to key_map mode index
-constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Fucntion
+constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Function
 
 // ASCII to mode bit and key_index_t
 // 1:normal 2:shift 4:symbol 8:function
@@ -317,11 +317,9 @@ bool UnitCardKB2::begin()
     uint8_t discard{};
     // Read and reject values to avoid false evaluations due to transmission of values for released keys
     readWithTransaction(&discard, 1);
-    auto reg                 = registerMap();
-    reg.firmware_version_reg = 0xF1;
-    registerMap(reg);
     readFirmwareVersion(_firmware_version);
-    M5_LIB_LOGI("Type:%S Firmware:%02X", "CardKB2", _firmware_version);
+    M5_LIB_LOGI("Type:%s Firmware:%02X", "CardKB2", _firmware_version);
+    _mode = Mode::Conventional;  // I2C mode is always Conventional (ASCII output)
 
     if (!firmwareVersion()) {
         return false;
@@ -383,7 +381,7 @@ void UnitCardKB2::update(const bool force)
         }
 
         const uint8_t kidx = rbuf[2];
-        M5_LIB_LOGI("kidx:%d", kidx);
+        M5_LIB_LOGV("kidx:%d", kidx);
         if (kidx >= NUMBER_OF_KEYS) {
             return;
         }

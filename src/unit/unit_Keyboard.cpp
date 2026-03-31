@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -85,14 +85,14 @@ bool UnitKeyboardBitwise::stop_periodic_measurement()
 bool UnitKeyboardBitwise::readFirmwareVersion(uint8_t& ver)
 {
     ver = 0;
-    return readRegister8(firmware_version_reg(), ver, 0);
+    return readRegister8(firmware_version_reg_addr(), ver, 0);
 }
 
 bool UnitKeyboardBitwise::readMode(Mode& mode)
 {
     mode = Mode::Conventional;
     uint8_t v{};
-    if (readRegister8(mode_reg(), v, 0)) {
+    if (readRegister8(mode_reg_addr(), v, 0)) {
         mode = static_cast<Mode>(v);
         return true;
     }
@@ -101,7 +101,7 @@ bool UnitKeyboardBitwise::readMode(Mode& mode)
 
 bool UnitKeyboardBitwise::writeMode(const Mode mode)
 {
-    if (firmwareVersion() && writeRegister8(mode_reg(), m5::stl::to_underlying(mode))) {
+    if (firmwareVersion() && writeRegister8(mode_reg_addr(), m5::stl::to_underlying(mode))) {
         _mode = mode;
 
         _data->clear();

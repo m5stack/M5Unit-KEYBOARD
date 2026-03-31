@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -73,10 +73,10 @@ constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
 static_assert(m5::stl::size(key_map) == UnitCardKB::NUMBER_OF_KEYS, "Invalid size");
 
 // modifier bit to key_map mode index
-constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Fucntion
+constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Function
 
 // ASCII to mode bit and key_index_t
-// 1:normal 2:shift 4:symbol 8:fuction
+// 1:normal 2:shift 4:symbol 8:function
 constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {0x00, 0xFF},                        // NULL
     {0x00, 0xFF},                        // SOH
@@ -325,7 +325,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     auto prev_holding                     = _holding;
 
     uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
-    if (!readRegister(scan_reg(), rbuf, m5::stl::size(rbuf), 0)) {
+    if (!readRegister(scan_reg_addr(), rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
     }

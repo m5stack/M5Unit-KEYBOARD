@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -18,7 +18,17 @@ namespace m5 {
 namespace unit {
 /*!
   @class m5::unit::UnitCardKB2
-  @brief Card-size 50 key QWERTY keyboard
+  @brief Card-size 42 key QWERTY keyboard (SKU:U215)
+
+  CardKB2 supports I2C and UART communication via GROVE port, selectable on the device:
+  - **Fn+Sym+1**: I2C mode (factory default) — returns ASCII per keypress
+  - **Fn+Sym+2**: UART mode (115200-8N1) — sends KEY_ID + KEY_STATE packets
+
+  The selected mode is saved and persists across power cycles.
+
+  @note Fn+D/Z/X/C arrow keys are not available in I2C/UART mode.
+  @note Unlike CardKB/FacesQWERTY, CardKB2 does not support software mode switching via readMode()/writeMode().
+  The communication mode is determined by the hardware mode selection above.
   @warning Note that older firmware can only detect if the key is released
 */
 class UnitCardKB2 : public UnitKeyboardBitwise {
@@ -113,12 +123,12 @@ public:
 
     ///@name Settings for begin
     ///@{
-    /*! @brief Gets the configration */
+    /*! @brief Gets the configuration */
     inline config_t config()
     {
         return _cfg;
     }
-    //! @brief Set the configration
+    //! @brief Set the configuration
     inline void config(const config_t& cfg)
     {
         _cfg = cfg;
@@ -144,26 +154,30 @@ public:
      */
     static uint8_t character_to_mode_bits(const char ch);
 
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
-    ///@name Hardware type
+    ///@name Mode
     ///@{
     /*!
-      @brief Gets the hardware type
-      @warning Valid after begin
-    */
-    uint8_t hardwareType() const
-    {
-        return _type;
-    }
-    /*!
-      @brief Read the hardware type
-      @param[out] htype Hardware type
-      @return True if successful
+      @brief Not supported on CardKB2
+      @note CardKB2 mode is determined by connection type (I2C=Conventional, UART=M5UnitUnified)
+      @return Always false
      */
-    bool readHardwareType(uint8_t& htype);
+    bool readMode(keyboard::Mode&) override
+    {
+        return false;
+    }
+    //! @copydoc readMode
+    bool writeMode(const keyboard::Mode) override
+    {
+        return false;
+    }
     ///@}
 
 protected:
+    inline uint8_t firmware_version_reg_addr() const override
+    {
+        return 0xF1;
+    }
+
     uint8_t read_data(Packet& rbuf);
 
     inline virtual uint8_t to_mode_bits(const char ch) const override
@@ -172,7 +186,6 @@ protected:
     }
 
 protected:
-    uint8_t _type{};
     config_t _cfg{};
 
 private:

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -16,7 +16,7 @@ namespace m5 {
 namespace unit {
 
 /*!
-  @namespacde faces
+  @namespace faces
   @brief For Faces
  */
 namespace faces {
@@ -125,12 +125,12 @@ public:
 
     ///@name Settings for begin
     ///@{
-    /*! @brief Gets the configration */
+    /*! @brief Gets the configuration */
     inline config_t config()
     {
         return _cfg;
     }
-    //! @brief Set the configration
+    //! @brief Set the configuration
     inline void config(const config_t& cfg)
     {
         _cfg = cfg;
@@ -176,7 +176,7 @@ public:
     ///@}
 
 #if defined(DOXYGEN_PROCESS)
-    //! @copydoc m5::unit::Keyboard::released
+    //! @copydoc m5::unit::UnitKeyboard::released
     //! @note Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware, but this class treats it as 0x0D
     uint8_t released() const;
 #endif
