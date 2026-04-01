@@ -127,6 +127,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install yq
+        run: pip install yq
+
       - name: Compile examples
         uses: arduino/compile-sketches@v1
         with:
