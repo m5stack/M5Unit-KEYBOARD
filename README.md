@@ -20,6 +20,7 @@ See also examples using conventional methods here.
 
 - [Unit CardKB v1.1 & Datasheet](https://docs.m5stack.com/en/unit/cardkb_1.1)
 - [Faces QWERTY & Datasheet](https://docs.m5stack.com/en/module/faces_keyboard)
+- [Unit CardKB2 & Datasheet](https://docs.m5stack.com/en/products/sku/U215)
 
 
 ### Required Libraries:
