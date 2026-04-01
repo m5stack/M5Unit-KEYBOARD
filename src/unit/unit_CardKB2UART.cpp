@@ -175,104 +175,157 @@ void UnitCardKB2UART::update_uart(const bool force)
         _caps_click_count = 0;
     }
 
-    _updated    = false;
-    _prev       = _now;
+    _updated = false;
+    _prev    = _now;
+    auto prev_holding = _holding;
     _wasPressed = _wasReleased = _wasHold = 0;
-    _repeating = 0;  // _holding is cleared on release, not here
 
-    Packet rbuf{};
-    const uint8_t state = read_data(rbuf);
-    if (!state) {
-        return;
-    }
-
-    const uint8_t kidx = rbuf[2];
-    M5_LIB_LOGI("UART kidx:%d state:%s", kidx,
-                state == KEY_STATE_PRESSED ? "PRESS" : state == KEY_STATE_RELEASED ? "RELEASE" : "UNKNOWN");
-    if (kidx >= cardkb2::NUMBER_OF_KEYS) {
-        return;
-    }
-
-    const uint64_t bit = (1ULL << kidx);
-    const bool is_repeat = (state == KEY_STATE_PRESSED) && (_now & bit);
-    uint8_t ch           = 0;
-
-    if (state == KEY_STATE_PRESSED) {
-        _now |= bit;
-
-        if (kidx == cardkb2::KEY_SYM) {  // sym pressed
-            _sym_was_pressed = !_sym_was_pressed;
+    // Consume all available UART packets to update _now bits
+    while (true) {
+        Packet rbuf{};
+        const uint8_t state = read_data(rbuf);
+        if (!state) {
+            // M5_LIB_LOGD("read_data returned 0 (rbuf[0]=%02X)", rbuf[0]);
+            break;
         }
 
-        if (kidx == cardkb2::KEY_AA) {  // caps key
-            _caps_pressing   = true;
-            _caps_pressed_at = at;
-        } else if (is_repeat) {
-            // Hardware repeat: update hold/repeat bits
-            if (!(_holding & bit)) {
-                _wasHold |= bit;  // First repeat = hold started
-            }
-            _holding |= bit;
-            _repeating |= bit;
-            _updated = true;
-            _latest  = at;
-        } else {
-            // Initial press: push character
-            const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
-            const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
-            if (fn_active) {
-                ch = key_map[kidx][3];  // Fn layer (e.g., Fn+1=ESC)
-            } else if (_sym_was_pressed) {
-                ch = key_map[kidx][2];  // Sym layer
-            } else {
-                ch = key_map[kidx][caps_active ? 1 : 0];  // normal or shift
-            }
-
-            if (ch) {
-                _data->push_back(ch);
-            }
-
-            // One-shot uppercase is consumed by the next non-caps key.
-            if (_caps_shift_once && !_caps_lock && !_caps_hold_active) {
-                _caps_shift_once = false;
-            }
+        const uint8_t kidx = rbuf[2];
+        M5_LIB_LOGV("UART kidx:%d state:%s", kidx,
+                     state == KEY_STATE_PRESSED ? "PRESS" : state == KEY_STATE_RELEASED ? "RELEASE" : "UNKNOWN");
+        if (kidx >= cardkb2::NUMBER_OF_KEYS) {
+            continue;
         }
-    } else if (state == KEY_STATE_RELEASED) {
-        _now &= ~bit;
-        _holding &= ~bit;
 
-        if (kidx == cardkb2::KEY_AA && _caps_pressing) {
-            _caps_pressing = false;
+        const uint64_t bit = (1ULL << kidx);
 
-            if (_caps_hold_active) {
-                _caps_hold_active = false;
-                _caps_shift_once  = false;
-                _caps_lock        = false;
-                _caps_click_count = 0;
-            } else {
-                if (_caps_click_count == 1 && (at - _caps_last_release_at) <= CAPS_DOUBLE_CLICK_WINDOW_MS) {
-                    _caps_lock        = !_caps_lock;
+        if (state == KEY_STATE_PRESSED) {
+            if (!(_now & bit)) {
+                // Initial press only (not hardware repeat)
+                _now |= bit;
+
+                if (kidx == cardkb2::KEY_SYM) {
+                    _sym_was_pressed = !_sym_was_pressed;
+                }
+
+                if (kidx == cardkb2::KEY_AA) {
+                    _caps_pressing   = true;
+                    _caps_pressed_at = at;
+                }
+
+                _repeat_start_at[kidx] = _hold_start_at[kidx] = at;
+            }
+            // Hardware repeat packets are consumed but ignored — software repeat handles timing
+        } else if (state == KEY_STATE_RELEASED) {
+            _now &= ~bit;
+            _holding &= ~bit;
+
+            if (kidx == cardkb2::KEY_AA && _caps_pressing) {
+                _caps_pressing = false;
+
+                if (_caps_hold_active) {
+                    _caps_hold_active = false;
                     _caps_shift_once  = false;
+                    _caps_lock        = false;
                     _caps_click_count = 0;
                 } else {
-                    if (_caps_lock) {
-                        _caps_lock       = false;
-                        _caps_shift_once = false;
+                    if (_caps_click_count == 1 && (at - _caps_last_release_at) <= CAPS_DOUBLE_CLICK_WINDOW_MS) {
+                        _caps_lock        = !_caps_lock;
+                        _caps_shift_once  = false;
+                        _caps_click_count = 0;
                     } else {
-                        _caps_shift_once = true;
+                        if (_caps_lock) {
+                            _caps_lock       = false;
+                            _caps_shift_once = false;
+                        } else {
+                            _caps_shift_once = true;
+                        }
+                        _caps_click_count     = 1;
+                        _caps_last_release_at = at;
                     }
-                    _caps_click_count     = 1;
-                    _caps_last_release_at = at;
                 }
             }
         }
-    } else {
-        return;
     }
 
+    // Compute press/release transitions
     _wasPressed  = (_now ^ _prev) & _now;
     _wasReleased = (_now ^ _prev) & ~_now;
-    _updated     = (_wasPressed | _wasReleased);
+
+    // Push characters for newly pressed keys
+    uint64_t wp = _wasPressed;
+    while (wp) {
+        uint_fast8_t kidx = __builtin_ctzll(wp);
+        wp &= wp - 1;  // clear lowest set bit
+
+        // Skip modifier keys
+        if (kidx == cardkb2::KEY_AA || kidx == cardkb2::KEY_FN || kidx == cardkb2::KEY_SYM) {
+            continue;
+        }
+
+        const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
+        const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
+        uint8_t ch;
+        if (fn_active) {
+            ch = key_map[kidx][3];
+        } else if (_sym_was_pressed) {
+            ch = key_map[kidx][2];
+        } else {
+            ch = key_map[kidx][caps_active ? 1 : 0];
+        }
+
+        if (ch) {
+            _data->push_back(ch);
+        }
+
+        // One-shot uppercase is consumed by the next non-caps key.
+        if (_caps_shift_once && !_caps_lock && !_caps_hold_active) {
+            _caps_shift_once = false;
+        }
+    }
+
+    // Software repeat and hold (same logic as CardKB)
+    _repeating = 0;
+    uint64_t bit = 1;
+    for (uint_fast8_t i = 0; i < cardkb2::NUMBER_OF_KEYS; ++i, bit <<= 1) {
+        if (!(_now & bit) || (_wasPressed & bit)) {
+            continue;  // not held or just pressed
+        }
+        // Skip modifier keys — they don't repeat
+        if (i == cardkb2::KEY_AA || i == cardkb2::KEY_FN || i == cardkb2::KEY_SYM) {
+            continue;
+        }
+        // Repeat?
+        if (at - _repeat_start_at[i] >= _repeating_threshold) {
+            _repeat_start_at[i] = at;
+            _repeating |= bit;
+
+            // Push repeat character
+            if (i != cardkb2::KEY_AA && i != cardkb2::KEY_FN && i != cardkb2::KEY_SYM) {
+                const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
+                const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
+                uint8_t ch;
+                if (fn_active) {
+                    ch = key_map[i][3];
+                } else if (_sym_was_pressed) {
+                    ch = key_map[i][2];
+                } else {
+                    ch = key_map[i][caps_active ? 1 : 0];
+                }
+                if (ch) {
+                    _data->push_back(ch);
+                }
+            }
+        }
+        // Hold?
+        if (at - _hold_start_at[i] >= _holding_threshold) {
+            _holding |= bit;
+        } else {
+            _holding &= ~bit;
+        }
+    }
+    _wasHold = (prev_holding ^ _holding) & _holding;
+
+    _updated = (_wasPressed | _wasReleased | _repeating);
     if (_updated) {
         _latest = at;
     }

@@ -63,7 +63,7 @@ void UnitCardKB2::update(const bool force)
         M5_LIB_LOGD("I2C spurious data filtered: 0x%02X", raw);
         return;
     }
-    M5_LIB_LOGI("I2C raw:%02X '%c'", raw, (raw >= 0x20 && raw < 0x7F) ? raw : ' ');
+    M5_LIB_LOGV("I2C raw:%02X '%c'", raw, (raw >= 0x20 && raw < 0x7F) ? raw : ' ');
     _pressed_key = raw;
     _updated     = true;
     _latest      = at;

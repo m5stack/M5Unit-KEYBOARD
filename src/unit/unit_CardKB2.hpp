@@ -80,6 +80,18 @@ public:
     {
         return updated() ? _pressed_key : 0;
     }
+    //! @brief Number of available characters (0 or 1)
+    //! @note Provided for API compatibility with UnitKeyboardBitwise (UnitCardKB2UART)
+    inline uint8_t available() const
+    {
+        return (updated() && _pressed_key) ? 1 : 0;
+    }
+    //! @brief Discard current character
+    //! @note Provided for API compatibility with UnitKeyboardBitwise (UnitCardKB2UART)
+    inline void discard()
+    {
+        _pressed_key = 0;
+    }
 
     ///@name Firmware
     ///@{

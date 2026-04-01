@@ -55,18 +55,75 @@ m5::unit::UnitFacesQWERTY unit;
 #error Must choose unit define, USING_UNIT_CARDKB, USING_UNIT_CARDKB2, or USING_UNIT_FACES_QWERTY
 #endif
 
+#if defined(USING_UNIT_CARDKB) || defined(USING_UNIT_FACES_QWERTY)
 bool scan_mode{};
-}  // namespace
+#endif
 
-using namespace m5::unit::keyboard;
-
-void setup()
+// I2C 3-way branching: NessoN1 (M5HAL SoftwareI2C), NanoC6 (Ex_I2C), others (Wire)
+bool setup_i2c()
 {
-    M5.begin();
-    M5.setTouchButtonHeightByRatio(100);
+    auto board = M5.getBoard();
+    if (board == m5::board_t::board_ArduinoNessoN1) {
+        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_b_out);
+        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_b_in);
+        M5_LOGI("getPin(M5HAL): SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
+        m5::hal::bus::I2CBusConfig i2c_cfg;
+        i2c_cfg.pin_sda = m5::hal::gpio::getPin(pin_num_sda);
+        i2c_cfg.pin_scl = m5::hal::gpio::getPin(pin_num_scl);
+        auto i2c_bus    = m5::hal::bus::i2c::getBus(i2c_cfg);
+        M5_LOGI("Bus:%d", i2c_bus.has_value());
+        return Units.add(unit, i2c_bus ? i2c_bus.value() : nullptr) && Units.begin();
+    } else if (board == m5::board_t::board_M5NanoC6) {
+        M5_LOGI("Using M5.Ex_I2C");
+        return Units.add(unit, M5.Ex_I2C) && Units.begin();
+    } else {
+        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_a_sda);
+        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_a_scl);
+        M5_LOGI("getPin: SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
+        Wire.end();
+        Wire.begin(pin_num_sda, pin_num_scl, 100 * 1000U);
+        return Units.add(unit, Wire) && Units.begin();
+    }
+}
 
-    bool unit_ready{};
+#if defined(USING_UNIT_CARDKB)
+bool setup_cardkb()
+{
+    if (!setup_i2c()) {
+        return false;
+    }
+    M5.Log.printf("Hardware:%02X Firmware:%02X\n", unit.hardwareType(), unit.firmwareVersion());
+    return true;
+}
+
+void loop_cardkb()
+{
+    if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
+        scan_mode = !scan_mode;
+        unit.writeMode(scan_mode ? m5::unit::keyboard::Mode::M5UnitUnified : m5::unit::keyboard::Mode::Conventional);
+        M5.Log.printf("======== Change behavior %s mode\n", scan_mode ? "M5UnitUnified" : "Conventional");
+    }
+}
+#endif
+
+#if defined(USING_UNIT_CARDKB2) && !defined(USING_UART_FOR_CARDKB2)
+bool setup_cardkb2_i2c()
+{
+    if (!setup_i2c()) {
+        return false;
+    }
+    M5.Log.printf("Firmware:%02X\n", unit.firmwareVersion());
+    return true;
+}
+
+void loop_cardkb2_i2c()
+{
+}
+#endif
+
 #if defined(USING_UART_FOR_CARDKB2)
+bool setup_cardkb2_uart()
+{
     // UART mode: CardKB2 must be switched to UART mode first (Fn+Sym+2 on the device)
     // Port C primary, Port A fallback
     auto pin_num_rx = M5.getPin(m5::pin_name_t::port_c_rxd);
@@ -96,81 +153,15 @@ void setup()
 #error "Not enough Serial"
 #endif
     serial.begin(115200, SERIAL_8N1, pin_num_rx, pin_num_tx);
-    unit_ready = Units.add(unit, serial) && Units.begin();
-#else
-    // I2C mode
-    auto board = M5.getBoard();
-    if (board == m5::board_t::board_ArduinoNessoN1) {
-        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_b_out);
-        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_b_in);
-        M5_LOGI("getPin(M5HAL): SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
-        m5::hal::bus::I2CBusConfig i2c_cfg;
-        i2c_cfg.pin_sda = m5::hal::gpio::getPin(pin_num_sda);
-        i2c_cfg.pin_scl = m5::hal::gpio::getPin(pin_num_scl);
-        auto i2c_bus    = m5::hal::bus::i2c::getBus(i2c_cfg);
-        M5_LOGI("Bus:%d", i2c_bus.has_value());
-        unit_ready = Units.add(unit, i2c_bus ? i2c_bus.value() : nullptr) && Units.begin();
-    } else if (board == m5::board_t::board_M5NanoC6) {
-        M5_LOGI("Using M5.Ex_I2C");
-        unit_ready = Units.add(unit, M5.Ex_I2C) && Units.begin();
-    } else {
-        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_a_sda);
-        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_a_scl);
-        M5_LOGI("getPin: SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
-        Wire.end();
-        Wire.begin(pin_num_sda, pin_num_scl, 100 * 1000U);
-        unit_ready = Units.add(unit, Wire) && Units.begin();
+    if (!Units.add(unit, serial) || !Units.begin()) {
+        return false;
     }
-#endif
-
-    if (!unit_ready) {
-        M5_LOGE("Failed to begin");
-#if defined(USING_UNIT_CARDKB2)
-        // CardKB2 remembers its communication mode across power cycles.
-        // If using I2C, ensure the device is in I2C mode (Fn+Sym+1).
-        // If using UART, ensure the device is in UART mode (Fn+Sym+2).
-        M5_LOGE("Check CardKB2 communication mode (Fn+Sym+1:I2C, Fn+Sym+2:UART)");
-#endif
-        lcd.fillScreen(TFT_RED);
-        while (true) {
-            m5::utility::delay(10000);
-        }
-    }
-    M5_LOGI("M5UnitUnified has been begun");
-    M5_LOGI("%s", Units.debugInfo().c_str());
-#if defined(USING_UNIT_CARDKB)
-    M5.Log.printf("Hardware:%02X Firmware:%02X\n", unit.hardwareType(), unit.firmwareVersion());
-#elif defined(USING_UNIT_CARDKB2)
-    if (unit.firmwareVersion()) {
-        M5.Log.printf("Firmware:%02X\n", unit.firmwareVersion());
-    } else {
-        M5.Log.printf("Firmware:Unknown (UART mode)\n");
-    }
-#elif defined(USING_UNIT_FACES_QWERTY)
-    M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
-#endif
-    lcd.fillScreen(TFT_DARKGREEN);
-
-    // If the sound is low by default, adjust with this
-    // M5.Speaker.setVolume(255);
+    M5.Log.printf("Firmware:Unknown (UART mode)\n");
+    return true;
 }
 
-void loop()
+void loop_cardkb2_uart()
 {
-    M5.update();
-    Units.update();
-
-#if !defined(USING_UNIT_CARDKB2)
-    // Toggle behavior if using M5Unit-KEYBOARD firmware (CardKB/FacesQWERTY only)
-    if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
-        scan_mode = !scan_mode;
-        unit.writeMode(scan_mode ? Mode::M5UnitUnified : Mode::Conventional);
-        M5.Log.printf("======== Change behavior %s mode\n", scan_mode ? "M5UnitUnified" : "Conventional");
-    }
-#endif
-
-#if defined(USING_UART_FOR_CARDKB2)
-    // UART: bitwise state debug
     static uint64_t prev_now{}, prev_holding{}, prev_repeating{};
     if (unit.nowBits() != prev_now) {
         M5.Log.printf("NOW:%016llX WP:%016llX WR:%016llX\n", unit.nowBits(), unit.pressedBits(), unit.releasedBits());
@@ -184,14 +175,86 @@ void loop()
         M5.Log.printf("RPT:%016llX\n", unit.repeatingBits());
         prev_repeating = unit.repeatingBits();
     }
+}
 #endif
 
-    // Gets the input characters
+#if defined(USING_UNIT_FACES_QWERTY)
+bool setup_faces()
+{
+    if (!setup_i2c()) {
+        return false;
+    }
+    M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
+    return true;
+}
+
+void loop_faces()
+{
+    if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
+        scan_mode = !scan_mode;
+        unit.writeMode(scan_mode ? m5::unit::keyboard::Mode::M5UnitUnified : m5::unit::keyboard::Mode::Conventional);
+        M5.Log.printf("======== Change behavior %s mode\n", scan_mode ? "M5UnitUnified" : "Conventional");
+    }
+}
+#endif
+
+}  // namespace
+
+using namespace m5::unit::keyboard;
+
+void setup()
+{
+    M5.begin();
+    M5.setTouchButtonHeightByRatio(100);
+
+    bool unit_ready{};
+#if defined(USING_UART_FOR_CARDKB2)
+    unit_ready = setup_cardkb2_uart();
+#elif defined(USING_UNIT_CARDKB2)
+    unit_ready = setup_cardkb2_i2c();
+#elif defined(USING_UNIT_CARDKB)
+    unit_ready = setup_cardkb();
+#elif defined(USING_UNIT_FACES_QWERTY)
+    unit_ready = setup_faces();
+#endif
+
+    if (!unit_ready) {
+        M5_LOGE("Failed to begin");
+#if defined(USING_UNIT_CARDKB2)
+        M5_LOGE("Check CardKB2 communication mode (Fn+Sym+1:I2C, Fn+Sym+2:UART)");
+#endif
+        lcd.fillScreen(TFT_RED);
+        while (true) {
+            m5::utility::delay(10000);
+        }
+    }
+    M5_LOGI("M5UnitUnified has been begun");
+    M5_LOGI("%s", Units.debugInfo().c_str());
+    lcd.fillScreen(TFT_DARKGREEN);
+}
+
+void loop()
+{
+    M5.update();
+    Units.update();
+
+#if defined(USING_UART_FOR_CARDKB2)
+    loop_cardkb2_uart();
+#elif defined(USING_UNIT_CARDKB2)
+    loop_cardkb2_i2c();
+#elif defined(USING_UNIT_CARDKB)
+    loop_cardkb();
+#elif defined(USING_UNIT_FACES_QWERTY)
+    loop_faces();
+#endif
+
+    // Common: get input characters
     if (unit.updated()) {
-        char ch = unit.getchar();
-        if (ch) {
+        while (unit.available()) {
+            char ch = unit.getchar();
             M5.Log.printf("Char:[%02X %c]\n", ch, std::isprint(ch) ? ch : ' ');
             M5.Speaker.tone(1000, 20);
+            unit.discard();
         }
     }
 }
