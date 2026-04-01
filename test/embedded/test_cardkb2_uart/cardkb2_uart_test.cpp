@@ -17,6 +17,8 @@
 #include <googletest/test_template.hpp>
 #include <googletest/test_helper.hpp>
 #include <unit/unit_CardKB2UART.hpp>
+#include <unit/unit_CardKB2_defs.hpp>
+#include <cstring>
 
 using namespace m5::unit::googletest;
 using namespace m5::unit;
@@ -117,4 +119,44 @@ TEST_F(TestCardKB2UART, Update)
     EXPECT_FALSE(unit->updated());
     EXPECT_EQ(unit->getchar(), 0);
     EXPECT_EQ(unit->nowBits(), 0U);
+}
+
+// Bidirectional: toKeyIndex(ch) and character_to_mode_bits(ch) must be consistent
+// for every character across all modifier modes (normal, shift, sym, fn)
+TEST_F(TestCardKB2UART, CharacterToKeyIndexRoundtrip)
+{
+    SCOPED_TRACE(ustr);
+
+    for (int c = 1; c < 256; ++c) {
+        char ch   = static_cast<char>(c);
+        auto kidx = unit->toKeyIndex(ch);
+        if (kidx == 0xFF) {
+            continue;
+        }
+        EXPECT_LT(kidx, m5::unit::cardkb2::NUMBER_OF_KEYS)
+            << "toKeyIndex(0x" << std::hex << c << ") returned out-of-range key index " << (int)kidx;
+
+        auto mbits = m5::unit::cardkb2::character_to_mode_bits(ch);
+        EXPECT_NE(mbits, 0) << "character_to_mode_bits(0x" << std::hex << c << ") returned 0 but toKeyIndex returned "
+                            << (int)kidx;
+
+        if (ch >= 'a' && ch <= 'z') {
+            EXPECT_TRUE(mbits & 0x01) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing normal bit";
+        }
+        if (ch >= 'A' && ch <= 'Z') {
+            EXPECT_TRUE(mbits & 0x02) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing shift bit";
+        }
+        if (std::strchr("!@#$%^&*(){}[]|\\~`?/<>=+_-;:\"'", ch) && !(mbits & 0x03)) {
+            EXPECT_TRUE(mbits & 0x04) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing sym bit";
+        }
+    }
+
+    for (int c = 128; c < 256; ++c) {
+        auto kidx = unit->toKeyIndex(static_cast<char>(c));
+        if (kidx == 0xFF) {
+            continue;
+        }
+        EXPECT_LT(kidx, m5::unit::cardkb2::NUMBER_OF_KEYS)
+            << "Fn char 0x" << std::hex << c << " mapped to out-of-range key index " << (int)kidx;
+    }
 }
