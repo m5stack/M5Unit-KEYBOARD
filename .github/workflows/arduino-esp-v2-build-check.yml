@@ -127,6 +127,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Clean arduino-cli (self-hosted)
+        if: github.event.repository.private
+        run: rm -f $HOME/bin/arduino-cli
+
       - name: Set up Python (self-hosted)
         if: github.event.repository.private
         uses: actions/setup-python@v5
