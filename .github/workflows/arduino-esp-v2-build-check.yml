@@ -133,7 +133,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install yq
-        run: pip install yq
+        run: |
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
 
       - name: Compile examples
         uses: arduino/compile-sketches@v1
