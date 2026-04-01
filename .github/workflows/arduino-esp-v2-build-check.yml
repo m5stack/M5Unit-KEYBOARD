@@ -129,11 +129,7 @@ jobs:
 
       - name: Remove cached libraries (self-hosted)
         if: github.event.repository.private
-        run: |
-          IFS=',' read -ra LIBS <<< "${{ env.REQUIRED_LIBRARIES }}"
-          for lib in "${LIBS[@]}"; do
-            rm -rf ~/Arduino/libraries/"$lib"
-          done
+        run: rm -rf $HOME/Arduino/libraries/M5Unified $HOME/Arduino/libraries/M5GFX $HOME/Arduino/libraries/M5UnitUnified $HOME/Arduino/libraries/M5HAL $HOME/Arduino/libraries/M5Utility
 
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
