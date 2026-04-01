@@ -8,6 +8,7 @@
   @brief Faces QWERTY Unit for M5UnitUnified
 */
 #include "unit_FacesQWERTY.hpp"
+#include <driver/gpio.h>
 
 using namespace m5::utility::mmh3;
 using namespace m5::unit::types;
@@ -209,14 +210,14 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
     {4, UnitFacesQWERTY::KEY_DOLLAR},  // Speaker mark
 };
 
-bool input_irq{};
-#if defined(ARDUINO) && defined(digitalPinToInterrupt)
-constexpr uint8_t INTERRUPT_PIN{5};
-void IRAM_ATTR handle_faces_qwerty()
+volatile bool input_irq{};
+constexpr gpio_num_t INTERRUPT_PIN{GPIO_NUM_5};
+
+void IRAM_ATTR handle_faces_qwerty(void*)
 {
     input_irq = true;
+    gpio_intr_disable(INTERRUPT_PIN);
 }
-#endif
 
 }  // namespace
 
@@ -297,21 +298,17 @@ bool UnitFacesQWERTY::begin()
 
     _handle_irq = _cfg.trigger_irq;
 
-#if defined(ARDUINO)
-#if defined(digitalPinToInterrupt)
     if (_handle_irq) {
-        pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-        attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handle_faces_qwerty, FALLING);
+        gpio_config_t io_conf{};
+        io_conf.pin_bit_mask = 1ULL << INTERRUPT_PIN;
+        io_conf.mode         = GPIO_MODE_INPUT;
+        io_conf.pull_up_en   = GPIO_PULLUP_ENABLE;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.intr_type    = GPIO_INTR_LOW_LEVEL;
+        gpio_config(&io_conf);
+        gpio_install_isr_service(0);
+        gpio_isr_handler_add(INTERRUPT_PIN, handle_faces_qwerty, nullptr);
     }
-#else
-#pragma message "Skip IRQ trigger code"
-    // In some environments, "digitalPinToInterrupt" raises an error,
-    // but this is ignored because the environment is not supported by Faces.
-#endif
-#else
-    // TODO: ESP-IDF with M5HAL
-#pragma message "trigger_irq is not supported"
-#endif
     return UnitKeyboardBitwise::begin() && (_cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true);
 }
 
@@ -326,26 +323,35 @@ void UnitFacesQWERTY::update(const bool force)
             auto at = m5::utility::millis();
             if (input_irq || force || !_latest || at >= _latest + _interval) {
                 _updated = update_new_firmware(at);
-            }
-            if (_updated) {
-                _latest = at;
+                if (_updated) {
+                    _latest = at;
+                }
             }
             input_irq = false;
+            if (_handle_irq) {
+                gpio_intr_enable(INTERRUPT_PIN);
+            }
         } break;
         default:
             if (_handle_irq) {
                 if (input_irq) {
                     UnitKeyboardBitwise::update(true);
+                    //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware
+                    if (released() == 0x0D) {
+                        uint8_t discard{};
+                        readWithTransaction(&discard, 1);  // Discard 0x0A
+                    }
+                    input_irq = false;
+                    gpio_intr_enable(INTERRUPT_PIN);
                 }
             } else {
                 UnitKeyboardBitwise::update();
+                //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware
+                if (released() == 0x0D) {
+                    uint8_t discard{};
+                    readWithTransaction(&discard, 1);  // Discard 0x0A
+                }
             }
-            //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware or Conventional behavior
-            if (released() == 0x0D) {
-                uint8_t discard{};
-                readWithTransaction(&discard, 1);  // Discard 0x0A
-            }
-            input_irq = false;
             break;
     }
 }
