@@ -123,7 +123,8 @@ jobs:
           chmod +x $HOME/.local/bin/yq
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Compile examples
+      - name: Compile examples (self-hosted)
+        if: github.event.repository.private
         uses: arduino/compile-sketches@v1
         with:
           fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
@@ -137,6 +138,25 @@ jobs:
             - source-url: https://github.com/m5stack/M5UnitUnified.git
             - source-url: https://github.com/m5stack/M5HAL.git
             - source-url: https://github.com/m5stack/M5Utility.git
+            - source-path: ./
+          sketch-paths: |
+            - examples/UnitUnified/${{ matrix.sketch }}
+          cli-compile-flags: |
+            - --build-property
+            - build.extra_flags=${{ matrix.build-properties }}
+
+      - name: Compile examples (public)
+        if: ${{ !github.event.repository.private }}
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
+          platforms: |
+            - name: ${{ matrix.platform }}:${{ matrix.archi }}
+              source-url: ${{ matrix.platform-url }}
+              version: ${{ matrix.platform-version }}
+          libraries: |
+            - name: M5Unified
+            - name: M5UnitUnified
             - source-path: ./
           sketch-paths: |
             - examples/UnitUnified/${{ matrix.sketch }}
