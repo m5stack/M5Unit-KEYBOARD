@@ -127,15 +127,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python (self-hosted)
+        if: github.event.repository.private
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install yq
+      - name: Install yq (self-hosted)
+        if: github.event.repository.private
         run: |
-          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x /usr/local/bin/yq
+          mkdir -p $HOME/.local/bin
+          wget -qO $HOME/.local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x $HOME/.local/bin/yq
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Compile examples
         uses: arduino/compile-sketches@v1
