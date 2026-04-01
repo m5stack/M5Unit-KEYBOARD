@@ -24,4 +24,5 @@
 // For UART
 // #define USING_UART_FOR_CARDKB2
 #endif
+#endif
 #include "main/PlotToSerial.cpp"
