@@ -37,6 +37,82 @@
 namespace {
 auto& lcd = M5.Display;
 m5::unit::UnitUnified Units;
+
+const char* special_key_name(const char ch)
+{
+    switch (ch) {
+        case '\b':
+            return "BS";
+        case '\t':
+            return "TAB";
+        case '\n':
+            return "LF";
+        case '\r':
+            return "CR";
+        case 0x1B:
+            return "ESC";
+        case 0x7F:
+            return "DEL";
+        default:
+            break;
+    }
+#if defined(USING_UNIT_CARDKB)
+    using namespace m5::unit;
+    switch (ch) {
+        case UnitCardKB::SCHAR_LEFT:
+            return "LEFT";
+        case UnitCardKB::SCHAR_UP:
+            return "UP";
+        case UnitCardKB::SCHAR_DOWN:
+            return "DOWN";
+        case UnitCardKB::SCHAR_RIGHT:
+            return "RIGHT";
+        default:
+            break;
+    }
+#elif defined(USING_UNIT_CARDKB2)
+    using namespace m5::unit::cardkb2;
+    switch (ch) {
+        case SCHAR_LEFT:
+            return "LEFT";
+        case SCHAR_UP:
+            return "UP";
+        case SCHAR_DOWN:
+            return "DOWN";
+        case SCHAR_RIGHT:
+            return "RIGHT";
+        default:
+            break;
+    }
+#elif defined(USING_UNIT_FACES_QWERTY)
+    using namespace m5::unit;
+    switch (ch) {
+        case UnitFacesQWERTY::SCHAR_UP:
+            return "UP";
+        case UnitFacesQWERTY::SCHAR_INS:
+            return "INS";
+        case UnitFacesQWERTY::SCHAR_HOME:
+            return "HOME";
+        case UnitFacesQWERTY::SCHAR_END:
+            return "END";
+        case UnitFacesQWERTY::SCHAR_PAGE_UP:
+            return "PGUP";
+        case UnitFacesQWERTY::SCHAR_PAGE_DOWN:
+            return "PGDN";
+        case UnitFacesQWERTY::SCHAR_LEFT:
+            return "LEFT";
+        case UnitFacesQWERTY::SCHAR_DOWN:
+            return "DOWN";
+        case UnitFacesQWERTY::SCHAR_RIGHT:
+            return "RIGHT";
+        case UnitFacesQWERTY::SCHAR_SPEAKER:
+            return "SPK";
+        default:
+            break;
+    }
+#endif
+    return nullptr;
+}
 #if defined(USING_UNIT_CARDKB)
 #pragma message "Using UnitCardKB (I2C)"
 m5::unit::UnitCardKB unit;
@@ -221,8 +297,6 @@ using namespace m5::unit::keyboard;
 
 void setup()
 {
-    delay(1500);
-
     M5.begin();
     M5.setTouchButtonHeightByRatio(100);
 
@@ -270,8 +344,9 @@ void loop()
     // Common: get input characters
     if (unit.updated()) {
         while (unit.available()) {
-            char ch = unit.getchar();
-            M5.Log.printf("Char:[%02X %c]\n", ch, std::isprint(ch) ? ch : ' ');
+            char ch    = unit.getchar();
+            auto sname = special_key_name(ch);
+            M5.Log.printf("Char:[%02X %s]\n", (uint8_t)ch, sname ? sname : m5::utility::formatString("%c", ch).c_str());
             M5.Speaker.tone(1000, 20);
             unit.discard();
         }
