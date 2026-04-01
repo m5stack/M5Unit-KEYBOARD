@@ -127,6 +127,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Remove cached libraries (self-hosted)
+        if: github.event.repository.private
+        run: |
+          IFS=',' read -ra LIBS <<< "${{ env.REQUIRED_LIBRARIES }}"
+          for lib in "${LIBS[@]}"; do
+            rm -rf ~/Arduino/libraries/"$lib"
+          done
+
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
         with:
