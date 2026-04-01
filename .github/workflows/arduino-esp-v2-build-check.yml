@@ -123,10 +123,6 @@ jobs:
           chmod +x $HOME/.local/bin/yq
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Remove cached libraries (self-hosted)
-        if: github.event.repository.private
-        run: rm -rf $HOME/Arduino/libraries/M5Unified $HOME/Arduino/libraries/M5GFX $HOME/Arduino/libraries/M5UnitUnified $HOME/Arduino/libraries/M5HAL $HOME/Arduino/libraries/M5Utility
-
       - name: Compile examples
         uses: arduino/compile-sketches@v1
         with:
@@ -136,8 +132,11 @@ jobs:
               source-url: ${{ matrix.platform-url }}
               version: ${{ matrix.platform-version }}
           libraries: |
-            - name: M5Unified
-            - name: M5UnitUnified
+            - source-url: https://github.com/m5stack/M5Unified.git
+            - source-url: https://github.com/m5stack/M5GFX.git
+            - source-url: https://github.com/m5stack/M5UnitUnified.git
+            - source-url: https://github.com/m5stack/M5HAL.git
+            - source-url: https://github.com/m5stack/M5Utility.git
             - source-path: ./
           sketch-paths: |
             - examples/UnitUnified/${{ matrix.sketch }}
