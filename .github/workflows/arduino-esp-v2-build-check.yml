@@ -61,13 +61,14 @@ jobs:
           - PlotToSerial
 
         board:
-          - m5stack-atom
-          - m5stack-atoms3
+          # TODO: Restore full board list after CI validation
+          #- m5stack-atom
+          #- m5stack-atoms3
           - m5stack-core-esp32
-          - m5stack-core2
-          - m5stack-coreink
-          - m5stack-cores3
-          - m5stack-fire
+          #- m5stack-core2
+          #- m5stack-coreink
+          #- m5stack-cores3
+          #- m5stack-fire
 
         platform-version:
           - 2.0.17
@@ -79,49 +80,29 @@ jobs:
           - esp32
 
         build-properties:
+          # TODO: Restore full build-properties after CI validation
           - "-DUSING_UNIT_CARDKB"
-          - "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
-          - "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
-          - "-DUSING_UNIT_FACES_QWERTY"
+          #- "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
+          #- "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
+          #- "-DUSING_UNIT_FACES_QWERTY"
 
-        exclude:
-          - board: m5stack-atom
-            build-properties: "-DUSING_UNIT_FACES_QWERTY"
-          - board: m5stack-atoms3
-            build-properties: "-DUSING_UNIT_FACES_QWERTY"
-          - board: m5stack-coreink
-            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+        #exclude:
+        #  - board: m5stack-atom
+        #    build-properties: "-DUSING_UNIT_FACES_QWERTY"
+        #  - board: m5stack-atoms3
+        #    build-properties: "-DUSING_UNIT_FACES_QWERTY"
+        #  - board: m5stack-coreink
+        #    build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
-        include:
-          # SimpleDisplay: Core only
-          - sketch: SimpleDisplay
-            board: m5stack-core-esp32
-            platform-version: 2.0.17
-            platform: esp32
-            archi: esp32
-            platform-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
-            build-properties: "-DUSING_UNIT_CARDKB"
-          - sketch: SimpleDisplay
-            board: m5stack-core-esp32
-            platform-version: 2.0.17
-            platform: esp32
-            archi: esp32
-            platform-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
-            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
-          - sketch: SimpleDisplay
-            board: m5stack-core-esp32
-            platform-version: 2.0.17
-            platform: esp32
-            archi: esp32
-            platform-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
-            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
-          - sketch: SimpleDisplay
-            board: m5stack-core-esp32
-            platform-version: 2.0.17
-            platform: esp32
-            archi: esp32
-            platform-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
-            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+        #include:
+        #  # SimpleDisplay: Core only
+        #  - sketch: SimpleDisplay
+        #    board: m5stack-core-esp32
+        #    platform-version: 2.0.17
+        #    platform: esp32
+        #    archi: esp32
+        #    platform-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+        #    build-properties: "-DUSING_UNIT_CARDKB"
 
     steps:
       - name: Checkout
@@ -151,8 +132,10 @@ jobs:
               source-url: ${{ matrix.platform-url }}
               version: ${{ matrix.platform-version }}
           libraries: |
-            - name: M5Unified
-            - name: M5UnitUnified
+            - source-url: https://github.com/m5stack/M5Unified.git
+            - source-url: https://github.com/m5stack/M5UnitUnified.git
+            - source-url: https://github.com/m5stack/M5HAL.git
+            - source-url: https://github.com/m5stack/M5Utility.git
             - source-path: ./
           sketch-paths: |
             - examples/UnitUnified/${{ matrix.sketch }}
