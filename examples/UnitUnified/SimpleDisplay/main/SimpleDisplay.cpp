@@ -397,14 +397,11 @@ void loop_cardkb2_uart(bool& dirty, char& ch)
     }
 
 #if 1
-    // API check
+    // API check (UART: skip isPressed(ch) — permitted_mode() doesn't work without modifier byte)
     if (ch) {
         auto kidx = unit.toKeyIndex(ch);
         if (!unit.isPressed(kidx)) {
             M5_LOGE("library error(k) %02X", ch);
-        }
-        if (!unit.isPressed(ch)) {
-            M5_LOGE("library error(ch) %02X", ch);
         }
     }
 #endif
