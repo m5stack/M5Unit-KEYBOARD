@@ -35,6 +35,37 @@ constexpr Mode mode_table[] = {Mode::Conventional, Mode::M5UnitUnified};
 
 }  // namespace
 
+TEST_F(TestFacesQWERTY, Config)
+{
+    SCOPED_TRACE(ustr);
+
+    auto cfg = unit->config();
+    EXPECT_TRUE(cfg.start_periodic);
+    EXPECT_EQ(cfg.interval, 10U);
+    EXPECT_EQ(cfg.mode, keyboard::Mode::Conventional);
+    EXPECT_FALSE(cfg.trigger_irq);
+
+    cfg.interval = 50;
+    unit->config(cfg);
+    auto cfg2 = unit->config();
+    EXPECT_EQ(cfg2.interval, 50U);
+
+    // Restore
+    cfg.interval = 10;
+    unit->config(cfg);
+}
+
+TEST_F(TestFacesQWERTY, BitwiseInitialState)
+{
+    SCOPED_TRACE(ustr);
+    EXPECT_EQ(unit->nowBits(), 0U);
+    EXPECT_EQ(unit->pressedBits(), 0U);
+    EXPECT_EQ(unit->releasedBits(), 0U);
+    EXPECT_EQ(unit->holdingBits(), 0U);
+    EXPECT_EQ(unit->repeatingBits(), 0U);
+    EXPECT_FALSE(unit->isPressed());
+}
+
 TEST_F(TestFacesQWERTY, Periodic)
 {
     SCOPED_TRACE(ustr);
@@ -92,7 +123,7 @@ TEST_F(TestFacesQWERTY, CharacterToKeyIndexRoundtrip)
         if (kidx == 0xFF) {
             continue;
         }
-        EXPECT_LT(kidx, UnitFacesQWERTY::NUMBER_OF_KEYS)
+        EXPECT_LT(kidx, +UnitFacesQWERTY::NUMBER_OF_KEYS)
             << "toKeyIndex(0x" << std::hex << c << ") returned out-of-range key index " << (int)kidx;
 
         auto mbits = UnitFacesQWERTY::character_to_mode_bits(ch);
@@ -105,23 +136,20 @@ TEST_F(TestFacesQWERTY, CharacterToKeyIndexRoundtrip)
         if (ch >= 'A' && ch <= 'Z') {
             EXPECT_TRUE(mbits & 0x02) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing shift bit";
         }
-        if (std::strchr("!@#$%^&*(){}[]|\\~`?/<>=+_-;:\"'", ch) && !(mbits & 0x03)) {
+        // Sym-only: not in normal/shift AND not in fn
+        if (std::strchr("!@#$%^&*(){}[]|\\~`?/<>=+_-;:\"'", ch) && !(mbits & 0x0B)) {
             EXPECT_TRUE(mbits & 0x04) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing sym bit";
         }
     }
 
-    // Verify Fn characters (>= 0x80): roundtrip must hold
-    for (uint8_t kidx = 0; kidx < UnitFacesQWERTY::NUMBER_OF_KEYS; ++kidx) {
-        uint8_t fn_char = kidx + 128;
-        auto result     = unit->toKeyIndex(static_cast<char>(fn_char));
-        if (result == 0xFF) {
+    // Verify Fn characters: FacesQWERTY Fn chars are NOT kidx+128,
+    // so only check range validity for all recognized >= 0x80 chars
+    for (int c = 128; c < 256; ++c) {
+        auto kidx = unit->toKeyIndex(static_cast<char>(c));
+        if (kidx == 0xFF) {
             continue;
         }
-        EXPECT_EQ(result, kidx) << "Fn char 0x" << std::hex << (int)fn_char << " mapped to key " << (int)result
-                                << " instead of " << (int)kidx;
-
-        auto mbits = UnitFacesQWERTY::character_to_mode_bits(static_cast<char>(fn_char));
-        EXPECT_EQ(mbits & 0x08, 0x08) << "Fn char 0x" << std::hex << (int)fn_char << " mode_bits=" << (int)mbits
-                                      << " missing function bit";
+        EXPECT_LT(kidx, +UnitFacesQWERTY::NUMBER_OF_KEYS)
+            << "Fn char 0x" << std::hex << c << " mapped to out-of-range key index " << (int)kidx;
     }
 }

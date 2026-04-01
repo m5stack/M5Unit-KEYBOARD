@@ -36,6 +36,36 @@ constexpr Mode mode_table[] = {Mode::Conventional, Mode::M5UnitUnified};
 
 }  // namespace
 
+TEST_F(TestCardKB, Config)
+{
+    SCOPED_TRACE(ustr);
+
+    auto cfg = unit->config();
+    EXPECT_TRUE(cfg.start_periodic);
+    EXPECT_EQ(cfg.interval, 10U);
+    EXPECT_EQ(cfg.mode, keyboard::Mode::Conventional);
+
+    cfg.interval = 50;
+    unit->config(cfg);
+    auto cfg2 = unit->config();
+    EXPECT_EQ(cfg2.interval, 50U);
+
+    // Restore
+    cfg.interval = 10;
+    unit->config(cfg);
+}
+
+TEST_F(TestCardKB, BitwiseInitialState)
+{
+    SCOPED_TRACE(ustr);
+    EXPECT_EQ(unit->nowBits(), 0U);
+    EXPECT_EQ(unit->pressedBits(), 0U);
+    EXPECT_EQ(unit->releasedBits(), 0U);
+    EXPECT_EQ(unit->holdingBits(), 0U);
+    EXPECT_EQ(unit->repeatingBits(), 0U);
+    EXPECT_FALSE(unit->isPressed());
+}
+
 TEST_F(TestCardKB, Periodic)
 {
     SCOPED_TRACE(ustr);
@@ -96,7 +126,7 @@ TEST_F(TestCardKB, CharacterToKeyIndexRoundtrip)
         if (kidx == 0xFF) {
             continue;
         }
-        EXPECT_LT(kidx, UnitCardKB::NUMBER_OF_KEYS)
+        EXPECT_LT(kidx, +UnitCardKB::NUMBER_OF_KEYS)
             << "toKeyIndex(0x" << std::hex << c << ") returned out-of-range key index " << (int)kidx;
 
         auto mbits = UnitCardKB::character_to_mode_bits(ch);
@@ -119,7 +149,7 @@ TEST_F(TestCardKB, CharacterToKeyIndexRoundtrip)
 
     // Verify Fn characters (>= 0x80): toKeyIndex must return the correct key
     // CardKB Fn values are key_index + 128, so roundtrip must hold
-    for (uint8_t kidx = 0; kidx < UnitCardKB::NUMBER_OF_KEYS; ++kidx) {
+    for (uint8_t kidx = 0; kidx < +UnitCardKB::NUMBER_OF_KEYS; ++kidx) {
         uint8_t fn_char = kidx + 128;
         auto result     = unit->toKeyIndex(static_cast<char>(fn_char));
         if (result == 0xFF) {
