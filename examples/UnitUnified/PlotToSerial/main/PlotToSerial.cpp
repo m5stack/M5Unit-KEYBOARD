@@ -181,7 +181,8 @@ void loop_cardkb2_uart()
 #if defined(USING_UNIT_FACES_QWERTY)
 bool setup_faces()
 {
-    if (!setup_i2c()) {
+    // FacesQWERTY connects via M-BUS (internal I2C), not GROVE
+    if (!Units.add(unit, M5.In_I2C) || !Units.begin()) {
         return false;
     }
     M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());

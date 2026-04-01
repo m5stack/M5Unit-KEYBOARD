@@ -38,6 +38,7 @@
 
 namespace {
 auto& lcd = M5.Display;
+LGFX_Sprite canvas(&lcd);
 m5::unit::UnitUnified Units;
 #if defined(USING_UNIT_CARDKB)
 #pragma message "Using UnitCardKB (I2C)"
@@ -165,7 +166,8 @@ bool setup_cardkb2_uart()
 #if defined(USING_UNIT_FACES_QWERTY)
 bool setup_faces()
 {
-    if (!setup_i2c()) {
+    // FacesQWERTY connects via M-BUS (internal I2C), not GROVE
+    if (!Units.add(unit, M5.In_I2C) || !Units.begin()) {
         return false;
     }
     M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
@@ -180,7 +182,7 @@ void loop_cardkb(bool& dirty, char& ch)
     if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
         scan_mode = !scan_mode;
         unit.writeMode(scan_mode ? m5::unit::keyboard::Mode::M5UnitUnified : m5::unit::keyboard::Mode::Conventional);
-        lcd.fillScreen(0);
+        canvas.fillScreen(0);
         str   = "";
         dirty = true;
     }
@@ -212,7 +214,7 @@ void loop_cardkb(bool& dirty, char& ch)
                                            unit.isReleased(), unit.wasReleased(), unit.isHolding(), unit.wasHold(),
                                            unit.isRepeating());
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 0);
+            canvas.drawString(s.c_str(), 0, 0);
         }
 
         // Specific key index
@@ -221,7 +223,7 @@ void loop_cardkb(bool& dirty, char& ch)
                                               unit.isReleased(kidx), unit.wasReleased(kidx), unit.isHolding(kidx),
                                               unit.wasHold(kidx), unit.isRepeating(kidx));
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 16);
+            canvas.drawString(s.c_str(), 0, 16);
         }
 
         // Specific character
@@ -230,7 +232,7 @@ void loop_cardkb(bool& dirty, char& ch)
                                       unit.isReleased(sch), unit.wasReleased(sch), unit.isHolding(sch),
                                       unit.wasHold(sch), unit.isRepeating(sch));
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 16 * 2);
+            canvas.drawString(s.c_str(), 0, 16 * 2);
         }
 
         // Modifier key
@@ -239,21 +241,21 @@ void loop_cardkb(bool& dirty, char& ch)
         if (mod != prev_mod) {
             uint16_t left = small_display ? 0 : 19 * 8;
 
-            lcd.setCursor(left, 0);
-            lcd.fillRect(left, 0, lcd.width() - left, 16);
+            canvas.setCursor(left, 0);
+            canvas.fillRect(left, 0, canvas.width() - left, 16);
 
             if (unit.isModifier()) {
                 if (unit.isShift()) {
-                    lcd.print("S ");
+                    canvas.print("S ");
                 }
                 if (unit.isSymbol()) {
-                    lcd.print("Sy ");
+                    canvas.print("Sy ");
                 }
                 if (unit.isFunction()) {
-                    lcd.print("Fn ");
+                    canvas.print("Fn ");
                 }
                 if (unit.isAlt()) {
-                    lcd.print("A ");
+                    canvas.print("A ");
                 }
             }
         }
@@ -261,11 +263,11 @@ void loop_cardkb(bool& dirty, char& ch)
 
         // Now bits
         if (small_display) {
-            lcd.setCursor(0, 16 * 4);
-            lcd.printf("%016llX", unit.nowBits());
+            canvas.setCursor(0, 16 * 4);
+            canvas.printf("%016llX", unit.nowBits());
         } else {
-            lcd.setCursor(0, 16 * 3);
-            lcd.printf(" NOW:%016llX", unit.nowBits());
+            canvas.setCursor(0, 16 * 3);
+            canvas.printf(" NOW:%016llX", unit.nowBits());
         }
 
 #if 1
@@ -282,7 +284,7 @@ void loop_cardkb(bool& dirty, char& ch)
 #endif
 
     } else {
-        lcd.drawString(mode_label, 0, 0);
+        canvas.drawString(mode_label, 0, 0);
     }
 }
 #endif  // defined(USING_UNIT_CARDKB)
@@ -307,7 +309,7 @@ void loop_cardkb2_i2c(bool& dirty, char& ch)
         }
     }
 
-    lcd.drawString(mode_label, 0, 0);
+    canvas.drawString(mode_label, 0, 0);
 }
 #endif  // defined(USING_UNIT_CARDKB2) && !defined(USING_UART_FOR_CARDKB2)
 
@@ -333,7 +335,79 @@ void loop_cardkb2_uart(bool& dirty, char& ch)
 
     dirty = dirty || (unit.nowBits() != unit.previousBits());
 
-    lcd.drawString(mode_label, 0, 0);
+    // Any keys state
+    auto s =
+        m5::utility::formatString(" Any:%u/%u %u/%u %u/%u %u", unit.isPressed(), unit.wasPressed(), unit.isReleased(),
+                                  unit.wasReleased(), unit.isHolding(), unit.wasHold(), unit.isRepeating());
+    if (!small_display) {
+        canvas.drawString(s.c_str(), 0, 0);
+    }
+
+    // Specific key index
+    auto kidx = unit.toKeyIndex('g');
+    s         = m5::utility::formatString("idxG:%u/%u %u/%u %u/%u %u", unit.isPressed(kidx), unit.wasPressed(kidx),
+                                          unit.isReleased(kidx), unit.wasReleased(kidx), unit.isHolding(kidx),
+                                          unit.wasHold(kidx), unit.isRepeating(kidx));
+    if (!small_display) {
+        canvas.drawString(s.c_str(), 0, 16);
+    }
+
+    // Specific character
+    constexpr char sch = '+';
+    s = m5::utility::formatString(" Ch+:%u/%u %u/%u %u/%u %u", unit.isPressed(sch), unit.wasPressed(sch),
+                                  unit.isReleased(sch), unit.wasReleased(sch), unit.isHolding(sch), unit.wasHold(sch),
+                                  unit.isRepeating(sch));
+    if (!small_display) {
+        canvas.drawString(s.c_str(), 0, 16 * 2);
+    }
+
+    // Modifier key
+    static auto prev_mod = unit.modifierBits();
+    auto mod             = unit.modifierBits();
+    if (mod != prev_mod) {
+        uint16_t left = small_display ? 0 : 19 * 8;
+
+        canvas.setCursor(left, 0);
+        canvas.fillRect(left, 0, canvas.width() - left, 16);
+
+        if (unit.isModifier()) {
+            if (unit.isShift()) {
+                canvas.print("S ");
+            }
+            if (unit.isSymbol()) {
+                canvas.print("Sy ");
+            }
+            if (unit.isFunction()) {
+                canvas.print("Fn ");
+            }
+            if (unit.isAlt()) {
+                canvas.print("A ");
+            }
+        }
+    }
+    prev_mod = mod;
+
+    // Now bits
+    if (small_display) {
+        canvas.setCursor(0, 16 * 4);
+        canvas.printf("%016llX", unit.nowBits());
+    } else {
+        canvas.setCursor(0, 16 * 3);
+        canvas.printf(" NOW:%016llX", unit.nowBits());
+    }
+
+#if 1
+    // API check
+    if (ch) {
+        auto kidx = unit.toKeyIndex(ch);
+        if (!unit.isPressed(kidx)) {
+            M5_LOGE("library error(k) %02X", ch);
+        }
+        if (!unit.isPressed(ch)) {
+            M5_LOGE("library error(ch) %02X", ch);
+        }
+    }
+#endif
 }
 #endif  // defined(USING_UART_FOR_CARDKB2)
 
@@ -344,7 +418,7 @@ void loop_faces(bool& dirty, char& ch)
     if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
         scan_mode = !scan_mode;
         unit.writeMode(scan_mode ? m5::unit::keyboard::Mode::M5UnitUnified : m5::unit::keyboard::Mode::Conventional);
-        lcd.fillScreen(0);
+        canvas.fillScreen(0);
         str   = "";
         dirty = true;
     }
@@ -376,7 +450,7 @@ void loop_faces(bool& dirty, char& ch)
                                            unit.isReleased(), unit.wasReleased(), unit.isHolding(), unit.wasHold(),
                                            unit.isRepeating());
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 0);
+            canvas.drawString(s.c_str(), 0, 0);
         }
 
         // Specific key index
@@ -385,7 +459,7 @@ void loop_faces(bool& dirty, char& ch)
                                               unit.isReleased(kidx), unit.wasReleased(kidx), unit.isHolding(kidx),
                                               unit.wasHold(kidx), unit.isRepeating(kidx));
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 16);
+            canvas.drawString(s.c_str(), 0, 16);
         }
 
         // Specific character
@@ -394,7 +468,7 @@ void loop_faces(bool& dirty, char& ch)
                                       unit.isReleased(sch), unit.wasReleased(sch), unit.isHolding(sch),
                                       unit.wasHold(sch), unit.isRepeating(sch));
         if (!small_display) {
-            lcd.drawString(s.c_str(), 0, 16 * 2);
+            canvas.drawString(s.c_str(), 0, 16 * 2);
         }
 
         // Modifier key
@@ -403,21 +477,21 @@ void loop_faces(bool& dirty, char& ch)
         if (mod != prev_mod) {
             uint16_t left = small_display ? 0 : 19 * 8;
 
-            lcd.setCursor(left, 0);
-            lcd.fillRect(left, 0, lcd.width() - left, 16);
+            canvas.setCursor(left, 0);
+            canvas.fillRect(left, 0, canvas.width() - left, 16);
 
             if (unit.isModifier()) {
                 if (unit.isShift()) {
-                    lcd.print("S ");
+                    canvas.print("S ");
                 }
                 if (unit.isSymbol()) {
-                    lcd.print("Sy ");
+                    canvas.print("Sy ");
                 }
                 if (unit.isFunction()) {
-                    lcd.print("Fn ");
+                    canvas.print("Fn ");
                 }
                 if (unit.isAlt()) {
-                    lcd.print("A ");
+                    canvas.print("A ");
                 }
             }
         }
@@ -425,11 +499,11 @@ void loop_faces(bool& dirty, char& ch)
 
         // Now bits
         if (small_display) {
-            lcd.setCursor(0, 16 * 4);
-            lcd.printf("%016llX", unit.nowBits());
+            canvas.setCursor(0, 16 * 4);
+            canvas.printf("%016llX", unit.nowBits());
         } else {
-            lcd.setCursor(0, 16 * 3);
-            lcd.printf(" NOW:%016llX", unit.nowBits());
+            canvas.setCursor(0, 16 * 3);
+            canvas.printf(" NOW:%016llX", unit.nowBits());
         }
 
 #if 1
@@ -446,7 +520,7 @@ void loop_faces(bool& dirty, char& ch)
 #endif
 
     } else {
-        lcd.drawString(mode_label, 0, 0);
+        canvas.drawString(mode_label, 0, 0);
     }
 }
 #endif  // defined(USING_UNIT_FACES_QWERTY)
@@ -495,14 +569,19 @@ void setup()
     M5_LOGI("M5UnitUnified has been begun");
     M5_LOGI("%s", Units.debugInfo().c_str());
 
-    lcd.setFont(&fonts::AsciiFont8x16);
-    lcd.startWrite();
-    lcd.fillScreen(0);
+    canvas.setPsram(false);
+    canvas.setColorDepth(1);
+    canvas.createSprite(lcd.width(), lcd.height());
+    canvas.setFont(&fonts::AsciiFont8x16);
+    canvas.fillScreen(TFT_DARKGREEN);
+    canvas.pushSprite(0, 0);
 }
 
 void loop()
 {
-    bool dirty{};
+    static bool initial{true};
+    bool dirty{initial};
+    initial = false;
     char ch{};
 
     M5.update();
@@ -522,34 +601,33 @@ void loop()
 
     // String
     if (str.size() != prev_str) {
-        auto top = small_display ? 16 * 5 : lcd.height() >> 1;
-        lcd.fillRect(0, top, lcd.width(), lcd.height() - top);
-        lcd.setCursor(0, top);
-        lcd.printf("%s", str.c_str());
+        auto top = small_display ? 16 * 5 : canvas.height() >> 1;
+        canvas.fillRect(0, top, canvas.width(), canvas.height() - top);
+        canvas.setCursor(0, top);
+        canvas.printf("%s", str.c_str());
     }
 
     // Character
     if (ch) {
-        uint32_t scale = ((lcd.height() >> 1) - 16) / 16;
-        lcd.setTextSize(scale, scale);
-        lcd.setTextDatum(middle_center);
+        uint32_t scale = ((canvas.height() >> 1) - 16) / 16;
+        canvas.setTextSize(scale, scale);
+        canvas.setTextDatum(middle_center);
 
-        auto x = (lcd.width() - scale * 8);
+        auto x = (canvas.width() - scale * 8);
         auto y = scale * 16 / 2 + 16;
-        lcd.fillRect(x - scale * 8, y - scale * 8, scale * 16, scale * 16);
+        canvas.fillRect(x - scale * 8, y - scale * 8, scale * 16, scale * 16);
 
         if (std::isprint(ch)) {
-            lcd.drawString(m5::utility::formatString("%c", ch).c_str(), x, y);
+            canvas.drawString(m5::utility::formatString("%c", ch).c_str(), x, y);
 
         } else {
-            lcd.drawString(m5::utility::formatString("%02X", ch).c_str(), x, y);
+            canvas.drawString(m5::utility::formatString("%02X", ch).c_str(), x, y);
         }
-        lcd.setTextSize(1, 1);
-        lcd.setTextDatum(top_left);
+        canvas.setTextSize(1, 1);
+        canvas.setTextDatum(top_left);
     }
 
     if (dirty) {
-        lcd.display();
-        lcd.waitDisplay();
+        canvas.pushSprite(0, 0);
     }
 }
