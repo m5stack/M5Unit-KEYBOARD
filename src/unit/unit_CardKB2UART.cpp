@@ -185,7 +185,6 @@ void UnitCardKB2UART::update_uart(const bool force)
         Packet rbuf{};
         const uint8_t state = read_data(rbuf);
         if (!state) {
-            // M5_LIB_LOGD("read_data returned 0 (rbuf[0]=%02X)", rbuf[0]);
             break;
         }
 
@@ -326,6 +325,18 @@ void UnitCardKB2UART::update_uart(const bool force)
         }
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
+
+    // Synthesize modifier bits in upper byte for isModifier()/isShift()/isSymbol()/isFunction()
+    _now &= 0x00FFFFFFFFFFFFFFULL;  // Clear modifier byte
+    if (_caps_lock || _caps_hold_active || _caps_shift_once || (_now & (1ULL << cardkb2::KEY_AA))) {
+        _now |= keyboard::MODIFIER_SHIFT_BIT;
+    }
+    if (_sym_was_pressed) {
+        _now |= keyboard::MODIFIER_SYMBOL_BIT;
+    }
+    if (_now & (1ULL << cardkb2::KEY_FN)) {
+        _now |= keyboard::MODIFIER_FUNCTION_BIT;
+    }
 
     _updated = (_wasPressed | _wasReleased | _repeating);
     if (_updated) {

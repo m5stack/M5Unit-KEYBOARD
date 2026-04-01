@@ -27,8 +27,16 @@ bool UnitKeyboard::begin()
 {
     // I2C connectivity check (skip for non-I2C adapters such as UART)
     if (asAdapter<AdapterI2C>(Adapter::Type::I2C)) {
+        // Retry for SoftwareI2C (NessoN1): first transaction may fail with NO_ACK on larger binaries
         uint8_t discard{};
-        return readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK;
+        for (uint8_t retry = 0; retry < 3; ++retry) {
+            if (readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK) {
+                return true;
+            }
+            M5_LIB_LOGW("I2C connectivity retry %u", retry);
+            m5::utility::delay(100);
+        }
+        return false;
     }
     return true;
 }

@@ -211,6 +211,18 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
     {0x08, m5::unit::cardkb2::KEY_C},  // Right cursor (Fn+C, BLE only)
 };
 
+// Reverse lookup: Fn character code (128-161) to key index
+// Index: fn_char - 128, Value: key_index (0xFF = invalid)
+constexpr key_index_t fn_char_to_key_index[] = {
+    1,    2,  3,  4,  5,  6,  7,  8,  9,       // 128-136: keys 1-9
+    11,   12, 13, 14, 15, 16, 17, 18, 19, 20,  // 137-146: keys 11-20
+    0xFF,                                      // 147: gap
+    23,   24,                                  // 148-149: keys 23-24
+    26,   27, 28, 29, 30, 31,                  // 150-155: keys 26-31
+    0xFF,                                      // 156: gap
+    38,   39, 40, 41, 42,                      // 157-161: keys 38-42
+};
+
 }  // namespace
 
 namespace m5 {
@@ -222,12 +234,13 @@ key_index_t character_to_key_index(const char ch)
     unsigned char uc = ch;
     // function (>= 0x80)
     if (uc & 0x80) {
-        key_index_t kidx = (key_index_t)(uc - 0x80);
-        // Special key?
+        // Special key? (cursor keys)
         if (uc >= (unsigned char)SCHAR_LEFT && uc <= (unsigned char)SCHAR_RIGHT) {
             return special_character_map[uc - (unsigned char)SCHAR_LEFT].second;
         }
-        return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
+        // Fn character reverse lookup
+        uint8_t idx = uc - 128;
+        return (idx < m5::stl::size(fn_char_to_key_index)) ? fn_char_to_key_index[idx] : 0xFF;
     }
     // normal,shift or symbol
     return static_cast<key_index_t>((uc < m5::stl::size(character_map)) ? (character_map[uc].second) : 0xFF);

@@ -412,7 +412,12 @@ public:
     }
     ///@}
 
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
+    ///@warning API valid only if using M5Unit-KEYBOARD firmware.
+    /// For CardKB2 UART mode, character-based state queries (isPressed(ch), wasPressed(ch), etc.)
+    /// may return inaccurate results because press and release events can arrive in the same update
+    /// cycle, causing the key state to be cleared before the buffered character is read.
+    /// Use key-index-based queries (isPressed(kidx)) instead.
+    /// This limitation may be improved in a future firmware update.
     ///@name Specified Character
     ///@{
     /*!
@@ -537,7 +542,8 @@ public:
     }
     ///@}
 
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
+    ///@warning API valid only if using M5Unit-KEYBOARD firmware (CardKB, FacesQWERTY).
+    /// CardKB2 does not support software mode switching; readMode()/writeMode() always return false.
     ///@name Mode
     ///@{
     /*!
@@ -588,7 +594,8 @@ protected:
     bool permitted_mode(const uint8_t mbits) const
     {
         uint8_t mod8 = _now >> 56;
-        return mbits & (1U << (mod8 ? __builtin_ctz(mod8) + 1 : 0));
+        // mod8 bit0=Shift→mbits bit1, bit1=Sym→bit2, bit2=Fn→bit3
+        return mbits & (mod8 ? (mod8 << 1) : 0x01);
     }
 
     M5_UNIT_COMPONENT_PERIODIC_MEASUREMENT_ADAPTER_HPP_BUILDER(UnitKeyboardBitwise, uint8_t);
