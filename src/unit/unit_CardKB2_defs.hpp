@@ -66,10 +66,10 @@ constexpr keyboard::key_index_t KEY_SPACE{42};
 
 ///@name Character code for special keys
 ///@{
-constexpr char SCHAR_LEFT{(char)180};
-constexpr char SCHAR_UP{(char)181};
-constexpr char SCHAR_DOWN{(char)182};
-constexpr char SCHAR_RIGHT{(char)183};
+constexpr char SCHAR_LEFT{static_cast<char>(180)};
+constexpr char SCHAR_UP{static_cast<char>(181)};
+constexpr char SCHAR_DOWN{static_cast<char>(182)};
+constexpr char SCHAR_RIGHT{static_cast<char>(183)};
 ///@}
 
 /*!

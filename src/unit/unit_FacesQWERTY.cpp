@@ -39,7 +39,7 @@ constexpr uint8_t key_map[][5 /* mode: normal, shift, sym, fn, alt */] = {
     {'j', 'J', ';', 182, 160},   // j
     {'k', 'K', '\'', 183, 161},  // k
     {'l', 'L', '"', 184, 162},   // l
-    {8, 127, 8, 8, 163},         // bs/del Old: {8 , 8, 127, 8, 163} Fixes same as CARDKB (Shift+BS => DEL)
+    {8, 8, 127, 8, 163},         // bs/del (Sym+BS => DEL)
     {},                          // no key (alt)
     {'z', 'Z', '7', 9, 165},     // z  Old: {'z', 'Z', '7', 186, 165}, Fixes Fn+Z => TAB
     {'x', 'X', '8', 187, 166},   // x
@@ -238,7 +238,7 @@ key_index_t UnitFacesQWERTY::character_to_key_index(const char ch)
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
-        key_index_t kidx = (key_index_t)(uc - 0x90);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x90);
         return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
     }
     // normal,shift,symbol and function
@@ -255,7 +255,7 @@ uint8_t UnitFacesQWERTY::character_to_mode_bits(const char ch)
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
-        key_index_t kidx = (key_index_t)(uc - 0x90);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x90);
         //        M5_LIB_LOGI("%c => %02X", ch, (uc - 0x90));
         return (kidx < m5::stl::size(key_map)) ? 0x10 : 0x00;
     }
@@ -408,7 +408,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return _repeating;  // Any key pressed?
+    return (_wasPressed | _wasReleased | _repeating);
 }
 
 void UnitFacesQWERTY::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx,

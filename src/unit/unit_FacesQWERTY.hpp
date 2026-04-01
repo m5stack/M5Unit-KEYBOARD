@@ -78,19 +78,19 @@ public:
 
     ///@name Character code for special keys
     ///@{
-    static constexpr char SCHAR_NOMARK_G{(char)180};
-    static constexpr char SCHAR_NOMARK_H{(char)181};
-    static constexpr char SCHAR_NOMARK_J{(char)182};
-    static constexpr char SCHAR_UP{(char)183};
-    static constexpr char SCHAR_INS{(char)184};
-    static constexpr char SCHAR_HOME{(char)187};
-    static constexpr char SCHAR_END{(char)188};
-    static constexpr char SCHAR_PAGE_UP{(char)189};
-    static constexpr char SCHAR_PAGE_DOWN{(char)190};
-    static constexpr char SCHAR_LEFT{(char)191};
-    static constexpr char SCHAR_DOWN{(char)192};
-    static constexpr char SCHAR_RIGHT{(char)193};
-    static constexpr char SCHAR_SPEAKER{(char)194};
+    static constexpr char SCHAR_NOMARK_G{static_cast<char>(180)};
+    static constexpr char SCHAR_NOMARK_H{static_cast<char>(181)};
+    static constexpr char SCHAR_NOMARK_J{static_cast<char>(182)};
+    static constexpr char SCHAR_UP{static_cast<char>(183)};
+    static constexpr char SCHAR_INS{static_cast<char>(184)};
+    static constexpr char SCHAR_HOME{static_cast<char>(187)};
+    static constexpr char SCHAR_END{static_cast<char>(188)};
+    static constexpr char SCHAR_PAGE_UP{static_cast<char>(189)};
+    static constexpr char SCHAR_PAGE_DOWN{static_cast<char>(190)};
+    static constexpr char SCHAR_LEFT{static_cast<char>(191)};
+    static constexpr char SCHAR_DOWN{static_cast<char>(192)};
+    static constexpr char SCHAR_RIGHT{static_cast<char>(193)};
+    static constexpr char SCHAR_SPEAKER{static_cast<char>(194)};
     ///@}
 
     /*!
@@ -120,7 +120,9 @@ public:
         _repeat_start_at.resize(NUMBER_OF_KEYS);
         _hold_start_at.resize(NUMBER_OF_KEYS);
     }
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Settings for begin
@@ -137,6 +139,7 @@ public:
     }
     ///@}
 
+    //! @copydoc UnitKeyboardBitwise::toKeyIndex
     inline virtual keyboard::key_index_t toKeyIndex(const char ch) const override
     {
         return character_to_key_index(ch);

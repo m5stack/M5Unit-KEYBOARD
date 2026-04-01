@@ -301,20 +301,18 @@ void UnitCardKB2UART::update_uart(const bool force)
             _repeating |= bit;
 
             // Push repeat character
-            if (i != cardkb2::KEY_AA && i != cardkb2::KEY_FN && i != cardkb2::KEY_SYM) {
-                const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
-                const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
-                uint8_t ch;
-                if (fn_active) {
-                    ch = key_map[i][3];
-                } else if (_sym_was_pressed) {
-                    ch = key_map[i][2];
-                } else {
-                    ch = key_map[i][caps_active ? 1 : 0];
-                }
-                if (ch) {
-                    _data->push_back(ch);
-                }
+            const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
+            const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
+            uint8_t ch;
+            if (fn_active) {
+                ch = key_map[i][3];
+            } else if (_sym_was_pressed) {
+                ch = key_map[i][2];
+            } else {
+                ch = key_map[i][caps_active ? 1 : 0];
+            }
+            if (ch) {
+                _data->push_back(ch);
             }
         }
         // Hold?

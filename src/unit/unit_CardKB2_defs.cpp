@@ -66,9 +66,6 @@ constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
 };
 static_assert(m5::stl::size(key_map) == m5::unit::cardkb2::NUMBER_OF_KEYS, "Invalid size");
 
-// modifier bit to key_map mode index
-constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Function
-
 // ASCII to mode bit and key_index_t
 // 1:normal 2:shift 4:symbol 8:function
 // 0x0: no key, 0xFF: invalid char
@@ -100,7 +97,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {0x00, 0xFF},                               // CAN (24)
     {0x00, 0xFF},                               // EM (25)
     {0x00, 0xFF},                               // SUB (26)
-    {0x00, 0xFF},                               // ESC (27)
+    {0x08, m5::unit::cardkb2::KEY_1},           // ESC (27) — Fn+1
     {0x00, 0xFF},                               // FS (28)
     {0x00, 0xFF},                               // GS (29)
     {0x00, 0xFF},                               // RS (30)
@@ -251,7 +248,7 @@ uint8_t character_to_mode_bits(const char ch)
     unsigned char uc = ch;
     // function? (>= 0x80)
     if (uc & 0x80) {
-        key_index_t kidx = (key_index_t)(uc - 0x80);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
         if (uc >= (unsigned char)SCHAR_LEFT && uc <= (unsigned char)SCHAR_RIGHT) {
             // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - (unsigned char)SCHAR_LEFT].first);

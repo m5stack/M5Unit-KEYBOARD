@@ -32,7 +32,7 @@ constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
     {'8', '8', '*', 136},   // 8
     {'9', '9', '(', 137},   // 9
     {'0', '0', ')', 138},   // 0
-    {8, 127, 8, 139},       // bs/del
+    {8, 8, 127, 139},       // bs/del (Sym+BS => DEL)
     {9, 9, 9, 140},         // tab
     {'q', 'Q', '{', 141},   // q
     {'w', 'W', '}', 142},   // w
@@ -72,9 +72,6 @@ constexpr uint8_t key_map[][4 /* mode: normal, shift, sym, fn */] = {
 };
 static_assert(m5::stl::size(key_map) == UnitCardKB::NUMBER_OF_KEYS, "Invalid size");
 
-// modifier bit to key_map mode index
-constexpr uint8_t mod_table[] = {1, 0, 3, 2};  // 0x01:Shift, 0x80:Symbol 0x40:Function
-
 // ASCII to mode bit and key_index_t
 // 1:normal 2:shift 4:symbol 8:function
 constexpr std::pair<uint8_t, key_index_t> character_map[] = {
@@ -86,7 +83,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {0x00, 0xFF},                        // ENG
     {0x00, 0xFF},                        // ACK
     {0x00, 0xFF},                        // BEL
-    {1 + 4, UnitCardKB::KEY_BS},         // BS
+    {1 + 2, UnitCardKB::KEY_BS},         // BS
     {1 + 2 + 4, UnitCardKB::KEY_TAB},    // HT
     {1 + 2 + 4, UnitCardKB::KEY_ENTER},  // LF
     {0x00, 0xFF},                        // VT
@@ -205,7 +202,7 @@ constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {4, UnitCardKB::KEY_U},              // |
     {4, UnitCardKB::KEY_W},              // }
     {4, UnitCardKB::KEY_I},              // ~
-    {2, UnitCardKB::KEY_BS},             // DEL
+    {4, UnitCardKB::KEY_BS},             // DEL
 };
 static_assert(m5::stl::size(character_map) == 128, "Invalid size");
 
@@ -232,7 +229,7 @@ key_index_t UnitCardKB::character_to_key_index(const char ch)
     unsigned char uc = ch;
     // function (>= 0x80)
     if (uc & 0x80) {
-        key_index_t kidx = (key_index_t)(uc - 0x80);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
         if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
             return special_character_map[uc - SCHAR_LEFT].second;
@@ -248,7 +245,7 @@ uint8_t UnitCardKB::character_to_mode_bits(const char ch)
     unsigned char uc = ch;
     // function? (>= 0x80)
     if (uc & 0x80) {
-        key_index_t kidx = (key_index_t)(uc - 0x80);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
         if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
             // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_LEFT].first);
@@ -365,7 +362,7 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return true;  // Always true
+    return (_wasPressed | _wasReleased | _repeating);
 }
 
 void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8)

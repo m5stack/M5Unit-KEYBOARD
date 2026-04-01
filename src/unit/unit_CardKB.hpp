@@ -93,10 +93,10 @@ public:
 
     ///@name Character code for special keys
     ///@{
-    static constexpr char SCHAR_LEFT{(char)180};
-    static constexpr char SCHAR_UP{(char)181};
-    static constexpr char SCHAR_DOWN{(char)182};
-    static constexpr char SCHAR_RIGHT{(char)183};
+    static constexpr char SCHAR_LEFT{static_cast<char>(180)};
+    static constexpr char SCHAR_UP{static_cast<char>(181)};
+    static constexpr char SCHAR_DOWN{static_cast<char>(182)};
+    static constexpr char SCHAR_RIGHT{static_cast<char>(183)};
     ///@}
 
     /*!
@@ -124,7 +124,9 @@ public:
         _repeat_start_at.resize(NUMBER_OF_KEYS);
         _hold_start_at.resize(NUMBER_OF_KEYS);
     }
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Settings for begin
@@ -141,6 +143,7 @@ public:
     }
     ///@}
 
+    //! @copydoc UnitKeyboardBitwise::toKeyIndex
     inline virtual keyboard::key_index_t toKeyIndex(const char ch) const override
     {
         return character_to_key_index(ch);

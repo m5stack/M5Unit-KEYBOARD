@@ -59,7 +59,9 @@ public:
         _repeat_start_at.resize(cardkb2::NUMBER_OF_KEYS);
         _hold_start_at.resize(cardkb2::NUMBER_OF_KEYS);
     }
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Settings for begin
@@ -76,6 +78,7 @@ public:
     }
     ///@}
 
+    //! @copydoc UnitKeyboardBitwise::toKeyIndex
     inline virtual keyboard::key_index_t toKeyIndex(const char ch) const override
     {
         return cardkb2::character_to_key_index(ch);

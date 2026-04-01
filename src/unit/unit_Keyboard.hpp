@@ -45,7 +45,7 @@ constexpr inline key_status_bits_t modifier_bits(const key_status_bits_t kbs)
 
 /*!
   @enum Mode
-  @brief Operation mode for M5UnitU-KEYBOARD firmware
+  @brief Operation mode for M5Unit-KEYBOARD firmware
  */
 enum class Mode : uint8_t {
     /*!
@@ -54,7 +54,7 @@ enum class Mode : uint8_t {
      */
     Conventional,
     /*!
-      M5Unit-KEYBOARD mode  behavior
+      M5Unit-KEYBOARD mode behavior
       @details CardKB, FacesQWERTY:Gets the pressed key status
       @warning M5Unit-KEYBOARD firmware must be written
      */
@@ -82,11 +82,13 @@ public:
     {
     }
 
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     /*!
-      @brief Gets the character if input
+      @brief Gets the input character
       @retval != 0 Character
       @retval == 0 Not input or invalid character
       @note Whether the input is a released or pressed key depends on the derived class
@@ -127,12 +129,13 @@ public:
     {
     }
 
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Measurement data by periodic
     ///@{
     /*!
-      @brief Gets the character if input
+      @brief Gets the input character
       @retval != 0 Character
       @retval == 0 Not input or invalid character
     */
@@ -524,18 +527,24 @@ public:
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@name Repeat/Hold threshold
     ///@{
+    //! @brief Gets the holding threshold (ms)
     inline uint32_t holdingThreshold() const
     {
         return _holding_threshold;
     }
+    //! @brief Gets the repeating threshold (ms)
     inline uint32_t repeatingThreshold() const
     {
         return _repeating_threshold;
     }
+    //! @brief Sets the holding threshold
+    //! @param ms Threshold in milliseconds
     inline void setHoldingThreshold(const uint32_t ms)
     {
         _holding_threshold = ms;
     }
+    //! @brief Sets the repeating threshold
+    //! @param ms Threshold in milliseconds
     inline void setRepeatingThreshold(const uint32_t ms)
     {
         _repeating_threshold = ms;

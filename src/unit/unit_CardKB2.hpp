@@ -53,7 +53,9 @@ public:
     explicit UnitCardKB2(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboard(addr)
     {
     }
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Settings for begin
