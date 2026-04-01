@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: MIT
  */
 /*
-  UnitTest for UnitCardKB2
+  UnitTest for UnitCardKB2 (I2C mode)
+  NOTE: CardKB2 must be in I2C mode (Fn+Sym+1) before running this test.
+  The device remembers its communication mode across power cycles.
 */
 #include <gtest/gtest.h>
 #include <Wire.h>
@@ -13,11 +15,9 @@
 #include <googletest/test_template.hpp>
 #include <googletest/test_helper.hpp>
 #include <unit/unit_CardKB2.hpp>
-#include <cmath>
 
 using namespace m5::unit::googletest;
 using namespace m5::unit;
-using namespace m5::unit::keyboard;
 using m5::unit::types::elapsed_time_t;
 
 class TestCardKB2 : public I2CComponentTestBase<UnitCardKB2> {
@@ -29,41 +29,58 @@ protected:
     }
 };
 
-TEST_F(TestCardKB2, Periodic)
+TEST_F(TestCardKB2, Basic)
 {
     SCOPED_TRACE(ustr);
 
-    EXPECT_TRUE(unit->inPeriodic());
-
-    EXPECT_TRUE(unit->stopPeriodicMeasurement());
-    EXPECT_FALSE(unit->inPeriodic());
-
-    EXPECT_TRUE(unit->startPeriodicMeasurement(1000));
-    EXPECT_TRUE(unit->inPeriodic());
-
-    EXPECT_EQ(unit->pressed(), 0U);
-    EXPECT_EQ(unit->released(), 0U);
+    // No key pressed initially
     EXPECT_EQ(unit->getchar(), 0);
+    EXPECT_FALSE(unit->updated());
 }
 
-TEST_F(TestCardKB2, M5UnitUnifiedFirmware)
+TEST_F(TestCardKB2, Firmware)
 {
     SCOPED_TRACE(ustr);
 
-    EXPECT_TRUE(unit->inPeriodic());
-
-    if (!unit->firmwareVersion()) {
-        M5_LOGI("CardKB2 firmware is conventional");
-        return;
-    }
+    // Firmware version should be non-zero on CardKB2
+    EXPECT_NE(unit->firmwareVersion(), 0);
 
     uint8_t ver{};
     EXPECT_TRUE(unit->readFirmwareVersion(ver));
     EXPECT_EQ(ver, unit->firmwareVersion());
     EXPECT_NE(ver, 0);
+}
 
-    // CardKB2 does not support mode switching (I2C=Conventional, UART=M5UnitUnified)
-    Mode mode{};
-    EXPECT_FALSE(unit->writeMode(Mode::M5UnitUnified));
-    EXPECT_FALSE(unit->readMode(mode));
+TEST_F(TestCardKB2, Config)
+{
+    SCOPED_TRACE(ustr);
+
+    auto cfg = unit->config();
+    EXPECT_TRUE(cfg.start_periodic);
+    EXPECT_EQ(cfg.interval, 10U);
+
+    // Modify and verify
+    cfg.interval = 50;
+    unit->config(cfg);
+    auto cfg2 = unit->config();
+    EXPECT_EQ(cfg2.interval, 50U);
+
+    // Restore
+    cfg.interval = 10;
+    unit->config(cfg);
+}
+
+TEST_F(TestCardKB2, Update)
+{
+    SCOPED_TRACE(ustr);
+
+    // Update with no key pressed
+    unit->update();
+    EXPECT_FALSE(unit->updated());
+    EXPECT_EQ(unit->getchar(), 0);
+
+    // Force update
+    unit->update(true);
+    // Still no key pressed
+    EXPECT_EQ(unit->getchar(), 0);
 }

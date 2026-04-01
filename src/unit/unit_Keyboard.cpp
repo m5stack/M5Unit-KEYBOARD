@@ -25,8 +25,12 @@ const types::attr_t UnitKeyboard::attr{attribute::AccessI2C};
 
 bool UnitKeyboard::begin()
 {
-    uint8_t discard{};
-    return readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK;
+    // I2C connectivity check (skip for non-I2C adapters such as UART)
+    if (asAdapter<AdapterI2C>(Adapter::Type::I2C)) {
+        uint8_t discard{};
+        return readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK;
+    }
+    return true;
 }
 
 void UnitKeyboard::update(const bool force)
@@ -36,7 +40,6 @@ void UnitKeyboard::update(const bool force)
         elapsed_time_t at{m5::utility::millis()};
         if (force || !_latest || at >= _latest + _interval) {
             _updated = (readWithTransaction(&_released_key, 1) == m5::hal::error::error_t::OK) && (_released_key != 0);
-            // printf("released_key:0x%02x\n", _released_key);
             if (_updated) {
                 _latest = at;
             }

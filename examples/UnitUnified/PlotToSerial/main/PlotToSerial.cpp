@@ -42,11 +42,12 @@ m5::unit::UnitUnified Units;
 m5::unit::UnitCardKB unit;
 #elif defined(USING_UNIT_CARDKB2)
 #if defined(USING_UART_FOR_CARDKB2)
-#pragma message "Using UnitCardKB2 (UART)"
+#pragma message "Using UnitCardKB2UART (UART)"
+m5::unit::UnitCardKB2UART unit;
 #else
 #pragma message "Using UnitCardKB2 (I2C)"
-#endif
 m5::unit::UnitCardKB2 unit;
+#endif
 #elif defined(USING_UNIT_FACES_QWERTY)
 #pragma message "Using UnitFacesQWERTY (I2C)"
 m5::unit::UnitFacesQWERTY unit;
@@ -78,7 +79,10 @@ void setup()
     }
     M5_LOGI("getPin: RX:%d TX:%d", pin_num_rx, pin_num_tx);
 
-    M5.Power.setExtPower(false);  // Turn off port power to reset the sym status.
+    // NOTE: setExtPower does not fully reset CardKB2 (Sym state may persist).
+    // Only works on boards with AXP power management (Core2, CoreS3).
+    // Press RST button on CardKB2 if Sym LED remains after mode switch.
+    M5.Power.setExtPower(false);
     m5::utility::delay(100);
     M5.Power.setExtPower(true);
     m5::utility::delay(100);
@@ -121,6 +125,12 @@ void setup()
 
     if (!unit_ready) {
         M5_LOGE("Failed to begin");
+#if defined(USING_UNIT_CARDKB2)
+        // CardKB2 remembers its communication mode across power cycles.
+        // If using I2C, ensure the device is in I2C mode (Fn+Sym+1).
+        // If using UART, ensure the device is in UART mode (Fn+Sym+2).
+        M5_LOGE("Check CardKB2 communication mode (Fn+Sym+1:I2C, Fn+Sym+2:UART)");
+#endif
         lcd.fillScreen(TFT_RED);
         while (true) {
             m5::utility::delay(10000);
@@ -131,7 +141,11 @@ void setup()
 #if defined(USING_UNIT_CARDKB)
     M5.Log.printf("Hardware:%02X Firmware:%02X\n", unit.hardwareType(), unit.firmwareVersion());
 #elif defined(USING_UNIT_CARDKB2)
-    M5.Log.printf("Firmware:%02X\n", unit.firmwareVersion());
+    if (unit.firmwareVersion()) {
+        M5.Log.printf("Firmware:%02X\n", unit.firmwareVersion());
+    } else {
+        M5.Log.printf("Firmware:Unknown (UART mode)\n");
+    }
 #elif defined(USING_UNIT_FACES_QWERTY)
     M5.Log.printf("FacesType:%02X Firmware:%02X\n", unit.facesType(), unit.firmwareVersion());
 #endif
@@ -146,22 +160,38 @@ void loop()
     M5.update();
     Units.update();
 
-    // Toggle behavior if using M5Unit-KEYBOARD firmware
+#if !defined(USING_UNIT_CARDKB2)
+    // Toggle behavior if using M5Unit-KEYBOARD firmware (CardKB/FacesQWERTY only)
     if (unit.firmwareVersion() && M5.BtnA.wasClicked()) {
         scan_mode = !scan_mode;
         unit.writeMode(scan_mode ? Mode::M5UnitUnified : Mode::Conventional);
         M5.Log.printf("======== Change behavior %s mode\n", scan_mode ? "M5UnitUnified" : "Conventional");
     }
+#endif
+
+#if defined(USING_UART_FOR_CARDKB2)
+    // UART: bitwise state debug
+    static uint64_t prev_now{}, prev_holding{}, prev_repeating{};
+    if (unit.nowBits() != prev_now) {
+        M5.Log.printf("NOW:%016llX WP:%016llX WR:%016llX\n", unit.nowBits(), unit.pressedBits(), unit.releasedBits());
+        prev_now = unit.nowBits();
+    }
+    if (unit.holdingBits() != prev_holding) {
+        M5.Log.printf("HOLD:%016llX wasHold:%016llX\n", unit.holdingBits(), unit.wasHoldBits());
+        prev_holding = unit.holdingBits();
+    }
+    if (unit.repeatingBits() != prev_repeating) {
+        M5.Log.printf("RPT:%016llX\n", unit.repeatingBits());
+        prev_repeating = unit.repeatingBits();
+    }
+#endif
 
     // Gets the input characters
-    // Depending on the mode, whether the character is released or pressed, the behavior changes if using
-    // M5Unit-KEYBOARD firmware
     if (unit.updated()) {
-        while (unit.available()) {
-            char ch = unit.getchar();
+        char ch = unit.getchar();
+        if (ch) {
             M5.Log.printf("Char:[%02X %c]\n", ch, std::isprint(ch) ? ch : ' ');
             M5.Speaker.tone(1000, 20);
-            unit.discard();
         }
     }
 }

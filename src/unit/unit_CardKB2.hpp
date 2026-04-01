@@ -5,94 +5,40 @@
  */
 /*!
   @file unit_CardKB2.hpp
-  @brief CardKB2 Unit for M5UnitUnified
+  @brief CardKB2 Unit for M5UnitUnified (I2C mode)
 */
 #ifndef M5_UNIT_KEYBOARD_UNIT_CARD_KB2_HPP
 #define M5_UNIT_KEYBOARD_UNIT_CARD_KB2_HPP
 
-#include "unit_Keyboard.hpp"
-#include <m5_utility/container/circular_buffer.hpp>
-#include <vector>
+#include "unit_CardKB2_defs.hpp"
 
 namespace m5 {
 namespace unit {
 /*!
   @class m5::unit::UnitCardKB2
-  @brief Card-size 42 key QWERTY keyboard (SKU:U215)
+  @brief Card-size 42 key QWERTY keyboard — I2C mode (SKU:U215)
 
   CardKB2 supports I2C and UART communication via GROVE port, selectable on the device:
   - **Fn+Sym+1**: I2C mode (factory default) — returns ASCII per keypress
-  - **Fn+Sym+2**: UART mode (115200-8N1) — sends KEY_ID + KEY_STATE packets
+  - **Fn+Sym+2**: UART mode (115200-8N1) — use UnitCardKB2UART for this mode
 
   The selected mode is saved and persists across power cycles.
 
+  In I2C mode, the firmware returns ASCII on key press (not release) and auto-repeats
+  after 300ms hold at 50ms intervals.  Use `getchar()` after `updated()` to retrieve
+  the pressed character.
+
+  @note Sym key operates as a toggle (press once to activate, press again to deactivate).
+  Blue LED indicates Sym mode is active.
   @note Fn+D/Z/X/C arrow keys are not available in I2C/UART mode.
   @note Unlike CardKB/FacesQWERTY, CardKB2 does not support software mode switching via readMode()/writeMode().
-  The communication mode is determined by the hardware mode selection above.
-  @warning Note that older firmware can only detect if the key is released
+  @warning After switching communication mode (Fn+Sym+1/2), press the RST button on
+  CardKB2 to reset modifier state. This will be fixed in a future firmware update.
 */
-class UnitCardKB2 : public UnitKeyboardBitwise {
+class UnitCardKB2 : public UnitKeyboard {
     M5_UNIT_COMPONENT_HPP_BUILDER(UnitCardKB2, 0x5F);
 
 public:
-    using Packet = std::vector<uint8_t>;
-
-    static constexpr uint8_t NUMBER_OF_KEYS{43};
-
-    ///@name key index (bit position in scan result)
-    ///@{
-    static constexpr keyboard::key_index_t KEY_1{0};
-    static constexpr keyboard::key_index_t KEY_2{1};
-    static constexpr keyboard::key_index_t KEY_3{2};
-    static constexpr keyboard::key_index_t KEY_4{3};
-    static constexpr keyboard::key_index_t KEY_5{4};
-    static constexpr keyboard::key_index_t KEY_6{5};
-    static constexpr keyboard::key_index_t KEY_7{6};
-    static constexpr keyboard::key_index_t KEY_8{7};
-    static constexpr keyboard::key_index_t KEY_9{8};
-    static constexpr keyboard::key_index_t KEY_0{9};
-    static constexpr keyboard::key_index_t KEY_Q{11};
-    static constexpr keyboard::key_index_t KEY_W{12};
-    static constexpr keyboard::key_index_t KEY_E{13};
-    static constexpr keyboard::key_index_t KEY_R{14};
-    static constexpr keyboard::key_index_t KEY_T{15};
-    static constexpr keyboard::key_index_t KEY_Y{16};
-    static constexpr keyboard::key_index_t KEY_U{17};
-    static constexpr keyboard::key_index_t KEY_I{18};
-    static constexpr keyboard::key_index_t KEY_O{19};
-    static constexpr keyboard::key_index_t KEY_P{20};
-    static constexpr keyboard::key_index_t KEY_DELETE{21};
-    static constexpr keyboard::key_index_t KEY_AA{22};
-    static constexpr keyboard::key_index_t KEY_A{23};
-    static constexpr keyboard::key_index_t KEY_S{24};
-    static constexpr keyboard::key_index_t KEY_D{25};
-    static constexpr keyboard::key_index_t KEY_F{26};
-    static constexpr keyboard::key_index_t KEY_G{27};
-    static constexpr keyboard::key_index_t KEY_H{28};
-    static constexpr keyboard::key_index_t KEY_J{29};
-    static constexpr keyboard::key_index_t KEY_K{30};
-    static constexpr keyboard::key_index_t KEY_L{31};
-    static constexpr keyboard::key_index_t KEY_ENTER{32};
-    static constexpr keyboard::key_index_t KEY_FN{33};
-    static constexpr keyboard::key_index_t KEY_SYM{34};
-    static constexpr keyboard::key_index_t KEY_Z{35};
-    static constexpr keyboard::key_index_t KEY_X{36};
-    static constexpr keyboard::key_index_t KEY_C{37};
-    static constexpr keyboard::key_index_t KEY_V{38};
-    static constexpr keyboard::key_index_t KEY_B{39};
-    static constexpr keyboard::key_index_t KEY_N{40};
-    static constexpr keyboard::key_index_t KEY_M{41};
-    static constexpr keyboard::key_index_t KEY_SPACE{42};
-    ///@}
-
-    ///@name Character code for special keys
-    ///@{
-    static constexpr char SCHAR_LEFT{(char)180};
-    static constexpr char SCHAR_UP{(char)181};
-    static constexpr char SCHAR_DOWN{(char)182};
-    static constexpr char SCHAR_RIGHT{(char)183};
-    ///@}
-
     /*!
       @struct config_t
       @brief Settings for begin
@@ -100,23 +46,12 @@ public:
     struct config_t {
         //! Start periodic measurement on begin?
         bool start_periodic{true};
-        ///@name For M5Unit-KEYBOARD firmware
-        ///@{
-        /*! Mode */
-        keyboard::Mode mode{keyboard::Mode::Conventional};
-        //! Periodic interval
+        //! Periodic interval (ms)
         uint32_t interval{10};
-        //! Threshold for key repeating (ms)
-        uint32_t repeating_threshold{400};
-        //! Threshold for key holding (ms)
-        uint32_t holding_threshold{800};
-        ///@}
     };
 
-    explicit UnitCardKB2(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboardBitwise(addr)
+    explicit UnitCardKB2(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboard(addr)
     {
-        _repeat_start_at.resize(NUMBER_OF_KEYS);
-        _hold_start_at.resize(NUMBER_OF_KEYS);
     }
     virtual bool begin() override;
     virtual void update(const bool force = false) override;
@@ -135,68 +70,40 @@ public:
     }
     ///@}
 
-    inline virtual keyboard::key_index_t toKeyIndex(const char ch) const override
+    /*!
+      @brief Gets the character if input
+      @retval != 0 Pressed character
+      @retval == 0 Not input or invalid character
+      @note CardKB2 I2C firmware sends ASCII on key press (not release)
+     */
+    inline virtual char getchar() const override
     {
-        return character_to_key_index(ch);
+        return updated() ? _pressed_key : 0;
     }
 
-    /*!
-      @brief Character to key index
-      @retval != 0xFF keyboard::key_index_t
-      @retval == 0xFF No corresponding key index exists
-     */
-    static keyboard::key_index_t character_to_key_index(const char ch);
-    /*!
-      @brief Character to mode bits
-      @retval == 0 Not exists
-      @retval != 0 Bits in corresponding mode
-      @note 0x01:normal 0x02:shift 0x04:symbol 0x08:function
-     */
-    static uint8_t character_to_mode_bits(const char ch);
-
-    ///@name Mode
+    ///@name Firmware
     ///@{
     /*!
-      @brief Not supported on CardKB2
-      @note CardKB2 mode is determined by connection type (I2C=Conventional, UART=M5UnitUnified)
-      @return Always false
+      @brief Gets the firmware version
+      @retval Firmware version read during begin()
+      @warning Valid after begin
+    */
+    inline uint8_t firmwareVersion() const
+    {
+        return _firmware_version;
+    }
+    /*!
+      @brief Read the firmware version
+      @param[out] ver Version
+      @return True if successful
      */
-    bool readMode(keyboard::Mode&) override
-    {
-        return false;
-    }
-    //! @copydoc readMode
-    bool writeMode(const keyboard::Mode) override
-    {
-        return false;
-    }
+    bool readFirmwareVersion(uint8_t& ver);
     ///@}
 
 protected:
-    inline uint8_t firmware_version_reg_addr() const override
-    {
-        return 0xF1;
-    }
-
-    uint8_t read_data(Packet& rbuf);
-
-    inline virtual uint8_t to_mode_bits(const char ch) const override
-    {
-        return character_to_mode_bits(ch);
-    }
-
-protected:
     config_t _cfg{};
-
-private:
-    bool _sym_was_pressed{false};
-    bool _caps_shift_once{false};
-    bool _caps_lock{false};
-    bool _caps_hold_active{false};
-    bool _caps_pressing{false};
-    uint8_t _caps_click_count{0};
-    uint32_t _caps_pressed_at{0};
-    uint32_t _caps_last_release_at{0};
+    uint8_t _pressed_key{};
+    uint8_t _firmware_version{};
 };
 
 }  // namespace unit
