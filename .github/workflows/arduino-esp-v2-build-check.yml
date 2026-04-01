@@ -129,7 +129,18 @@ jobs:
 
       - name: Remove cached libraries (self-hosted)
         if: github.event.repository.private
-        run: rm -rf $HOME/Arduino/libraries/M5Unified $HOME/Arduino/libraries/M5GFX $HOME/Arduino/libraries/M5UnitUnified $HOME/Arduino/libraries/M5HAL $HOME/Arduino/libraries/M5Utility
+        run: |
+          echo "=== Before cleanup ==="
+          ls -la $HOME/Arduino/libraries/ 2>/dev/null || echo "No Arduino libraries dir"
+          rm -rf $HOME/Arduino/libraries/M5Unified $HOME/Arduino/libraries/M5GFX $HOME/Arduino/libraries/M5UnitUnified $HOME/Arduino/libraries/M5HAL $HOME/Arduino/libraries/M5Utility
+          echo "=== After cleanup ==="
+          ls -la $HOME/Arduino/libraries/ 2>/dev/null || echo "No Arduino libraries dir"
+          echo "=== arduino-cli version ==="
+          arduino-cli version 2>/dev/null || echo "arduino-cli not found"
+          echo "=== Update library index ==="
+          arduino-cli lib update-index 2>/dev/null || echo "arduino-cli lib update-index failed"
+          echo "=== Installed libraries ==="
+          arduino-cli lib list 2>/dev/null || echo "arduino-cli lib list failed"
 
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
