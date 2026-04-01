@@ -175,8 +175,8 @@ void UnitCardKB2UART::update_uart(const bool force)
         _caps_click_count = 0;
     }
 
-    _updated = false;
-    _prev    = _now;
+    _updated          = false;
+    _prev             = _now;
     auto prev_holding = _holding;
     _wasPressed = _wasReleased = _wasHold = 0;
 
@@ -191,7 +191,9 @@ void UnitCardKB2UART::update_uart(const bool force)
 
         const uint8_t kidx = rbuf[2];
         M5_LIB_LOGV("UART kidx:%d state:%s", kidx,
-                     state == KEY_STATE_PRESSED ? "PRESS" : state == KEY_STATE_RELEASED ? "RELEASE" : "UNKNOWN");
+                    state == KEY_STATE_PRESSED    ? "PRESS"
+                    : state == KEY_STATE_RELEASED ? "RELEASE"
+                                                  : "UNKNOWN");
         if (kidx >= cardkb2::NUMBER_OF_KEYS) {
             continue;
         }
@@ -284,7 +286,7 @@ void UnitCardKB2UART::update_uart(const bool force)
     }
 
     // Software repeat and hold (same logic as CardKB)
-    _repeating = 0;
+    _repeating   = 0;
     uint64_t bit = 1;
     for (uint_fast8_t i = 0; i < cardkb2::NUMBER_OF_KEYS; ++i, bit <<= 1) {
         if (!(_now & bit) || (_wasPressed & bit)) {
