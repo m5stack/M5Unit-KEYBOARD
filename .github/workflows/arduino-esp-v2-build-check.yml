@@ -127,27 +127,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Clean arduino-cli (self-hosted)
-        if: github.event.repository.private
-        run: rm -f $HOME/bin/arduino-cli
-
-      - name: Set up Python (self-hosted)
-        if: github.event.repository.private
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install yq (self-hosted)
-        if: github.event.repository.private
+      - name: Prepare libraries list
+        id: libs
         run: |
-          pip uninstall -y yq 2>/dev/null || true
-          mkdir -p $HOME/.local/bin
-          wget -qO $HOME/.local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          chmod +x $HOME/.local/bin/yq
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          {
+            echo "yaml<<EOF"
+            echo "$REQUIRED_LIBRARIES" | tr ',' '\n' | while read -r lib; do
+              echo "- name: $lib"
+            done
+            echo "- source-path: ./"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
-      - name: Compile examples (self-hosted)
-        if: github.event.repository.private
+      - name: Compile examples
         uses: arduino/compile-sketches@v1
         with:
           fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
@@ -155,32 +147,7 @@ jobs:
             - name: ${{ matrix.platform }}:${{ matrix.archi }}
               source-url: ${{ matrix.platform-url }}
               version: ${{ matrix.platform-version }}
-          libraries: |
-            - source-url: https://github.com/m5stack/M5Unified.git
-            - source-url: https://github.com/m5stack/M5GFX.git
-            - source-url: https://github.com/m5stack/M5UnitUnified.git
-            - source-url: https://github.com/m5stack/M5HAL.git
-            - source-url: https://github.com/m5stack/M5Utility.git
-            - source-path: ./
-          sketch-paths: |
-            - examples/UnitUnified/${{ matrix.sketch }}
-          cli-compile-flags: |
-            - --build-property
-            - build.extra_flags=${{ matrix.build-properties }}
-
-      - name: Compile examples (public)
-        if: ${{ !github.event.repository.private }}
-        uses: arduino/compile-sketches@v1
-        with:
-          fqbn: ${{ matrix.platform }}:${{ matrix.archi }}:${{ matrix.board }}
-          platforms: |
-            - name: ${{ matrix.platform }}:${{ matrix.archi }}
-              source-url: ${{ matrix.platform-url }}
-              version: ${{ matrix.platform-version }}
-          libraries: |
-            - name: M5Unified
-            - name: M5UnitUnified
-            - source-path: ./
+          libraries: ${{ steps.libs.outputs.yaml }}
           sketch-paths: |
             - examples/UnitUnified/${{ matrix.sketch }}
           cli-compile-flags: |
