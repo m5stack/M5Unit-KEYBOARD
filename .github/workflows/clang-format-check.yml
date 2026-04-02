@@ -42,7 +42,7 @@ concurrency:
 jobs:
   formatting-check:
     name: Formatting Check
-    runs-on: ${{ github.event.repository.private && 'self-hosted' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         path:

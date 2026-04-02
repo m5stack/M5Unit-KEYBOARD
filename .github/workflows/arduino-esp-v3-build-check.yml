@@ -182,7 +182,7 @@ jobs:
               version: ${{ matrix.platform-version }}
           libraries: ${{ steps.libs.outputs.yaml }}
           sketch-paths: |
-            - examples/UnitUnified/${{ matrix.sketch }}
+            - ${{ env.SKETCH_NAMES_FIND_START }}/${{ matrix.sketch }}
           cli-compile-flags: |
             - --build-property
             - build.extra_flags=${{ matrix.build-properties }}
