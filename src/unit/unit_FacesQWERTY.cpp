@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -8,6 +8,7 @@
   @brief Faces QWERTY Unit for M5UnitUnified
 */
 #include "unit_FacesQWERTY.hpp"
+#include <driver/gpio.h>
 
 using namespace m5::utility::mmh3;
 using namespace m5::unit::types;
@@ -38,7 +39,7 @@ constexpr uint8_t key_map[][5 /* mode: normal, shift, sym, fn, alt */] = {
     {'j', 'J', ';', 182, 160},   // j
     {'k', 'K', '\'', 183, 161},  // k
     {'l', 'L', '"', 184, 162},   // l
-    {8, 127, 8, 8, 163},         // bs/del Old: {8 , 8, 127, 8, 163} Fixes same as CARDKB (Shift+BS => DEL)
+    {8, 8, 127, 8, 163},         // bs/del (Sym+BS => DEL)
     {},                          // no key (alt)
     {'z', 'Z', '7', 9, 165},     // z  Old: {'z', 'Z', '7', 186, 165}, Fixes Fn+Z => TAB
     {'x', 'X', '8', 187, 166},   // x
@@ -58,7 +59,7 @@ constexpr uint8_t key_map[][5 /* mode: normal, shift, sym, fn, alt */] = {
 static_assert(m5::stl::size(key_map) == UnitFacesQWERTY::NUMBER_OF_KEYS, "Invalid size");
 
 // ASCII to mode bit and key_index_t
-// 1:normal 2:shift 4:symbol 8:fuction 16:alt
+// 1:normal 2:shift 4:symbol 8:function 16:alt
 constexpr std::pair<uint8_t, key_index_t> character_map[] = {
     {0x00, 0xFF},                                 // NULL
     {0x00, 0xFF},                                 // SOH
@@ -209,14 +210,14 @@ constexpr std::pair<uint8_t, key_index_t> special_character_map[] = {
     {4, UnitFacesQWERTY::KEY_DOLLAR},  // Speaker mark
 };
 
-bool input_irq{};
-#if defined(ARDUINO) && defined(digitalPinToInterrupt)
-constexpr uint8_t INTERRUPT_PIN{5};
-void IRAM_ATTR handle_faces_qwerty()
+volatile bool input_irq{};
+constexpr gpio_num_t INTERRUPT_PIN{GPIO_NUM_5};
+
+void IRAM_ATTR handle_faces_qwerty(void*)
 {
     input_irq = true;
+    gpio_intr_disable(INTERRUPT_PIN);
 }
-#endif
 
 }  // namespace
 
@@ -237,7 +238,7 @@ key_index_t UnitFacesQWERTY::character_to_key_index(const char ch)
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
-        key_index_t kidx = (key_index_t)(uc - 0x90);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x90);
         return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
     }
     // normal,shift,symbol and function
@@ -254,7 +255,7 @@ uint8_t UnitFacesQWERTY::character_to_mode_bits(const char ch)
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
-        key_index_t kidx = (key_index_t)(uc - 0x90);
+        key_index_t kidx = static_cast<key_index_t>(uc - 0x90);
         //        M5_LIB_LOGI("%c => %02X", ch, (uc - 0x90));
         return (kidx < m5::stl::size(key_map)) ? 0x10 : 0x00;
     }
@@ -297,21 +298,17 @@ bool UnitFacesQWERTY::begin()
 
     _handle_irq = _cfg.trigger_irq;
 
-#if defined(ARDUINO)
-#if defined(digitalPinToInterrupt)
     if (_handle_irq) {
-        pinMode(INTERRUPT_PIN, INPUT_PULLUP);
-        attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handle_faces_qwerty, FALLING);
+        gpio_config_t io_conf{};
+        io_conf.pin_bit_mask = 1ULL << INTERRUPT_PIN;
+        io_conf.mode         = GPIO_MODE_INPUT;
+        io_conf.pull_up_en   = GPIO_PULLUP_ENABLE;
+        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+        io_conf.intr_type    = GPIO_INTR_LOW_LEVEL;
+        gpio_config(&io_conf);
+        gpio_install_isr_service(0);
+        gpio_isr_handler_add(INTERRUPT_PIN, handle_faces_qwerty, nullptr);
     }
-#else
-#pragma message "Skip IRQ trigger code"
-    // In some environments, "digitalPinToInterrupt" raises an error,
-    // but this is ignored because the environment is not supported by Faces.
-#endif
-#else
-    // TODO: ESP-IDF with M5HAL
-#pragma message "trigger_irq is not supported"
-#endif
     return UnitKeyboardBitwise::begin() && (_cfg.start_periodic ? startPeriodicMeasurement(_cfg.interval) : true);
 }
 
@@ -326,26 +323,35 @@ void UnitFacesQWERTY::update(const bool force)
             auto at = m5::utility::millis();
             if (input_irq || force || !_latest || at >= _latest + _interval) {
                 _updated = update_new_firmware(at);
-            }
-            if (_updated) {
-                _latest = at;
+                if (_updated) {
+                    _latest = at;
+                }
             }
             input_irq = false;
+            if (_handle_irq) {
+                gpio_intr_enable(INTERRUPT_PIN);
+            }
         } break;
         default:
             if (_handle_irq) {
                 if (input_irq) {
                     UnitKeyboardBitwise::update(true);
+                    //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware
+                    if (released() == 0x0D) {
+                        uint8_t discard{};
+                        readWithTransaction(&discard, 1);  // Discard 0x0A
+                    }
+                    input_irq = false;
+                    gpio_intr_enable(INTERRUPT_PIN);
                 }
             } else {
                 UnitKeyboardBitwise::update();
+                //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware
+                if (released() == 0x0D) {
+                    uint8_t discard{};
+                    readWithTransaction(&discard, 1);  // Discard 0x0A
+                }
             }
-            //  Enter key is returned by 2 bytes of [0x0D, 0X0A] from old firmware or Conventional behavior
-            if (released() == 0x0D) {
-                uint8_t discard{};
-                readWithTransaction(&discard, 1);  // Discard 0x0A
-            }
-            input_irq = false;
             break;
     }
 }
@@ -357,7 +363,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     auto prev_holding                     = _holding;
     uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
 
-    if (!readRegister(CMD_SCAN_REG, rbuf, m5::stl::size(rbuf), 0)) {
+    if (!readRegister(scan_reg_addr(), rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
     }
@@ -402,7 +408,7 @@ bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
     }
     _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return _repeating;  // Any key pressed?
+    return (_wasPressed | _wasReleased | _repeating);
 }
 
 void UnitFacesQWERTY::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx,

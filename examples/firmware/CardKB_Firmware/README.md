@@ -19,7 +19,7 @@ As before, the modifier key can be locked by double-clicking.
 
 |REG MAP(0x5F)||0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|note|
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>key | byte6<br>modifier |||||||||| Scaned pressed key status|
+|Scan |0x10 R| byte0<br>key| byte1<br>key | byte2<br>key| byte3<br>key | byte4<br>key | byte5<br>key | byte6<br>modifier |||||||||| Scanned pressed key status|
 |Mode |0x20 R/W| Mode | |||||||||||||||Operation mode<br>0x00:Conventional mode<br> 0x01:M5UnitUnified mode|
 |Hardware type|0xF0 R| |||||||||||||type|||Hardware<br>0x01:SKU:U035<br>0x11:SKU:U035-B|
 |Firmware version|0xF0 R|||||||||||||||version||Version: firmware version number|
@@ -38,7 +38,7 @@ As before, the modifier key can be locked by double-clicking.
 |0x01|SKU:U035 CardKB|
 |0x11|SKU:U035-B CardKB v1.1|
 
-### Scaned pressed key bits
+### Scanned pressed key bits
 #### Modifier
 |byte|Shift|Symbol|Function|
 |---|---|---|---|
@@ -118,4 +118,4 @@ Up to 48 bits valid as a key
 ## How to write
 - In Japanese
   - [https://shikarunochi.matrix.jp/?p=2910](https://shikarunochi.matrix.jp/?p=2910)  
-    This article for CardKB (ATmega328), If you write to CardKB v 1.1 then board seting is ATmega8.
+    This article for CardKB (ATmega328), If you write to CardKB v 1.1 then board setting is ATmega8.

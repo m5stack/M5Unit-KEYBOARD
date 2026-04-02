@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -15,6 +15,8 @@
 
 #include "unit/unit_Keyboard.hpp"
 #include "unit/unit_CardKB.hpp"
+#include "unit/unit_CardKB2.hpp"
+#include "unit/unit_CardKB2UART.hpp"
 #include "unit/unit_FacesQWERTY.hpp"
 
 /*!

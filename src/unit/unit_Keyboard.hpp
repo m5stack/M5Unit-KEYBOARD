@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -45,7 +45,7 @@ constexpr inline key_status_bits_t modifier_bits(const key_status_bits_t kbs)
 
 /*!
   @enum Mode
-  @brief Operation mode for M5UnitU-KEYBOARD firmware
+  @brief Operation mode for M5Unit-KEYBOARD firmware
  */
 enum class Mode : uint8_t {
     /*!
@@ -54,12 +54,13 @@ enum class Mode : uint8_t {
      */
     Conventional,
     /*!
-      M5Unit-KEYBOARD mode  behavior
+      M5Unit-KEYBOARD mode behavior
       @details CardKB, FacesQWERTY:Gets the pressed key status
       @warning M5Unit-KEYBOARD firmware must be written
      */
     M5UnitUnified,
 };
+
 }  // namespace keyboard
 
 /*!
@@ -81,11 +82,13 @@ public:
     {
     }
 
+    //! @copydoc Component::begin
     virtual bool begin() override;
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     /*!
-      @brief Gets the character if input
+      @brief Gets the input character
       @retval != 0 Character
       @retval == 0 Not input or invalid character
       @note Whether the input is a released or pressed key depends on the derived class
@@ -110,7 +113,7 @@ private:
 };
 
 /*!
-  @class m5::unit::UnitKeyboard
+  @class m5::unit::UnitKeyboardBitwise
   @brief Class supporting keyboard state acquisition by key press bits
   @warning To make it work, M5Unit-KEYBOARD firmware must be written to the target (CardKB, FacesQWERTY...)
 */
@@ -126,12 +129,13 @@ public:
     {
     }
 
+    //! @copydoc Component::update
     virtual void update(const bool force = false) override;
 
     ///@name Measurement data by periodic
     ///@{
     /*!
-      @brief Gets the character if input
+      @brief Gets the input character
       @retval != 0 Character
       @retval == 0 Not input or invalid character
     */
@@ -209,12 +213,12 @@ public:
         return _wasReleased;
     }
     //! @brief Get the bits of the held key
-    inline keyboard::key_status_bits_t holidngBits() const
+    inline keyboard::key_status_bits_t holdingBits() const
     {
         return _holding;
     }
     //! @brief Get the bits of the key at the moment of hold
-    inline keyboard::key_status_bits_t holdgBits() const
+    inline keyboard::key_status_bits_t wasHoldBits() const
     {
         return _wasHold;
     }
@@ -356,7 +360,7 @@ public:
         return _now & (1ULL << kidx);
     }
     /*!
-      @brief Is the specified key released??
+      @brief Is the specified key released?
       @param kidx Key index code
       @return If so,true
     */
@@ -411,7 +415,12 @@ public:
     }
     ///@}
 
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
+    ///@warning API valid only if using M5Unit-KEYBOARD firmware.
+    /// For CardKB2 UART mode, character-based state queries (isPressed(ch), wasPressed(ch), etc.)
+    /// may return inaccurate results because press and release events can arrive in the same update
+    /// cycle, causing the key state to be cleared before the buffered character is read.
+    /// Use key-index-based queries (isPressed(kidx)) instead.
+    /// This limitation may be improved in a future firmware update.
     ///@name Specified Character
     ///@{
     /*!
@@ -421,7 +430,7 @@ public:
      */
     inline virtual keyboard::key_index_t toKeyIndex(const char) const
     {
-        return 0x00;
+        return 0xFF;
     }
     /*!
       @brief Is the specified character pressed?
@@ -430,10 +439,11 @@ public:
     */
     inline bool isPressed(const char ch) const
     {
-        return isPressed(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && isPressed(kidx) && permitted_mode(to_mode_bits(ch));
     }
     /*!
-      @brief Is the specified character released??
+      @brief Is the specified character released?
       @param ch Character
       @return If so,true
     */
@@ -448,7 +458,8 @@ public:
     */
     inline bool wasPressed(const char ch) const
     {
-        return wasPressed(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && wasPressed(kidx) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character released?
@@ -457,7 +468,8 @@ public:
     */
     inline bool wasReleased(const char ch) const
     {
-        return wasReleased(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && wasReleased(kidx) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character holding?
@@ -466,7 +478,8 @@ public:
     */
     inline bool isHolding(const char ch) const
     {
-        return isHolding(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && isHolding(kidx) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Was the specified character hold?
@@ -475,7 +488,8 @@ public:
     */
     inline bool wasHold(const char ch) const
     {
-        return wasHold(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && wasHold(kidx) && permitted_mode(to_mode_bits(ch));
     }
     /*!
       @brief Is the specified character repeating?
@@ -484,7 +498,8 @@ public:
     */
     inline bool isRepeating(const char ch) const
     {
-        return isRepeating(toKeyIndex(ch)) && permitted_mode(to_mode_bits(ch));
+        auto kidx = toKeyIndex(ch);
+        return kidx != 0xFF && isRepeating(kidx) && permitted_mode(to_mode_bits(ch));
     }
     ///@}
 
@@ -506,31 +521,38 @@ public:
       @param[out] ver Version high nibble:Major, low nibble:Minor
       @return True if successful
      */
-    bool readFirmwareVersion(uint8_t& ver);
+    virtual bool readFirmwareVersion(uint8_t& ver);
     ///@}
 
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@name Repeat/Hold threshold
     ///@{
+    //! @brief Gets the holding threshold (ms)
     inline uint32_t holdingThreshold() const
     {
         return _holding_threshold;
     }
+    //! @brief Gets the repeating threshold (ms)
     inline uint32_t repeatingThreshold() const
     {
         return _repeating_threshold;
     }
+    //! @brief Sets the holding threshold
+    //! @param ms Threshold in milliseconds
     inline void setHoldingThreshold(const uint32_t ms)
     {
         _holding_threshold = ms;
     }
+    //! @brief Sets the repeating threshold
+    //! @param ms Threshold in milliseconds
     inline void setRepeatingThreshold(const uint32_t ms)
     {
         _repeating_threshold = ms;
     }
     ///@}
 
-    ///@warning API valid only if using M5Unit-KEYBOARD firmware
+    ///@warning API valid only if using M5Unit-KEYBOARD firmware (CardKB, FacesQWERTY).
+    /// CardKB2 does not support software mode switching; readMode()/writeMode() always return false.
     ///@name Mode
     ///@{
     /*!
@@ -538,13 +560,13 @@ public:
       @param[out] mode Mode
       @return True if successful
      */
-    bool readMode(keyboard::Mode& mode);
+    virtual bool readMode(keyboard::Mode& mode);
     /*!
-      @brief Read the mode
+      @brief Write the mode
       @param mode Mode
       @return True if successful
      */
-    bool writeMode(const keyboard::Mode mode);
+    virtual bool writeMode(const keyboard::Mode mode);
     ///@}
 
 protected:
@@ -565,16 +587,30 @@ protected:
         return 0x00;
     }
 
+    inline virtual uint8_t scan_reg_addr() const
+    {
+        return 0x10;
+    }
+    inline virtual uint8_t mode_reg_addr() const
+    {
+        return 0x20;
+    }
+    inline virtual uint8_t firmware_version_reg_addr() const
+    {
+        return 0xFE;
+    }
+
     bool permitted_mode(const uint8_t mbits) const
     {
         uint8_t mod8 = _now >> 56;
-        return mbits & (1U << (mod8 ? __builtin_ctz(mod8) + 1 : 0));
+        // mod8 bit0=Shift→mbits bit1, bit1=Sym→bit2, bit2=Fn→bit3
+        return mbits & (mod8 ? (mod8 << 1) : 0x01);
     }
 
     M5_UNIT_COMPONENT_PERIODIC_MEASUREMENT_ADAPTER_HPP_BUILDER(UnitKeyboardBitwise, uint8_t);
 
 protected:
-    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _data{};  // was Presed keys
+    std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _data{};  // was Pressed keys
     keyboard::key_status_bits_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{},
         _repeating{};  // key bits
     std::vector<types::elapsed_time_t> _repeat_start_at{}, _hold_start_at{};
@@ -589,6 +625,7 @@ constexpr uint8_t CMD_SCAN_REG{0x10};
 constexpr uint8_t CMD_MODE_REG{0x20};
 constexpr uint8_t CMD_FIRMWARE_VERSION_REG{0xFE};
 }  // namespace command
+
 }  // namespace keyboard
 
 }  // namespace unit

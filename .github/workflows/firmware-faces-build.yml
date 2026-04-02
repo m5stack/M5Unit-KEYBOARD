@@ -12,21 +12,12 @@ on:
       - '*'
     paths:
       - 'examples/firmware/FacesQWERTY_firmware/**.ino'
-      - '**firmware-faces-build.yml'
+      - '.github/workflows/firmware-faces-build.yml'
   pull_request:
     paths:
       - 'examples/firmware/FacesQWERTY_firmware/**.ino'
-      - '**firmware-faces-build.yml'
+      - '.github/workflows/firmware-faces-build.yml'
   workflow_dispatch:
-    inputs:
-      runner:
-        description: Select runner
-        required: true
-        default: '["self-hosted", "Linux", "X64"]'
-        type: choice
-        options:
-          - '["ubuntu-latest"]'
-          - '["self-hosted", "Linux", "X64"]'
 
 defaults:
   run:
@@ -39,12 +30,12 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.sketch }}:${{matrix.board}}@${{matrix.platform-version}}
-    runs-on: ${{ fromJSON(github.event.inputs.runner || '["self-hosted", "Linux", "X64"]') }}
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
 
     strategy:
       fail-fast: false
-      #max-parallel: 1
+      max-parallel: 20
       matrix:
 
         platform-url:
@@ -64,13 +55,8 @@ jobs:
 
 
     steps:
-      - name: Which runner
-        run: echo "RunsOn=${{ github.event.inputs.runner || 'self-hosted' }}"
-
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set build properties
         id: set_build_properties
@@ -79,7 +65,7 @@ jobs:
             echo 'BUILD_PROPERTIES={ "All": "-UF_CPU -DF_CPU=8000000L" }' >> $GITHUB_ENV
           fi
 
-      # Build 
+      # Build
       - name: Compile examples
         uses: ArminJo/arduino-test-compile@master
         with:

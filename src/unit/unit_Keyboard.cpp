@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2025 M5Stack Technology CO LTD
+ * SPDX-FileCopyrightText: 2026 M5Stack Technology CO LTD
  *
  * SPDX-License-Identifier: MIT
  */
@@ -25,8 +25,20 @@ const types::attr_t UnitKeyboard::attr{attribute::AccessI2C};
 
 bool UnitKeyboard::begin()
 {
-    uint8_t discard{};
-    return readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK;
+    // I2C connectivity check (skip for non-I2C adapters such as UART)
+    if (asAdapter<AdapterI2C>(Adapter::Type::I2C)) {
+        // Retry for SoftwareI2C (NessoN1): first transaction may fail with NO_ACK on larger binaries
+        uint8_t discard{};
+        for (uint8_t retry = 0; retry < 3; ++retry) {
+            if (readWithTransaction(&discard, 1) == m5::hal::error::error_t::OK) {
+                return true;
+            }
+            M5_LIB_LOGW("I2C connectivity retry %u", retry);
+            m5::utility::delay(100);
+        }
+        return false;
+    }
+    return true;
 }
 
 void UnitKeyboard::update(const bool force)
@@ -84,14 +96,14 @@ bool UnitKeyboardBitwise::stop_periodic_measurement()
 bool UnitKeyboardBitwise::readFirmwareVersion(uint8_t& ver)
 {
     ver = 0;
-    return readRegister8(CMD_FIRMWARE_VERSION_REG, ver, 0);
+    return readRegister8(firmware_version_reg_addr(), ver, 0);
 }
 
 bool UnitKeyboardBitwise::readMode(Mode& mode)
 {
     mode = Mode::Conventional;
     uint8_t v{};
-    if (readRegister8(CMD_MODE_REG, v, 0)) {
+    if (readRegister8(mode_reg_addr(), v, 0)) {
         mode = static_cast<Mode>(v);
         return true;
     }
@@ -100,7 +112,7 @@ bool UnitKeyboardBitwise::readMode(Mode& mode)
 
 bool UnitKeyboardBitwise::writeMode(const Mode mode)
 {
-    if (firmwareVersion() && writeRegister8(CMD_MODE_REG, m5::stl::to_underlying(mode))) {
+    if (firmwareVersion() && writeRegister8(mode_reg_addr(), m5::stl::to_underlying(mode))) {
         _mode = mode;
 
         _data->clear();
