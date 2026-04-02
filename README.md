@@ -5,14 +5,14 @@
 Library for KEYBOARD using [M5UnitUnified](https://github.com/m5stack/M5UnitUnified).  
 M5UnitUnified is a library for unified handling of various M5 units products.
 
-### SKU:U215
-CardKB v2 is a card-size '42 key' QWERTY keyboard.
-
 ### SKU:U035-B
 CardKB v1.1 is a card-size '50 key' QWERTY keyboard. Adopts ATMega8A as the MCU, communication port I2C, and one 'RGB-LED' indicator.
 
 ### SKU:A003
 QWERTY is a full-featured keyboard panel adapted to FACE_BOTTOM. There are 35 keys in total, and each key can be multiplexed by combination keys to output different characters.
+
+### SKU:U215
+Unit CardKB2 is a card-sized 42-key portable keyboard input unit. Its compact and lightweight form factor makes it ideal for on-the-go use and embedded integration. 
 
 
 ## Related Link
@@ -62,11 +62,15 @@ You must choose a define symbol for the unit you will use.
 // *************************************************************
 ```
 
-## New firmware
+## New firmware (CardKB / FacesQWERTY)
 See also [examples/firmware](examples/firmware)
 
-When this firmware is applied and the Units are used, the operating feel is very different.  
-Allows for input while pressing modifier keys and detection of key presses.
+When this firmware is applied to CardKB or FacesQWERTY, the operating feel is very different.
+
+- Bitwise key state tracking — detects all keys simultaneously
+- Per-key press, hold, release, and repeat detection
+- Individual modifier key state (Shift, Sym, Fn)
+- Configurable hold and repeat thresholds
 
 ### Doxygen document
 [GitHub Pages](https://m5stack.github.io/M5Unit-KEYBOARD/)
