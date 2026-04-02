@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['isalt_0',['isAlt',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a1d4c1d1de407db03d9eed0e2117cea1e',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isaltequal_1',['isAltEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#adfaf29d1e746760151ba040d11d4c3f6',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['iscontrol_2',['isControl',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#afe7508fe9b3e39a7a852b40ac9a0da06',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['iscontrolequal_3',['isControlEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a0fe26c1e8a069ce96f6fbd8225e132d7',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isfunction_4',['isFunction',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a007b1b2f12da5db7e4f061ec2c04375c',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isfunctionequal_5',['isFunctionEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a69e3124cfbfe61a90a33bbd9ff4664a0',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isholding_6',['isHolding',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a36af90a5a5cb62451753b15147e09ab6',1,'m5::unit::UnitKeyboardBitwise::isHolding() const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a58471ec11388b07d20a500a9123a61c4',1,'m5::unit::UnitKeyboardBitwise::isHolding(const keyboard::key_index_t kidx) const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a745563226e64ec37b3cbb63198b6a131',1,'m5::unit::UnitKeyboardBitwise::isHolding(const char ch) const']]],
+  ['ismodifier_7',['isModifier',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a19df761cf6ecad800dd1c8f49c765922',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isoption_8',['isOption',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a099f83fa248db6a06b2cdff06b085cee',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isoptionequal_9',['isOptionEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a247d83566892b8b7a0571c50105da57c',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['ispressed_10',['isPressed',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a8595ba942d1e1397e30d6404bd13b495',1,'m5::unit::UnitKeyboardBitwise::isPressed() const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a4036374e693dd0bd4dc558636f362f09',1,'m5::unit::UnitKeyboardBitwise::isPressed(const keyboard::key_index_t kidx) const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#ae66163def3c0a6fa832690738229eb5e',1,'m5::unit::UnitKeyboardBitwise::isPressed(const char ch) const']]],
+  ['isreleased_11',['isReleased',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#aac06d065b681da42d31dcf196d3852ad',1,'m5::unit::UnitKeyboardBitwise::isReleased() const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a2a693bd5cac43dd8760772b8d1065f6a',1,'m5::unit::UnitKeyboardBitwise::isReleased(const keyboard::key_index_t kidx) const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a3ead99391ae6dda77bf33a7e44401c27',1,'m5::unit::UnitKeyboardBitwise::isReleased(const char ch) const']]],
+  ['isrepeating_12',['isRepeating',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a65fd807dc1a81dcb6f3ee19ee5338ebd',1,'m5::unit::UnitKeyboardBitwise::isRepeating() const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a4f9fbd0f02c056061a9ebfb8861e959b',1,'m5::unit::UnitKeyboardBitwise::isRepeating(const keyboard::key_index_t kidx) const'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a27e5613043717d34c55fb46963486844',1,'m5::unit::UnitKeyboardBitwise::isRepeating(const char ch) const']]],
+  ['isshift_13',['isShift',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a984843f9d8ccfde6ffe0dc4161f30c83',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['isshiftequal_14',['isShiftEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a7de0e3414aae187b21dd80c89c42eed0',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['issymbol_15',['isSymbol',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a251db3e3ff811158d5ce32af79c3e05b',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['issymbolequal_16',['isSymbolEqual',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a5b045d3ead00b03722bd1f22d0513f7c',1,'m5::unit::UnitKeyboardBitwise']]]
+];
