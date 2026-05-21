@@ -84,9 +84,6 @@ enum KeyState : uint8_t {
     KEY_STATE_RELEASED = 0x02,
 };
 
-constexpr uint32_t CAPS_DOUBLE_CLICK_WINDOW_MS = 280;
-constexpr uint32_t CAPS_HOLD_THRESHOLD_MS      = 350;
-
 bool is_valid_ack(const Packet& p)
 {
     if (p[0] != PACKET_HEADER || p[1] != PID_DATA_LEN) {
@@ -163,19 +160,6 @@ void UnitCardKB2UART::update_uart(const bool force)
         return;
     }
 
-    // Expire click sequence window.
-    if (!_caps_pressing && _caps_click_count && (at - _caps_last_release_at) > CAPS_DOUBLE_CLICK_WINDOW_MS) {
-        _caps_click_count = 0;
-    }
-
-    // While keeping Caps key pressed, enable temporary uppercase.
-    if (_caps_pressing && !_caps_hold_active && (at - _caps_pressed_at) >= CAPS_HOLD_THRESHOLD_MS) {
-        _caps_hold_active = true;
-        _caps_shift_once  = false;
-        _caps_lock        = false;
-        _caps_click_count = 0;
-    }
-
     _updated = false;
     // Snapshot prior `now` into `prev` BEFORE this tick mutates `now`, so external
     // consumers can observe `nowBits() != previousBits()` across the transition
@@ -220,8 +204,8 @@ void UnitCardKB2UART::update_uart(const bool force)
                 }
 
                 if (kidx == cardkb2::KEY_AA) {
-                    _caps_pressing   = true;
-                    _caps_pressed_at = at;
+                    const ButtonEvent ev = _caps_detector.edge(true, static_cast<uint32_t>(at));
+                    if (ev == ButtonEvent::PressDown && !_caps_lock) _caps_hold_active = true;
                 }
 
                 _state.press_at[kidx]       = at;
@@ -241,29 +225,10 @@ void UnitCardKB2UART::update_uart(const bool force)
                 if (ev == ButtonEvent::SingleClick) _sym_mode = !_sym_mode;
             }
 
-            if (kidx == cardkb2::KEY_AA && _caps_pressing) {
-                _caps_pressing = false;
-
-                if (_caps_hold_active) {
+            if (kidx == cardkb2::KEY_AA) {
+                const ButtonEvent ev = _caps_detector.edge(false, static_cast<uint32_t>(at));
+                if ((ev == ButtonEvent::PressUp || ev == ButtonEvent::LongPressUp) && !_caps_lock) {
                     _caps_hold_active = false;
-                    _caps_shift_once  = false;
-                    _caps_lock        = false;
-                    _caps_click_count = 0;
-                } else {
-                    // Mirror firmware behaviour: double-click is the sole way to toggle caps_lock.
-                    // Single tap always sets shift_once (one-shot uppercase); the "single tap to
-                    // disengage when locked" branch was removed because it caused a double-toggle
-                    // bug — the eager disengage at tap1 of a second double-click would then be
-                    // re-toggled ON at tap2, leaving caps_lock=true while firmware (LED) cleared it.
-                    if (_caps_click_count == 1 && (at - _caps_last_release_at) <= CAPS_DOUBLE_CLICK_WINDOW_MS) {
-                        _caps_lock        = !_caps_lock;
-                        _caps_shift_once  = false;
-                        _caps_click_count = 0;
-                    } else {
-                        _caps_shift_once      = true;
-                        _caps_click_count     = 1;
-                        _caps_last_release_at = at;
-                    }
                 }
             }
         }
@@ -272,6 +237,20 @@ void UnitCardKB2UART::update_uart(const bool force)
     {
         const ButtonEvent ev = _sym_detector.poll(static_cast<uint32_t>(at));
         if (ev == ButtonEvent::SingleClick) _sym_mode = !_sym_mode;
+    }
+    {
+        const ButtonEvent ev = _caps_detector.poll(static_cast<uint32_t>(at));
+        if (ev == ButtonEvent::SingleClick) {
+            if (_caps_lock) {
+                _caps_lock       = false;
+                _caps_shift_once = false;
+            } else {
+                _caps_shift_once = true;
+            }
+        } else if (ev == ButtonEvent::DoubleClick) {
+            _caps_lock       = !_caps_lock;
+            _caps_shift_once = false;
+        }
     }
 
     // Compute press/release transitions against the snapshot taken at the start of this tick.
@@ -304,8 +283,9 @@ void UnitCardKB2UART::update_uart(const bool force)
             _data->push_back(ch);
         }
 
-        // One-shot uppercase is consumed by the next non-caps key.
-        if (_caps_shift_once && !_caps_lock && !_caps_hold_active) {
+        // One-shot uppercase is consumed by the next alphabetic key (firmware parity).
+        if (_caps_shift_once && !_caps_lock && !_caps_hold_active &&
+            ((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'))) {
             _caps_shift_once = false;
         }
     }

@@ -135,14 +135,11 @@ protected:
 
 private:
     m5::unit::keyboard_bitwise::ButtonEventDetector _sym_detector{};
+    m5::unit::keyboard_bitwise::ButtonEventDetector _caps_detector{};
     bool _sym_mode{false};  // Sym toggle (mirrors firmware sym_mode / blue LED)
     bool _caps_shift_once{false};
     bool _caps_lock{false};
     bool _caps_hold_active{false};
-    bool _caps_pressing{false};
-    uint8_t _caps_click_count{0};
-    uint32_t _caps_pressed_at{0};
-    uint32_t _caps_last_release_at{0};
 };
 
 }  // namespace unit
