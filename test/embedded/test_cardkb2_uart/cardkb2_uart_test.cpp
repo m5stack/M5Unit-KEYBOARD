@@ -102,12 +102,46 @@ TEST_F(TestCardKB2UART, Config)
 
     cfg.interval = 50;
     unit->config(cfg);
-    auto cfg2 = unit->config();
+    const auto cfg2 = unit->config();
     EXPECT_EQ(cfg2.interval, 50U);
 
     // Restore
     cfg.interval = 10;
     unit->config(cfg);
+}
+
+// begin() must honor cfg.start_periodic: the periodic measurement is started only
+// when start_periodic == true. begin() is a once-per-lifecycle call (it does not stop
+// an already running measurement), so the config is injected via get_instance() and
+// applied by the single begin() the fixture performs in SetUp().
+// Derives from TestCardKB2UART to reuse its init_serial() override.
+struct BeginConfigParams {
+    bool start_periodic;
+    uint32_t interval;
+};
+
+class TestCardKB2UARTBeginConfig : public TestCardKB2UART, public ::testing::WithParamInterface<BeginConfigParams> {
+protected:
+    virtual UnitCardKB2UART* get_instance() override
+    {
+        auto ptr = new UnitCardKB2UART();
+        if (ptr) {
+            auto cfg           = ptr->config();
+            cfg.start_periodic = GetParam().start_periodic;
+            cfg.interval       = GetParam().interval;
+            ptr->config(cfg);
+        }
+        return ptr;
+    }
+};
+
+INSTANTIATE_TEST_SUITE_P(ConfigValues, TestCardKB2UARTBeginConfig,
+                         ::testing::Values(BeginConfigParams{true, 10U}, BeginConfigParams{false, 50U}));
+
+TEST_P(TestCardKB2UARTBeginConfig, BeginAppliesConfig)
+{
+    SCOPED_TRACE(ustr);
+    EXPECT_EQ(unit->inPeriodic(), GetParam().start_periodic);
 }
 
 TEST_F(TestCardKB2UART, Update)

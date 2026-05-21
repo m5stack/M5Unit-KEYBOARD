@@ -43,16 +43,49 @@ TEST_F(TestFacesQWERTY, Config)
     EXPECT_TRUE(cfg.start_periodic);
     EXPECT_EQ(cfg.interval, 10U);
     EXPECT_EQ(cfg.mode, keyboard::Mode::Conventional);
-    EXPECT_FALSE(cfg.trigger_irq);
+    EXPECT_TRUE(cfg.trigger_irq);
 
     cfg.interval = 50;
     unit->config(cfg);
-    auto cfg2 = unit->config();
+    const auto cfg2 = unit->config();
     EXPECT_EQ(cfg2.interval, 50U);
 
     // Restore
     cfg.interval = 10;
     unit->config(cfg);
+}
+
+// begin() must honor cfg.start_periodic: the periodic measurement is started only
+// when start_periodic == true. begin() is a once-per-lifecycle call (it does not stop
+// an already running measurement), so the config is injected via get_instance() and
+// applied by the single begin() the fixture performs in SetUp().
+struct BeginConfigParams {
+    bool start_periodic;
+    uint32_t interval;
+};
+
+class TestFacesQWERTYBeginConfig : public TestFacesQWERTY, public ::testing::WithParamInterface<BeginConfigParams> {
+protected:
+    virtual UnitFacesQWERTY* get_instance() override
+    {
+        auto ptr = new m5::unit::UnitFacesQWERTY();
+        if (ptr) {
+            auto cfg           = ptr->config();
+            cfg.start_periodic = GetParam().start_periodic;
+            cfg.interval       = GetParam().interval;
+            ptr->config(cfg);
+        }
+        return ptr;
+    }
+};
+
+INSTANTIATE_TEST_SUITE_P(ConfigValues, TestFacesQWERTYBeginConfig,
+                         ::testing::Values(BeginConfigParams{true, 10U}, BeginConfigParams{false, 50U}));
+
+TEST_P(TestFacesQWERTYBeginConfig, BeginAppliesConfig)
+{
+    SCOPED_TRACE(ustr);
+    EXPECT_EQ(unit->inPeriodic(), GetParam().start_periodic);
 }
 
 TEST_F(TestFacesQWERTY, BitwiseInitialState)

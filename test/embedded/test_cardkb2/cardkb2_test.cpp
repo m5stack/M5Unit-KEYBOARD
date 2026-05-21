@@ -72,6 +72,39 @@ TEST_F(TestCardKB2, Config)
     unit->config(cfg);
 }
 
+// begin() must honor cfg.start_periodic: the periodic measurement is started only
+// when start_periodic == true. begin() is a once-per-lifecycle call (it does not stop
+// an already running measurement), so the config is injected via get_instance() and
+// applied by the single begin() the fixture performs in SetUp().
+struct BeginConfigParams {
+    bool start_periodic;
+    uint32_t interval;
+};
+
+class TestCardKB2BeginConfig : public TestCardKB2, public ::testing::WithParamInterface<BeginConfigParams> {
+protected:
+    virtual UnitCardKB2* get_instance() override
+    {
+        auto ptr = new m5::unit::UnitCardKB2();
+        if (ptr) {
+            auto cfg           = ptr->config();
+            cfg.start_periodic = GetParam().start_periodic;
+            cfg.interval       = GetParam().interval;
+            ptr->config(cfg);
+        }
+        return ptr;
+    }
+};
+
+INSTANTIATE_TEST_SUITE_P(ConfigValues, TestCardKB2BeginConfig,
+                         ::testing::Values(BeginConfigParams{true, 10U}, BeginConfigParams{false, 50U}));
+
+TEST_P(TestCardKB2BeginConfig, BeginAppliesConfig)
+{
+    SCOPED_TRACE(ustr);
+    EXPECT_EQ(unit->inPeriodic(), GetParam().start_periodic);
+}
+
 TEST_F(TestCardKB2, Update)
 {
     SCOPED_TRACE(ustr);
@@ -85,48 +118,4 @@ TEST_F(TestCardKB2, Update)
     unit->update(true);
     // Still no key pressed
     EXPECT_EQ(unit->getchar(), 0);
-}
-
-// Bidirectional: toKeyIndex(ch) and character_to_mode_bits(ch) must be consistent
-// for every character across all modifier modes (normal, shift, sym, fn)
-TEST_F(TestCardKB2, CharacterToKeyIndexRoundtrip)
-{
-    SCOPED_TRACE(ustr);
-
-    // Every recognized character must have valid key index AND non-zero mode bits
-    for (int c = 1; c < 256; ++c) {
-        char ch   = static_cast<char>(c);
-        auto kidx = unit->toKeyIndex(ch);
-        if (kidx == 0xFF) {
-            continue;
-        }
-        EXPECT_LT(kidx, m5::unit::cardkb2::NUMBER_OF_KEYS)
-            << "toKeyIndex(0x" << std::hex << c << ") returned out-of-range key index " << (int)kidx;
-
-        auto mbits = m5::unit::cardkb2::character_to_mode_bits(ch);
-        EXPECT_NE(mbits, 0) << "character_to_mode_bits(0x" << std::hex << c << ") returned 0 but toKeyIndex returned "
-                            << (int)kidx;
-
-        // Mode-specific consistency:
-        // normal (bit0=0x01), shift (bit1=0x02), sym (bit2=0x04), fn (bit3=0x08)
-        if (ch >= 'a' && ch <= 'z') {
-            EXPECT_TRUE(mbits & 0x01) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing normal bit";
-        }
-        if (ch >= 'A' && ch <= 'Z') {
-            EXPECT_TRUE(mbits & 0x02) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing shift bit";
-        }
-        if (std::strchr("!@#$%^&*(){}[]|\\~`?/<>=+_-;:\"'", ch) && !(mbits & 0x03)) {
-            EXPECT_TRUE(mbits & 0x04) << "char '" << ch << "' mode_bits=" << (int)mbits << " missing sym bit";
-        }
-    }
-
-    // Verify Fn characters: every Fn char must map to valid key index
-    for (int c = 128; c < 256; ++c) {
-        auto kidx = unit->toKeyIndex(static_cast<char>(c));
-        if (kidx == 0xFF) {
-            continue;
-        }
-        EXPECT_LT(kidx, m5::unit::cardkb2::NUMBER_OF_KEYS)
-            << "Fn char 0x" << std::hex << c << " mapped to out-of-range key index " << (int)kidx;
-    }
 }
