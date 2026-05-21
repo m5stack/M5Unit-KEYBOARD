@@ -11,6 +11,7 @@
 #define M5_UNIT_KEYBOARD_UNIT_CARD_KB2_UART_HPP
 
 #include "unit_CardKB2_defs.hpp"
+#include "../utility/button_event_detector.hpp"
 #include <m5_utility/container/circular_buffer.hpp>
 #include <array>
 
@@ -133,7 +134,8 @@ protected:
     config_t _cfg{};
 
 private:
-    bool _sym_was_pressed{false};
+    m5::unit::keyboard_bitwise::ButtonEventDetector _sym_detector{};
+    bool _sym_mode{false};  // Sym toggle (mirrors firmware sym_mode / blue LED)
     bool _caps_shift_once{false};
     bool _caps_lock{false};
     bool _caps_hold_active{false};

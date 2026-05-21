@@ -17,6 +17,7 @@ using namespace m5::unit::keyboard;
 using namespace m5::unit::keyboard::command;
 using m5::unit::UnitCardKB2UART;
 using Packet = m5::unit::UnitCardKB2UART::Packet;
+using m5::unit::keyboard_bitwise::ButtonEvent;
 
 namespace {
 
@@ -214,7 +215,8 @@ void UnitCardKB2UART::update_uart(const bool force)
                 now_bits |= bit;
 
                 if (kidx == cardkb2::KEY_SYM) {
-                    _sym_was_pressed = !_sym_was_pressed;
+                    const ButtonEvent ev = _sym_detector.edge(true, static_cast<uint32_t>(at));
+                    if (ev == ButtonEvent::SingleClick) _sym_mode = !_sym_mode;
                 }
 
                 if (kidx == cardkb2::KEY_AA) {
@@ -233,6 +235,11 @@ void UnitCardKB2UART::update_uart(const bool force)
         } else if (state == KEY_STATE_RELEASED) {
             now_bits &= ~bit;
             holding_bits &= ~bit;
+
+            if (kidx == cardkb2::KEY_SYM) {
+                const ButtonEvent ev = _sym_detector.edge(false, static_cast<uint32_t>(at));
+                if (ev == ButtonEvent::SingleClick) _sym_mode = !_sym_mode;
+            }
 
             if (kidx == cardkb2::KEY_AA && _caps_pressing) {
                 _caps_pressing = false;
@@ -262,6 +269,11 @@ void UnitCardKB2UART::update_uart(const bool force)
         }
     }
 
+    {
+        const ButtonEvent ev = _sym_detector.poll(static_cast<uint32_t>(at));
+        if (ev == ButtonEvent::SingleClick) _sym_mode = !_sym_mode;
+    }
+
     // Compute press/release transitions against the snapshot taken at the start of this tick.
     const uint64_t was_pressed_bits  = (now_bits ^ prev_bits) & now_bits;
     const uint64_t was_released_bits = (now_bits ^ prev_bits) & ~now_bits;
@@ -282,7 +294,7 @@ void UnitCardKB2UART::update_uart(const bool force)
         uint8_t ch;
         if (fn_active) {
             ch = key_map[kidx][3];
-        } else if (_sym_was_pressed) {
+        } else if (_sym_mode || (now_bits & (1ULL << cardkb2::KEY_SYM)) != 0U) {
             ch = key_map[kidx][2];
         } else {
             ch = key_map[kidx][caps_active ? 1 : 0];
@@ -320,7 +332,7 @@ void UnitCardKB2UART::update_uart(const bool force)
             uint8_t ch;
             if (fn_active) {
                 ch = key_map[i][3];
-            } else if (_sym_was_pressed) {
+            } else if (_sym_mode || (now_bits & (1ULL << cardkb2::KEY_SYM)) != 0U) {
                 ch = key_map[i][2];
             } else {
                 ch = key_map[i][caps_active ? 1 : 0];
@@ -343,7 +355,7 @@ void UnitCardKB2UART::update_uart(const bool force)
     if (_caps_lock || _caps_hold_active || _caps_shift_once || (now_bits & (1ULL << cardkb2::KEY_AA))) {
         now_bits |= keyboard::MODIFIER_SHIFT_BIT;
     }
-    if (_sym_was_pressed) {
+    if (_sym_mode || (now_bits & (1ULL << cardkb2::KEY_SYM)) != 0U) {
         now_bits |= keyboard::MODIFIER_SYMBOL_BIT;
     }
     if (now_bits & (1ULL << cardkb2::KEY_FN)) {
