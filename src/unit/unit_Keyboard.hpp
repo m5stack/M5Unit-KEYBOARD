@@ -13,6 +13,8 @@
 #include <M5UnitComponent.hpp>
 #include <vector>
 
+#include "../utility/bitwise_state.hpp"
+
 namespace m5 {
 namespace unit {
 
@@ -33,10 +35,16 @@ constexpr key_status_bits_t MODIFIER_FUNCTION_BIT{0x0400000000000000};  //!< Fun
 constexpr key_status_bits_t MODIFIER_ALT_BIT     {0x0800000000000000};  //!< Alt
 constexpr key_status_bits_t MODIFIER_CONTROL_BIT {0x1000000000000000};  //!< Control
 constexpr key_status_bits_t MODIFIER_OPTION_BIT  {0x2000000000000000};  //!< Option
+constexpr key_status_bits_t MODIFIER_MASK{MODIFIER_SHIFT_BIT | MODIFIER_SYMBOL_BIT | MODIFIER_FUNCTION_BIT |
+                                          MODIFIER_ALT_BIT | MODIFIER_CONTROL_BIT | MODIFIER_OPTION_BIT};
 ///@}
 // clang-format on
 
-//! @brief Gets the modifier bits from key_status_bits_t
+/*!
+  @brief Gets the modifier bits from key_status_bits_t
+  @param kbs Key status bits
+  @return Bits with only the modifier flags set
+ */
 constexpr inline key_status_bits_t modifier_bits(const key_status_bits_t kbs)
 {
     return kbs & (MODIFIER_SHIFT_BIT | MODIFIER_SYMBOL_BIT | MODIFIER_FUNCTION_BIT | MODIFIER_ALT_BIT |
@@ -145,6 +153,7 @@ public:
     }
     /*!
       @brief Get the oldest pressed key
+      @return Key code of the oldest pressed key, or 0x00 if none
       @warning API valid only if using M5Unit-KEYBOARD firmware
     */
     inline uint8_t pressed() const
@@ -167,7 +176,7 @@ public:
       @brief Start periodic measurement
       @param interval Update interval time(ms)
       @return True if successful
-      @warning If config_t::trigger_irq is set to true, arguments is ignored
+      @warning If config_t::trigger_irq is set to true, the argument is ignored
     */
     inline bool startPeriodicMeasurement(const uint32_t interval)
     {
@@ -193,39 +202,40 @@ public:
     ///@name Key status bits if updated
     ///@{
     //! @brief Get the bits of the key being pressed
+    //! @return Key status bits of currently pressed keys
     inline keyboard::key_status_bits_t nowBits() const
     {
-        return _now;
+        return _state.now.to_ullong();
     }
     //! @brief Get the bits of the previous key pressed
     inline keyboard::key_status_bits_t previousBits() const
     {
-        return _prev;
+        return _state.prev.to_ullong();
     }
     //! @brief Get the key bits at the moment they are pressed
     inline keyboard::key_status_bits_t pressedBits() const
     {
-        return _wasPressed;
+        return _state.pressed.to_ullong();
     }
     //! @brief Get the key bits at the moment they are released
     inline keyboard::key_status_bits_t releasedBits() const
     {
-        return _wasReleased;
+        return _state.released.to_ullong();
     }
     //! @brief Get the bits of the held key
     inline keyboard::key_status_bits_t holdingBits() const
     {
-        return _holding;
+        return _state.holding.to_ullong();
     }
     //! @brief Get the bits of the key at the moment of hold
     inline keyboard::key_status_bits_t wasHoldBits() const
     {
-        return _wasHold;
+        return _state.was_hold.to_ullong();
     }
     //! @brief Get the bits of the key that the software is repeatedly pressing
     inline keyboard::key_status_bits_t repeatingBits() const
     {
-        return _repeating;
+        return _state.repeating.to_ullong();
     }
     //! @brief Get the bits of the modifier key being pressed
     inline keyboard::key_status_bits_t modifierBits() const
@@ -238,7 +248,8 @@ public:
     ///@note Some keys do not exist depending on the target Unit
     ///@name Modifier
     ///@{
-    //! @brief Is any modifier keys pressed?
+    //! @brief Is any modifier key pressed?
+    //! @return True if any modifier is active
     inline bool isModifier() const
     {
         return modifier_bits() != 0;
@@ -309,12 +320,14 @@ public:
     ///@warning API valid only if using M5Unit-KEYBOARD firmware
     ///@name Any key
     ///@{
-    //! @brief  Is any key press?
+    //! @brief Is any key pressed?
+    //! @return True if any key is currently pressed
     inline bool isPressed() const
     {
-        return _now != 0;
+        return _state.now.any();
     }
-    //! @brief Is all key release?
+    //! @brief Are all keys released?
+    //! @return True if no key is currently pressed
     inline bool isReleased() const
     {
         return !isPressed();
@@ -322,27 +335,27 @@ public:
     //! @brief Was any key pressed?
     inline bool wasPressed() const
     {
-        return _wasPressed;
+        return _state.pressed.any();
     }
     //! @brief Was any key released?
     inline bool wasReleased() const
     {
-        return _wasReleased;
+        return _state.released.any();
     }
     //! @brief Is any key holding?
     inline bool isHolding() const
     {
-        return _holding;
+        return _state.holding.any();
     }
     //! @brief Was any key hold?
     inline bool wasHold() const
     {
-        return _wasHold;
+        return _state.was_hold.any();
     }
     //! @brief Is any key repeating?
     inline bool isRepeating() const
     {
-        return _repeating;
+        return _state.repeating.any();
     }
     ///@}
 
@@ -357,7 +370,7 @@ public:
     // inline
     bool isPressed(const keyboard::key_index_t kidx) const
     {
-        return _now & (1ULL << kidx);
+        return (kidx < 64) && _state.now.test(kidx);
     }
     /*!
       @brief Is the specified key released?
@@ -375,7 +388,7 @@ public:
     */
     inline bool wasPressed(const keyboard::key_index_t kidx) const
     {
-        return _wasPressed & (1ULL << kidx);
+        return (kidx < 64) && _state.pressed.test(kidx);
     }
     /*!
       @brief Was the specified key released?
@@ -384,7 +397,7 @@ public:
     */
     inline bool wasReleased(const keyboard::key_index_t kidx) const
     {
-        return _wasReleased & (1ULL << kidx);
+        return (kidx < 64) && _state.released.test(kidx);
     }
     /*!
       @brief Is the specified key holding?
@@ -393,7 +406,7 @@ public:
     */
     inline bool isHolding(const keyboard::key_index_t kidx) const
     {
-        return _holding & (1ULL << kidx);
+        return (kidx < 64) && _state.holding.test(kidx);
     }
     /*!
       @brief Was the specified key hold?
@@ -402,7 +415,7 @@ public:
     */
     inline bool wasHold(const keyboard::key_index_t kidx) const
     {
-        return _wasHold & (1ULL << kidx);
+        return (kidx < 64) && _state.was_hold.test(kidx);
     }
     /*!
       @brief Is the specified key repeating?
@@ -411,7 +424,7 @@ public:
     */
     inline bool isRepeating(const keyboard::key_index_t kidx) const
     {
-        return _repeating & (1ULL << kidx);
+        return (kidx < 64) && _state.repeating.test(kidx);
     }
     ///@}
 
@@ -530,24 +543,25 @@ public:
     //! @brief Gets the holding threshold (ms)
     inline uint32_t holdingThreshold() const
     {
-        return _holding_threshold;
+        return _state.holding_threshold_ms;
     }
     //! @brief Gets the repeating threshold (ms)
     inline uint32_t repeatingThreshold() const
     {
-        return _repeating_threshold;
+        return _state.repeat_initial_ms;
     }
     //! @brief Sets the holding threshold
     //! @param ms Threshold in milliseconds
     inline void setHoldingThreshold(const uint32_t ms)
     {
-        _holding_threshold = ms;
+        _state.holding_threshold_ms = ms;
     }
     //! @brief Sets the repeating threshold
     //! @param ms Threshold in milliseconds
     inline void setRepeatingThreshold(const uint32_t ms)
     {
-        _repeating_threshold = ms;
+        _state.repeat_initial_ms = ms;
+        _state.repeat_rate_ms    = ms;  // CardKB-style: rate == initial (legacy single-threshold behavior)
     }
     ///@}
 
@@ -579,7 +593,7 @@ protected:
 
     inline keyboard::key_status_bits_t modifier_bits() const
     {
-        return keyboard::modifier_bits(_now);
+        return keyboard::modifier_bits(_state.now.to_ullong());
     }
 
     inline virtual uint8_t to_mode_bits(const char) const
@@ -602,7 +616,7 @@ protected:
 
     bool permitted_mode(const uint8_t mbits) const
     {
-        uint8_t mod8 = _now >> 56;
+        uint8_t mod8 = static_cast<uint8_t>(_state.now.to_ullong() >> 56);
         // mod8 bit0=Shift→mbits bit1, bit1=Sym→bit2, bit2=Fn→bit3
         return mbits & (mod8 ? (mod8 << 1) : 0x01);
     }
@@ -611,10 +625,7 @@ protected:
 
 protected:
     std::unique_ptr<m5::container::CircularBuffer<uint8_t>> _data{};  // was Pressed keys
-    keyboard::key_status_bits_t _now{}, _prev{}, _wasPressed{}, _wasReleased{}, _wasHold{}, _holding{},
-        _repeating{};  // key bits
-    std::vector<types::elapsed_time_t> _repeat_start_at{}, _hold_start_at{};
-    uint32_t _repeating_threshold{400}, _holding_threshold{800};
+    m5::unit::keyboard_bitwise::BitwiseState<64> _state;
     uint8_t _firmware_version{};
     keyboard::Mode _mode{keyboard::Mode::Conventional};
 };

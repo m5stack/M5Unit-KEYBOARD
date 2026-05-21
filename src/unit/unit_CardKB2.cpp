@@ -23,7 +23,11 @@ const types::attr_t UnitCardKB2::attr{attribute::AccessI2C};
 bool UnitCardKB2::begin()
 {
     if (!UnitKeyboard::begin()) {
-        M5_LIB_LOGE("Failed to communicate. Is the device in I2C mode? (Fn+Sym+1 to switch)");
+        M5_LIB_LOGE("============================================================");
+        M5_LIB_LOGE(" CardKB2 I2C begin FAILED - device may not be in I2C mode");
+        M5_LIB_LOGE(" Switch to I2C mode: press Fn+Sym+1 on the keyboard,");
+        M5_LIB_LOGE(" then press the RST button on CardKB2.");
+        M5_LIB_LOGE("============================================================");
         return false;
     }
 

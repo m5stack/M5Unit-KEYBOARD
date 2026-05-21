@@ -175,12 +175,21 @@ void UnitCardKB2UART::update_uart(const bool force)
         _caps_click_count = 0;
     }
 
-    _updated          = false;
-    _prev             = _now;
-    auto prev_holding = _holding;
-    _wasPressed = _wasReleased = _wasHold = 0;
+    _updated = false;
+    // Snapshot prior `now` into `prev` BEFORE this tick mutates `now`, so external
+    // consumers can observe `nowBits() != previousBits()` across the transition
+    // (SimpleDisplay's release-edge redraw relies on this).
+    _state.commitPrev();
+    _state.resetOneShot();
 
-    // Consume all available UART packets to update _now bits
+    // Work with a uint64_t view of the live bitmap so we can apply UART event deltas incrementally,
+    // then sync back to _state.now / _state.holding once all events are consumed.
+    const uint64_t prev_bits    = _state.now.to_ullong();
+    uint64_t now_bits           = prev_bits;
+    uint64_t holding_bits       = _state.holding.to_ullong();
+    const uint64_t prev_holding = holding_bits;
+
+    // Consume all available UART packets to update now_bits
     while (true) {
         Packet rbuf{};
         const uint8_t state = read_data(rbuf);
@@ -200,9 +209,9 @@ void UnitCardKB2UART::update_uart(const bool force)
         const uint64_t bit = (1ULL << kidx);
 
         if (state == KEY_STATE_PRESSED) {
-            if (!(_now & bit)) {
+            if (!(now_bits & bit)) {
                 // Initial press only (not hardware repeat)
-                _now |= bit;
+                now_bits |= bit;
 
                 if (kidx == cardkb2::KEY_SYM) {
                     _sym_was_pressed = !_sym_was_pressed;
@@ -213,12 +222,17 @@ void UnitCardKB2UART::update_uart(const bool force)
                     _caps_pressed_at = at;
                 }
 
-                _repeat_start_at[kidx] = _hold_start_at[kidx] = at;
+                _state.press_at[kidx]       = at;
+                _state.last_repeat_at[kidx] = 0U;
             }
-            // Hardware repeat packets are consumed but ignored — software repeat handles timing
+            // CardKB2 firmware (300ms/50ms hard-coded) re-sends KEY_STATE=0x01 every 50ms after 300ms hold.
+            // PRESS and REPEAT share the same state code (0x01) so they cannot be distinguished on the wire.
+            // The rising-edge guard above (`if (!(now_bits & bit))`) discards these repeats, letting the
+            // library's software repeat (driven by config_t::repeating_threshold) own the timing —
+            // this also keeps I2C/UART/ESP-NOW UX consistent and user-tunable.
         } else if (state == KEY_STATE_RELEASED) {
-            _now &= ~bit;
-            _holding &= ~bit;
+            now_bits &= ~bit;
+            holding_bits &= ~bit;
 
             if (kidx == cardkb2::KEY_AA && _caps_pressing) {
                 _caps_pressing = false;
@@ -229,17 +243,17 @@ void UnitCardKB2UART::update_uart(const bool force)
                     _caps_lock        = false;
                     _caps_click_count = 0;
                 } else {
+                    // Mirror firmware behaviour: double-click is the sole way to toggle caps_lock.
+                    // Single tap always sets shift_once (one-shot uppercase); the "single tap to
+                    // disengage when locked" branch was removed because it caused a double-toggle
+                    // bug — the eager disengage at tap1 of a second double-click would then be
+                    // re-toggled ON at tap2, leaving caps_lock=true while firmware (LED) cleared it.
                     if (_caps_click_count == 1 && (at - _caps_last_release_at) <= CAPS_DOUBLE_CLICK_WINDOW_MS) {
                         _caps_lock        = !_caps_lock;
                         _caps_shift_once  = false;
                         _caps_click_count = 0;
                     } else {
-                        if (_caps_lock) {
-                            _caps_lock       = false;
-                            _caps_shift_once = false;
-                        } else {
-                            _caps_shift_once = true;
-                        }
+                        _caps_shift_once      = true;
                         _caps_click_count     = 1;
                         _caps_last_release_at = at;
                     }
@@ -248,12 +262,12 @@ void UnitCardKB2UART::update_uart(const bool force)
         }
     }
 
-    // Compute press/release transitions
-    _wasPressed  = (_now ^ _prev) & _now;
-    _wasReleased = (_now ^ _prev) & ~_now;
+    // Compute press/release transitions against the snapshot taken at the start of this tick.
+    const uint64_t was_pressed_bits  = (now_bits ^ prev_bits) & now_bits;
+    const uint64_t was_released_bits = (now_bits ^ prev_bits) & ~now_bits;
 
     // Push characters for newly pressed keys
-    uint64_t wp = _wasPressed;
+    uint64_t wp = was_pressed_bits;
     while (wp) {
         uint_fast8_t kidx = __builtin_ctzll(wp);
         wp &= wp - 1;  // clear lowest set bit
@@ -263,7 +277,7 @@ void UnitCardKB2UART::update_uart(const bool force)
             continue;
         }
 
-        const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
+        const bool fn_active   = (now_bits & (1ULL << cardkb2::KEY_FN)) != 0U;
         const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
         uint8_t ch;
         if (fn_active) {
@@ -284,11 +298,11 @@ void UnitCardKB2UART::update_uart(const bool force)
         }
     }
 
-    // Software repeat and hold (same logic as CardKB)
-    _repeating   = 0;
-    uint64_t bit = 1;
+    // Software repeat and hold (mirrors CardKB legacy behaviour: rate == initial threshold).
+    uint64_t repeating_bits = 0;
+    uint64_t bit            = 1;
     for (uint_fast8_t i = 0; i < cardkb2::NUMBER_OF_KEYS; ++i, bit <<= 1) {
-        if (!(_now & bit) || (_wasPressed & bit)) {
+        if (!(now_bits & bit) || (was_pressed_bits & bit)) {
             continue;  // not held or just pressed
         }
         // Skip modifier keys — they don't repeat
@@ -296,12 +310,12 @@ void UnitCardKB2UART::update_uart(const bool force)
             continue;
         }
         // Repeat?
-        if (at - _repeat_start_at[i] >= _repeating_threshold) {
-            _repeat_start_at[i] = at;
-            _repeating |= bit;
+        if (at - _state.press_at[i] >= _state.repeat_initial_ms) {
+            _state.press_at[i] = at;
+            repeating_bits |= bit;
 
             // Push repeat character
-            const bool fn_active   = _now & (1ULL << cardkb2::KEY_FN);
+            const bool fn_active   = (now_bits & (1ULL << cardkb2::KEY_FN)) != 0U;
             const bool caps_active = (_caps_lock || _caps_hold_active || _caps_shift_once);
             uint8_t ch;
             if (fn_active) {
@@ -316,27 +330,35 @@ void UnitCardKB2UART::update_uart(const bool force)
             }
         }
         // Hold?
-        if (at - _hold_start_at[i] >= _holding_threshold) {
-            _holding |= bit;
+        if (at - _state.press_at[i] >= _state.holding_threshold_ms) {
+            holding_bits |= bit;
         } else {
-            _holding &= ~bit;
+            holding_bits &= ~bit;
         }
     }
-    _wasHold = (prev_holding ^ _holding) & _holding;
+    const uint64_t was_hold_bits = (prev_holding ^ holding_bits) & holding_bits;
 
     // Synthesize modifier bits in upper byte for isModifier()/isShift()/isSymbol()/isFunction()
-    _now &= 0x00FFFFFFFFFFFFFFULL;  // Clear modifier byte
-    if (_caps_lock || _caps_hold_active || _caps_shift_once || (_now & (1ULL << cardkb2::KEY_AA))) {
-        _now |= keyboard::MODIFIER_SHIFT_BIT;
+    now_bits &= 0x00FFFFFFFFFFFFFFULL;  // Clear modifier byte
+    if (_caps_lock || _caps_hold_active || _caps_shift_once || (now_bits & (1ULL << cardkb2::KEY_AA))) {
+        now_bits |= keyboard::MODIFIER_SHIFT_BIT;
     }
     if (_sym_was_pressed) {
-        _now |= keyboard::MODIFIER_SYMBOL_BIT;
+        now_bits |= keyboard::MODIFIER_SYMBOL_BIT;
     }
-    if (_now & (1ULL << cardkb2::KEY_FN)) {
-        _now |= keyboard::MODIFIER_FUNCTION_BIT;
+    if (now_bits & (1ULL << cardkb2::KEY_FN)) {
+        now_bits |= keyboard::MODIFIER_FUNCTION_BIT;
     }
 
-    _updated = (_wasPressed | _wasReleased | _repeating);
+    // Sync the local uint64_t views back into the shared bitwise state.
+    _state.now       = std::bitset<64>(now_bits);
+    _state.holding   = std::bitset<64>(holding_bits);
+    _state.pressed   = std::bitset<64>(was_pressed_bits);
+    _state.released  = std::bitset<64>(was_released_bits);
+    _state.repeating = std::bitset<64>(repeating_bits);
+    _state.was_hold  = std::bitset<64>(was_hold_bits);
+
+    _updated = (was_pressed_bits | was_released_bits | repeating_bits) != 0U;
     if (_updated) {
         _latest = at;
     }

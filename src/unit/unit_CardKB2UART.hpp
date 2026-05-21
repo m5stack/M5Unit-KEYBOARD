@@ -41,6 +41,7 @@ class UnitCardKB2UART : public UnitKeyboardBitwise {
     M5_UNIT_COMPONENT_HPP_BUILDER(UnitCardKB2UART, 0x5F);
 
 public:
+    //! @brief 5-byte UART packet: {0xAA, 0x03, key_id, key_state, checksum}
     using Packet = std::array<uint8_t, 5>;
 
     /*!
@@ -54,10 +55,12 @@ public:
         uint32_t interval{10};
     };
 
+    /*!
+      @brief Constructor
+      @param addr Reserved for API compatibility (UART transport ignores I2C address)
+     */
     explicit UnitCardKB2UART(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboardBitwise(addr)
     {
-        _repeat_start_at.resize(cardkb2::NUMBER_OF_KEYS);
-        _hold_start_at.resize(cardkb2::NUMBER_OF_KEYS);
     }
     //! @copydoc Component::begin
     virtual bool begin() override;
@@ -67,11 +70,14 @@ public:
     ///@name Settings for begin
     ///@{
     /*! @brief Gets the configuration */
-    inline config_t config()
+    inline config_t config() const
     {
         return _cfg;
     }
-    //! @brief Set the configuration
+    /*!
+      @brief Set the configuration
+      @param cfg Configuration to apply
+     */
     inline void config(const config_t& cfg)
     {
         _cfg = cfg;
@@ -104,7 +110,10 @@ public:
     {
         return false;
     }
-    //! @copydoc readMode
+    /*!
+      @brief Not supported on CardKB2UART
+      @return Always false
+     */
     virtual bool writeMode(const keyboard::Mode) override
     {
         return false;

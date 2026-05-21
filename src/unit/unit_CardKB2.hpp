@@ -50,6 +50,10 @@ public:
         uint32_t interval{10};
     };
 
+    /*!
+      @brief Constructor
+      @param addr I2C address (default: DEFAULT_ADDRESS)
+     */
     explicit UnitCardKB2(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboard(addr)
     {
     }
@@ -61,11 +65,14 @@ public:
     ///@name Settings for begin
     ///@{
     /*! @brief Gets the configuration */
-    inline config_t config()
+    inline config_t config() const
     {
         return _cfg;
     }
-    //! @brief Set the configuration
+    /*!
+      @brief Set the configuration
+      @param cfg Configuration to apply
+     */
     inline void config(const config_t& cfg)
     {
         _cfg = cfg;
@@ -83,6 +90,7 @@ public:
         return updated() ? _pressed_key : 0;
     }
     //! @brief Number of available characters (0 or 1)
+    //! @return 1 if a character is pending, otherwise 0
     //! @note Provided for API compatibility with UnitKeyboardBitwise (UnitCardKB2UART)
     inline uint8_t available() const
     {
