@@ -12,6 +12,7 @@
 
 #include "unit_CardKB2_defs.hpp"
 #include "../utility/button_event_detector.hpp"
+#include "../utility/cardkb2_modifier_state.hpp"
 #include <m5_utility/container/circular_buffer.hpp>
 #include <array>
 
@@ -134,12 +135,7 @@ protected:
     config_t _cfg{};
 
 private:
-    m5::unit::keyboard_bitwise::ButtonEventDetector _sym_detector{};
-    m5::unit::keyboard_bitwise::ButtonEventDetector _caps_detector{};
-    bool _sym_mode{false};  // Sym toggle (mirrors firmware sym_mode / blue LED)
-    bool _caps_shift_once{false};
-    bool _caps_lock{false};
-    bool _caps_hold_active{false};
+    m5::unit::cardkb2::CardKB2ModifierState _mod{};
 };
 
 }  // namespace unit
