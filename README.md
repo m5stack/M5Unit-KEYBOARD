@@ -14,6 +14,9 @@ QWERTY is a full-featured keyboard panel adapted to FACE_BOTTOM. There are 35 ke
 ### SKU:U215
 Unit CardKB2 is a card-sized 42-key portable keyboard input unit. Its compact and lightweight form factor makes it ideal for on-the-go use and embedded integration. 
 
+### SKU:A164
+Tab5 Keyboard. (TODO: short product description to be added later.)
+
 
 ## Related Link
 See also examples using conventional methods here.
@@ -21,6 +24,7 @@ See also examples using conventional methods here.
 - [Unit CardKB v1.1 & Datasheet](https://docs.m5stack.com/en/unit/cardkb_1.1)
 - [Faces QWERTY & Datasheet](https://docs.m5stack.com/en/module/faces_keyboard)
 - [Unit CardKB2 & Datasheet](https://docs.m5stack.com/en/products/sku/U215)
+- [Tab5 Keyboard & Datasheet](https://docs.m5stack.com/en/products/sku/A164)
 
 
 ### Required Libraries:
@@ -44,11 +48,21 @@ You must choose a define symbol for the unit you will use.
 // *************************************************************
 // Choose one define symbol to match the unit you are using
 // *************************************************************
-#if !defined(USING_UNIT_CARDKB) && !defined(USING_UNIT_CARDKB2) && !defined(USING_UNIT_FACES_QWERTY)
-// For CardKB
+#if !defined(USING_UNIT_CARDKB) && !defined(USING_UNIT_CARDKB2) && !defined(USING_UNIT_FACES_QWERTY) && \
+    !defined(USING_UNIT_TAB5_KEYBOARD)
+// For UnitCardKB (U035-B)
 // #define USING_UNIT_CARDKB
-// For CardKB2
+// For UnitCardKB2 (U215)
 // #define USING_UNIT_CARDKB2
+// For FacesQWERTY (A003)
+// #define USING_UNIT_FACES_QWERTY
+// For UnitTab5Keyboard (A164) (built into M5Stack Tab5)
+// #define USING_UNIT_TAB5_KEYBOARD
+// Choose Tab5 Keyboard operation mode (default: Normal)
+// #define USING_TAB5_KEYBOARD_NORMAL
+// #define USING_TAB5_KEYBOARD_HID
+// #define USING_TAB5_KEYBOARD_CHARACTER
+// *************************************************************
 #if defined(USING_UNIT_CARDKB2)
 // Choose one communication mode for CardKB2
 // For I2C
@@ -56,10 +70,7 @@ You must choose a define symbol for the unit you will use.
 // For UART
 // #define USING_UART_FOR_CARDKB2
 #endif
-// For FacesQWERTY
-// #define USING_UNIT_FACES_QWERTY
 #endif
-// *************************************************************
 ```
 
 ## New firmware (CardKB / FacesQWERTY)
@@ -72,7 +83,17 @@ When this firmware is applied to CardKB or FacesQWERTY, the operating feel is ve
 - Individual modifier key state (Shift, Sym, Fn)
 - Configurable hold and repeat thresholds
 
-### Doxygen document
+## CardKB2 firmware
+
+The CardKB2 firmware source is maintained at [m5stack/M5Unit-CardKB2-UserDemo](https://github.com/m5stack/M5Unit-CardKB2-UserDemo).
+
+## CardKB2 modifier state sync (UART mode only)
+
+In UART mode, `UnitCardKB2UART` and the CardKB2 firmware track Sym toggle and Caps Lock state independently, with no query API between them. After resetting the host MCU (or restarting the application), also press the RST button on the CardKB2 so both sides start in the same cleared state.
+
+I2C mode is unaffected — the firmware sends translated ASCII directly.
+
+## Doxygen document
 [GitHub Pages](https://m5stack.github.io/M5Unit-KEYBOARD/)
 
 If you want to generate documents on your local machine, execute the following command
@@ -84,7 +105,7 @@ bash docs/doxy.sh
 It will output it under docs/html  
 If you want to output Git commit hashes to html, do it for the git cloned folder.
 
-#### Required
+### Required
 - [Doxygen](https://www.doxygen.nl/)
 - [pcregrep](https://formulae.brew.sh/formula/pcre2)
 - [Git](https://git-scm.com/) (Output commit hash to html)
