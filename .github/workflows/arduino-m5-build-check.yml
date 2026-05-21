@@ -138,35 +138,21 @@ jobs:
             build-properties: "-DUSING_UNIT_FACES_QWERTY"
 
         include:
-          # SimpleDisplay: Core only
-          - sketch: SimpleDisplay
-            board: m5stack_core
+          # UnitTab5Keyboard: Tab5 only
+          - sketch: PlotToSerial
+            board: m5stack_tab5
             platform-version: 3.2.5
             platform: m5stack
             archi: esp32
             platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
-            build-properties: "-DUSING_UNIT_CARDKB"
-          - sketch: SimpleDisplay
-            board: m5stack_core
+            build-properties: "-DUSING_UNIT_TAB5_KEYBOARD"
+          - sketch: Tab5Keyboard/KeyMatrixVisualizer
+            board: m5stack_tab5
             platform-version: 3.2.5
             platform: m5stack
             archi: esp32
             platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
-            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_I2C_FOR_CARDKB2"
-          - sketch: SimpleDisplay
-            board: m5stack_core
-            platform-version: 3.2.5
-            platform: m5stack
-            archi: esp32
-            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
-            build-properties: "-DUSING_UNIT_CARDKB2 -DUSING_UART_FOR_CARDKB2"
-          - sketch: SimpleDisplay
-            board: m5stack_core
-            platform-version: 3.2.5
-            platform: m5stack
-            archi: esp32
-            platform-url: https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json
-            build-properties: "-DUSING_UNIT_FACES_QWERTY"
+            build-properties: ""
 
     steps:
       - name: Checkout
