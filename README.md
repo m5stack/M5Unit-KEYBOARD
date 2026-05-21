@@ -44,7 +44,7 @@ You must choose a define symbol for the unit you will use.
 (Rewrite source or specify with compile options)
 
 ```cpp
-// PlotToSerial.ino, SimpleDisplay.ino
+// PlotToSerial.ino
 // *************************************************************
 // Choose one define symbol to match the unit you are using
 // *************************************************************
@@ -58,10 +58,7 @@ You must choose a define symbol for the unit you will use.
 // #define USING_UNIT_FACES_QWERTY
 // For UnitTab5Keyboard (A164) (built into M5Stack Tab5)
 // #define USING_UNIT_TAB5_KEYBOARD
-// Choose Tab5 Keyboard operation mode (default: Normal)
-// #define USING_TAB5_KEYBOARD_NORMAL
-// #define USING_TAB5_KEYBOARD_HID
-// #define USING_TAB5_KEYBOARD_CHARACTER
+// Tab5 Keyboard operation mode is cycled at runtime with BtnA (Normal/HID/Character).
 // *************************************************************
 #if defined(USING_UNIT_CARDKB2)
 // Choose one communication mode for CardKB2
