@@ -6,16 +6,19 @@ Library for KEYBOARD using [M5UnitUnified](https://github.com/m5stack/M5UnitUnif
 M5UnitUnified is a library for unified handling of various M5 units products.
 
 ### SKU:U035-B
-CardKB v1.1 is a card-size '50 key' QWERTY keyboard. Adopts ATMega8A as the MCU, communication port I2C, and one 'RGB-LED' indicator.
+**Unit CardKB v1.1** is a card-sized QWERTY 50-key PCB matrix keyboard that uses ATMega8A as the encoding MCU, with an output interface of I2C. It has one onboard RGB-LED to indicate keyboard status.
 
 ### SKU:A003
-QWERTY is a full-featured keyboard panel adapted to FACE_BOTTOM. There are 35 keys in total, and each key can be multiplexed by combination keys to output different characters.
+**Faces QWERTY** is a full-featured keyboard panel compatible with FACE\_BOTTOM, featuring 35 keys. Each key can be reused through key combinations to output different characters. It integrates an MEGA328 processor internally and operates in slave mode via the I2C communication protocol (0x08). The "sym" and "Fn" function keys are used for shift switching, while the "aA" function key is used for case switching. A single click on the corresponding function key activates single-character input with the indicator light on, while a double click makes the indicator light blink, enabling continuous input. Clicking again restores the previous state.
 
 ### SKU:U215
-Unit CardKB2 is a card-sized 42-key portable keyboard input unit. Its compact and lightweight form factor makes it ideal for on-the-go use and embedded integration. 
+**Unit CardKB2** is a card-sized 42-key portable keyboard input unit. Compact and lightweight, it is designed for everyday carry and embedded integration. Powered by the ESP32-C61HF4, it supports 2.4 GHz Wi-Fi 6. The preloaded firmware supports four communication modes — I2C, UART, BLE HID, and ESP-NOW — for flexible connectivity with host devices. An onboard HY2.0-4P connector enables communication in I2C/UART mode, while a USB Type-C port provides power supply and firmware flashing. Additional features include an RGB LED status indicator, a Reset button, a Boot button, and built-in input overvoltage protection, making it well-suited for wireless input, interactive control, and a wide range of portable applications.
 
 ### SKU:A164
-Tab5 Keyboard. (TODO: short product description to be added later.)
+**Tab5 Keyboard** is a 70-key physical keyboard input expansion module designed specifically for Tab5. It connects directly to the host via Tab5 Ext.Port1, enabling a plug-and-play input experience.
+The module integrates an STM32F030C8T6 main control chip, responsible for keyboard matrix scanning and communication processing. The preloaded firmware supports three operating modes: **Normal**, **HID**, and **Character**, adapting to different interaction requirements.
+The keyboard adopts a 14 x 5 matrix design, supports multiple simultaneous key presses, and provides a complete set of letters, numbers, symbols, and commonly used function keys such as Aa, Ctrl, Sym, Alt, Tab, Esc, and arrow keys.
+The device communicates with Tab5 via I2C and provides an independent interrupt pin for low-latency real-time reporting of key events. Two onboard RGB LEDs can be used for full-color status indication. With a compact structure and simple connection method, it is suitable for text input, command interaction, and various portable applications that require a physical keyboard.
 
 
 ## Related Link
