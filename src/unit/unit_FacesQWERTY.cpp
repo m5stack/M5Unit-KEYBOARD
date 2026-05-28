@@ -233,8 +233,8 @@ key_index_t UnitFacesQWERTY::character_to_key_index(const char ch)
 {
     unsigned char uc = ch;
     // Special key?
-    if (uc >= SCHAR_NOMARK_G && uc <= SCHAR_SPEAKER) {
-        return special_character_map[uc - SCHAR_NOMARK_G].second;
+    if (uc >= static_cast<unsigned char>(SCHAR_NOMARK_G) && uc <= static_cast<unsigned char>(SCHAR_SPEAKER)) {
+        return special_character_map[uc - static_cast<unsigned char>(SCHAR_NOMARK_G)].second;
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
@@ -249,9 +249,9 @@ uint8_t UnitFacesQWERTY::character_to_mode_bits(const char ch)
 {
     unsigned char uc = ch;
     // Special key?
-    if (uc >= SCHAR_NOMARK_G && uc <= SCHAR_SPEAKER) {
+    if (uc >= static_cast<unsigned char>(SCHAR_NOMARK_G) && uc <= static_cast<unsigned char>(SCHAR_SPEAKER)) {
         //        M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_NOMARK_G].first);
-        return special_character_map[uc - SCHAR_NOMARK_G].first;
+        return special_character_map[uc - static_cast<unsigned char>(SCHAR_NOMARK_G)].first;
     }
     // alt? (>= 0x90)
     if (uc >= 0x90) {
@@ -358,57 +358,47 @@ void UnitFacesQWERTY::update(const bool force)
 
 bool UnitFacesQWERTY::update_new_firmware(const types::elapsed_time_t at)
 {
-    _wasHold = _wasPressed = _wasReleased = 0;
-    _prev                                 = _now;
-    auto prev_holding                     = _holding;
-    uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
+    // Snapshot prior `now` into `prev` BEFORE this tick mutates `now`, so external
+    // consumers can observe `nowBits() != previousBits()` across the transition
+    // (SimpleDisplay's release-edge redraw relies on this).
+    _state.commitPrev();
+    _state.resetOneShot();
 
+    uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
     if (!readRegister(scan_reg_addr(), rbuf, m5::stl::size(rbuf), 0)) {
         M5_LIB_LOGE("Failed to read");
         return false;
     }
 
-    _now = (((uint64_t)rbuf[5]) << 56) | (((uint64_t)rbuf[4]) << 32) | (((uint64_t)rbuf[3]) << 24) |
-           (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) | (((uint64_t)rbuf[0]) << 0);
+    const uint64_t scan = (static_cast<uint64_t>(rbuf[5]) << 56) | (static_cast<uint64_t>(rbuf[4]) << 32) |
+                          (static_cast<uint64_t>(rbuf[3]) << 24) | (static_cast<uint64_t>(rbuf[2]) << 16) |
+                          (static_cast<uint64_t>(rbuf[1]) << 8) | (static_cast<uint64_t>(rbuf[0]) << 0);
+    const uint8_t mod8 = rbuf[5];
 
-    uint8_t mod8 = rbuf[5];
-    uint64_t bit{1};
+    // Update _state.now per key based on the scanned bits and timestamp each fresh press.
+    for (size_t i = 0; i < 64; ++i) {
+        const bool bit_set = (scan & (1ULL << i)) != 0U;
+        _state.setKey(i, bit_set, at);
+    }
 
-    _wasPressed  = (_now ^ _prev) & _now;
-    _wasReleased = (_now ^ _prev) & ~_now;
+    // Forward FacesQWERTY cfg thresholds to _state every update (cheap; keeps cfg as source of truth).
+    _state.holding_threshold_ms = _cfg.holding_threshold;
+    _state.repeat_initial_ms    = _cfg.repeating_threshold;
+    _state.repeat_rate_ms       = _cfg.repeating_threshold;  // CardKB-style legacy: rate == initial
 
-    for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
-        // Was pressed
-        if (_wasPressed & bit) {
+    _state.computeEdges();
+    _state.tickHoldRepeat(at);
+
+    // For every newly pressed key (or software-fired repeat), push the keycode through the legacy mapping.
+    for (size_t i = 0; i < NUMBER_OF_KEYS; ++i) {
+        if (_state.pressed.test(i)) {
             push_back(_data.get(), i, mod8);
-            _repeat_start_at[i] = _hold_start_at[i] = at;
-            _repeating |= bit;
-            continue;
-        }
-#if 0
-        // Was released
-        if (_wasReleased & bit) {
-            push_back(_released.get(), i, mod);
-        }
-#endif
-        // Repeat?
-        if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
-            _repeat_start_at[i] = at;
-            _repeating |= bit;
+        } else if (_state.repeating.test(i)) {
             push_back(_data.get(), i, mod8);
-        } else {
-            _repeating &= ~bit;
-        }
-        // Hold?
-        if ((_now & bit) && at - _hold_start_at[i] >= _cfg.holding_threshold) {
-            _holding |= bit;
-        } else {
-            _holding &= ~bit;
         }
     }
-    _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return (_wasPressed | _wasReleased | _repeating);
+    return _state.pressed.any() || _state.released.any() || _state.repeating.any();
 }
 
 void UnitFacesQWERTY::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx,

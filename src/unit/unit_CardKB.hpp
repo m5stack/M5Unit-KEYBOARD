@@ -37,6 +37,7 @@ class UnitCardKB : public UnitKeyboardBitwise {
     M5_UNIT_COMPONENT_HPP_BUILDER(UnitCardKB, 0x5F);
 
 public:
+    //! @brief Number of keys in the scan matrix (Shift/Sym/Fn modifiers are tracked separately, not included here)
     static constexpr uint8_t NUMBER_OF_KEYS{48};
 
     ///@name key index (left top to right bottom)
@@ -119,10 +120,12 @@ public:
         ///@}
     };
 
+    /*!
+      @brief Constructor
+      @param addr I2C address (default: DEFAULT_ADDRESS)
+     */
     explicit UnitCardKB(const uint8_t addr = DEFAULT_ADDRESS) : UnitKeyboardBitwise(addr)
     {
-        _repeat_start_at.resize(NUMBER_OF_KEYS);
-        _hold_start_at.resize(NUMBER_OF_KEYS);
     }
     //! @copydoc Component::begin
     virtual bool begin() override;
@@ -132,11 +135,14 @@ public:
     ///@name Settings for begin
     ///@{
     /*! @brief Gets the configuration */
-    inline config_t config()
+    inline config_t config() const
     {
         return _cfg;
     }
-    //! @brief Set the configuration
+    /*!
+      @brief Set the configuration
+      @param cfg Configuration to apply
+     */
     inline void config(const config_t& cfg)
     {
         _cfg = cfg;
@@ -151,12 +157,14 @@ public:
 
     /*!
       @brief Character to key index
+      @param ch ASCII character
       @retval != 0xFF keyboard::key_index_t
       @retval == 0xFF No corresponding key index exists
      */
     static keyboard::key_index_t character_to_key_index(const char ch);
     /*!
       @brief Character to mode bits
+      @param ch ASCII character
       @retval == 0 Not exists
       @retval != 0 Bits in corresponding mode
       @note 0x01:normal 0x02:shift 0x04:symbol 0x08:function

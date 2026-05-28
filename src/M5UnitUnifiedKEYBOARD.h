@@ -5,7 +5,7 @@
  */
 /*!
   @file M5UnitUnifiedKEYBOARD.h
-  @brief Main header of M5UnitKEYBOARD using M5UnitUnified
+  @brief Main header of M5Unit-KEYBOARD using M5UnitUnified
 */
 #ifndef M5_UNIT_UNIFIED_KEYBOARD_H
 #define M5_UNIT_UNIFIED_KEYBOARD_H

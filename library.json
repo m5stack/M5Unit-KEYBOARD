@@ -12,9 +12,9 @@
     },
     "dependencies":
     {
-        "m5stack/M5UnitUnified": ">=0.4.4"
+        "m5stack/M5UnitUnified": ">=0.4.6"
     },
-    "version": "0.0.1",
+    "version": "0.1.0",
     "frameworks": [
         "arduino"
     ],

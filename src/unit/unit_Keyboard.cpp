@@ -104,7 +104,7 @@ bool UnitKeyboardBitwise::readMode(Mode& mode)
     mode = Mode::Conventional;
     uint8_t v{};
     if (readRegister8(mode_reg_addr(), v, 0)) {
-        mode = static_cast<Mode>(v);
+        mode = (v <= static_cast<uint8_t>(Mode::M5UnitUnified)) ? static_cast<Mode>(v) : Mode::Conventional;
         return true;
     }
     return false;
@@ -116,9 +116,7 @@ bool UnitKeyboardBitwise::writeMode(const Mode mode)
         _mode = mode;
 
         _data->clear();
-        _now = _prev = _wasPressed = _wasReleased = _wasHold = _holding = _repeating = 0;
-        std::fill(_repeat_start_at.begin(), _repeat_start_at.end(), 0);
-        std::fill(_hold_start_at.begin(), _hold_start_at.end(), 0);
+        _state.resetAll();
         return true;
     }
     return false;

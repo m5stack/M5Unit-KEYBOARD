@@ -231,8 +231,8 @@ key_index_t UnitCardKB::character_to_key_index(const char ch)
     if (uc & 0x80) {
         key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
-        if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
-            return special_character_map[uc - SCHAR_LEFT].second;
+        if (uc >= static_cast<unsigned char>(SCHAR_LEFT) && uc <= static_cast<unsigned char>(SCHAR_RIGHT)) {
+            return special_character_map[uc - static_cast<unsigned char>(SCHAR_LEFT)].second;
         }
         return static_cast<key_index_t>((kidx < m5::stl::size(key_map)) ? kidx : 0xFF);
     }
@@ -247,9 +247,9 @@ uint8_t UnitCardKB::character_to_mode_bits(const char ch)
     if (uc & 0x80) {
         key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
-        if (uc >= SCHAR_LEFT && uc <= SCHAR_RIGHT) {
+        if (uc >= static_cast<unsigned char>(SCHAR_LEFT) && uc <= static_cast<unsigned char>(SCHAR_RIGHT)) {
             // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - SCHAR_LEFT].first);
-            return special_character_map[uc - SCHAR_LEFT].first;
+            return special_character_map[uc - static_cast<unsigned char>(SCHAR_LEFT)].first;
         }
 
         // M5_LIB_LOGI("%c => %02X", ch, (kidx < m5::stl::size(key_map)) ? 0x08 : 0x00);
@@ -317,9 +317,11 @@ void UnitCardKB::update(const bool force)
 
 bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
 {
-    _wasHold = _wasPressed = _wasReleased = 0;
-    _prev                                 = _now;
-    auto prev_holding                     = _holding;
+    // Snapshot prior `now` into `prev` BEFORE this tick mutates `now`, so external
+    // consumers can observe `nowBits() != previousBits()` across the transition
+    // (SimpleDisplay's release-edge redraw relies on this).
+    _state.commitPrev();
+    _state.resetOneShot();
 
     uint8_t rbuf[(NUMBER_OF_KEYS + 7) / 8 + 1]{};
     if (!readRegister(scan_reg_addr(), rbuf, m5::stl::size(rbuf), 0)) {
@@ -327,42 +329,37 @@ bool UnitCardKB::update_new_firmware(const types::elapsed_time_t at)
         return false;
     }
 
-    _now = (((uint64_t)rbuf[6]) << 56) | (((uint64_t)rbuf[5]) << 40) | (((uint64_t)rbuf[4]) << 32) |
-           (((uint64_t)rbuf[3]) << 24) | (((uint64_t)rbuf[2]) << 16) | (((uint64_t)rbuf[1]) << 8) |
-           (((uint64_t)rbuf[0]) << 0);
+    const uint64_t scan = (static_cast<uint64_t>(rbuf[6]) << 56) | (static_cast<uint64_t>(rbuf[5]) << 40) |
+                          (static_cast<uint64_t>(rbuf[4]) << 32) | (static_cast<uint64_t>(rbuf[3]) << 24) |
+                          (static_cast<uint64_t>(rbuf[2]) << 16) | (static_cast<uint64_t>(rbuf[1]) << 8) |
+                          (static_cast<uint64_t>(rbuf[0]) << 0);
+    const uint8_t mod8 = rbuf[6];
 
-    uint8_t mod8 = rbuf[6];
-    uint64_t bit{1};
+    // Update _state.now per key based on the scanned bits and timestamp each fresh press.
+    for (size_t i = 0; i < 64; ++i) {
+        const bool bit_set = (scan & (1ULL << i)) != 0U;
+        _state.setKey(i, bit_set, at);
+    }
 
-    _wasPressed  = (_now ^ _prev) & _now;
-    _wasReleased = (_now ^ _prev) & ~_now;
+    // Forward CardKB cfg thresholds to _state every update (cheap; keeps cfg as source of truth).
+    _state.holding_threshold_ms = _cfg.holding_threshold;
+    _state.repeat_initial_ms    = _cfg.repeating_threshold;
+    _state.repeat_rate_ms       = _cfg.repeating_threshold;  // CardKB legacy: rate == initial
 
-    for (uint_fast8_t i = 0; i < NUMBER_OF_KEYS; ++i, bit <<= 1) {
-        // Was pressed
-        if (_wasPressed & bit) {
+    _state.computeEdges();
+    _state.tickHoldRepeat(at);
+
+    // For every newly pressed key, push the keycode through the legacy CardKB mapping.
+    for (size_t i = 0; i < NUMBER_OF_KEYS; ++i) {
+        if (_state.pressed.test(i)) {
             push_back(_data.get(), i, mod8);
-            _repeat_start_at[i] = _hold_start_at[i] = at;
-            _repeating |= bit;
-            continue;
-        }
-        // Repeat?
-        if ((_now & bit) && at - _repeat_start_at[i] >= _cfg.repeating_threshold) {
-            _repeat_start_at[i] = at;
-            _repeating |= bit;
+        } else if (_state.repeating.test(i)) {
+            // Software-fired repeats also push the legacy mapped code.
             push_back(_data.get(), i, mod8);
-        } else {
-            _repeating &= ~bit;
-        }
-        // Hold?
-        if ((_now & bit) && at - _hold_start_at[i] >= _cfg.holding_threshold) {
-            _holding |= bit;
-        } else {
-            _holding &= ~bit;
         }
     }
-    _wasHold = (prev_holding ^ _holding) & _holding;
 
-    return (_wasPressed | _wasReleased | _repeating);
+    return _state.pressed.any() || _state.released.any() || _state.repeating.any();
 }
 
 void UnitCardKB::push_back(m5::container::CircularBuffer<uint8_t>* container, const uint8_t kidx, const uint8_t mod8)

@@ -120,25 +120,15 @@ jobs:
             unit: UnitFacesQWERTY
 
         include:
-          # SimpleDisplay: Core only for each unit
-          - example: SimpleDisplay
-            unit: UnitCardKB
-            board: Core
+          # UnitTab5Keyboard: Tab5 only
+          - example: PlotToSerial
+            unit: UnitTab5Keyboard
+            board: Tab5
             framework: Arduino
             espressif32: latest
-          - example: SimpleDisplay
-            unit: UnitCardKB2_I2C
-            board: Core
-            framework: Arduino
-            espressif32: latest
-          - example: SimpleDisplay
-            unit: UnitCardKB2_UART
-            board: Core
-            framework: Arduino
-            espressif32: latest
-          - example: SimpleDisplay
-            unit: UnitFacesQWERTY
-            board: Core
+          - example: KeyMatrixVisualizer
+            unit: UnitTab5Keyboard
+            board: Tab5
             framework: Arduino
             espressif32: latest
 

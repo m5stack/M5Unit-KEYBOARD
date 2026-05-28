@@ -16,6 +16,7 @@ namespace m5 {
 namespace unit {
 namespace cardkb2 {
 
+//! @brief Number of keys in the CardKB2 scan matrix
 constexpr uint8_t NUMBER_OF_KEYS{43};
 
 ///@name key index (bit position in scan result)
@@ -74,6 +75,7 @@ constexpr char SCHAR_RIGHT{static_cast<char>(183)};
 
 /*!
   @brief Character to key index
+  @param ch ASCII character
   @retval != 0xFF keyboard::key_index_t
   @retval == 0xFF No corresponding key index exists
  */
@@ -81,6 +83,7 @@ keyboard::key_index_t character_to_key_index(const char ch);
 
 /*!
   @brief Character to mode bits
+  @param ch ASCII character
   @retval == 0 Not exists
   @retval != 0 Bits in corresponding mode
   @note 0x01:normal 0x02:shift 0x04:symbol 0x08:function

@@ -232,8 +232,8 @@ key_index_t character_to_key_index(const char ch)
     // function (>= 0x80)
     if (uc & 0x80) {
         // Special key? (cursor keys)
-        if (uc >= (unsigned char)SCHAR_LEFT && uc <= (unsigned char)SCHAR_RIGHT) {
-            return special_character_map[uc - (unsigned char)SCHAR_LEFT].second;
+        if (uc >= static_cast<unsigned char>(SCHAR_LEFT) && uc <= static_cast<unsigned char>(SCHAR_RIGHT)) {
+            return special_character_map[uc - static_cast<unsigned char>(SCHAR_LEFT)].second;
         }
         // Fn character reverse lookup
         uint8_t idx = uc - 128;
@@ -250,9 +250,9 @@ uint8_t character_to_mode_bits(const char ch)
     if (uc & 0x80) {
         key_index_t kidx = static_cast<key_index_t>(uc - 0x80);
         // Special key?
-        if (uc >= (unsigned char)SCHAR_LEFT && uc <= (unsigned char)SCHAR_RIGHT) {
-            // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - (unsigned char)SCHAR_LEFT].first);
-            return special_character_map[uc - (unsigned char)SCHAR_LEFT].first;
+        if (uc >= static_cast<unsigned char>(SCHAR_LEFT) && uc <= static_cast<unsigned char>(SCHAR_RIGHT)) {
+            // M5_LIB_LOGI("%c => %02X", ch, special_character_map[uc - static_cast<unsigned char>(SCHAR_LEFT)].first);
+            return special_character_map[uc - static_cast<unsigned char>(SCHAR_LEFT)].first;
         }
 
         // M5_LIB_LOGI("%c => %02X", ch, (kidx < m5::stl::size(key_map)) ? 0x08 : 0x00);
