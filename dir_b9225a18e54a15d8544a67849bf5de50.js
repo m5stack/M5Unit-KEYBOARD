@@ -11,5 +11,7 @@ var dir_b9225a18e54a15d8544a67849bf5de50 =
     [ "unit_FacesQWERTY.cpp", "unit___faces_q_w_e_r_t_y_8cpp.html", null ],
     [ "unit_FacesQWERTY.hpp", "unit___faces_q_w_e_r_t_y_8hpp.html", "unit___faces_q_w_e_r_t_y_8hpp" ],
     [ "unit_Keyboard.cpp", "unit___keyboard_8cpp.html", null ],
-    [ "unit_Keyboard.hpp", "unit___keyboard_8hpp.html", "unit___keyboard_8hpp" ]
+    [ "unit_Keyboard.hpp", "unit___keyboard_8hpp.html", "unit___keyboard_8hpp" ],
+    [ "unit_Tab5Keyboard.cpp", "unit___tab5_keyboard_8cpp.html", "unit___tab5_keyboard_8cpp" ],
+    [ "unit_Tab5Keyboard.hpp", "unit___tab5_keyboard_8hpp.html", "unit___tab5_keyboard_8hpp" ]
 ];

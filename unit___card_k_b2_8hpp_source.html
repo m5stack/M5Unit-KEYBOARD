@@ -27,7 +27,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.0.1 git rev:a483db1</span>
+   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.1.0 git rev:b58d024</span>
    </div>
   </td>
  </tr>
@@ -112,7 +112,7 @@ $(function(){initNavTree('unit___card_k_b2_8hpp_source.html',''); initResizable(
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacem5.html">m5</a> {</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceunit.html">unit</a> {</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">class </span>UnitCardKB2 : <span class="keyword">public</span> UnitKeyboard {</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    M5_UNIT_COMPONENT_HPP_BUILDER(UnitCardKB2, 0x5F);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    M5_UNIT_COMPONENT_HPP_BUILDER(<a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a67f8ba7d7c6ffb4caa4a09216d8c8ed9">UnitCardKB2</a>, 0x5F);</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">public</span>:</div>
 <div class="foldopen" id="foldopen00046" data-start="{" data-end="};">
@@ -122,75 +122,77 @@ $(function(){initNavTree('unit___card_k_b2_8hpp_source.html',''); initResizable(
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    };</div>
 </div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classm5_1_1unit_1_1_unit_card_k_b2.html">UnitCardKB2</a>(<span class="keyword">const</span> uint8_t addr = DEFAULT_ADDRESS) : <a class="code hl_class" href="classm5_1_1unit_1_1_unit_keyboard.html">UnitKeyboard</a>(addr)</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    {</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    }</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#ac5b0752558d03483480c10c6e3d72f21">begin</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aa7c6430f22440f47ec38d128634081ef">update</a>(<span class="keyword">const</span> <span class="keywordtype">bool</span> force = <span class="keyword">false</span>) <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="foldopen" id="foldopen00064" data-start="{" data-end="}">
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#afea397a019d71aa294a0aa8285da48ab">   64</a></span>    <span class="keyword">inline</span> <a class="code hl_struct" href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html">config_t</a> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#afea397a019d71aa294a0aa8285da48ab">config</a>()</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    {</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="keywordflow">return</span> _cfg;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    }</div>
+<div class="foldopen" id="foldopen00057" data-start="{" data-end="}">
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a67f8ba7d7c6ffb4caa4a09216d8c8ed9">   57</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a67f8ba7d7c6ffb4caa4a09216d8c8ed9">UnitCardKB2</a>(<span class="keyword">const</span> uint8_t addr = DEFAULT_ADDRESS) : <a class="code hl_class" href="classm5_1_1unit_1_1_unit_keyboard.html">UnitKeyboard</a>(addr)</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    {</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    }</div>
 </div>
-<div class="foldopen" id="foldopen00069" data-start="{" data-end="}">
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">   69</a></span>    <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">config</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html">config_t</a>&amp; cfg)</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    {</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        _cfg = cfg;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keyword">virtual</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#ac5b0752558d03483480c10c6e3d72f21">begin</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aa7c6430f22440f47ec38d128634081ef">update</a>(<span class="keyword">const</span> <span class="keywordtype">bool</span> force = <span class="keyword">false</span>) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
+<div class="foldopen" id="foldopen00068" data-start="{" data-end="}">
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af46f8657a14252d08b0de24040ddd414">   68</a></span>    <span class="keyword">inline</span> <a class="code hl_struct" href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html">config_t</a> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af46f8657a14252d08b0de24040ddd414">config</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordflow">return</span> _cfg;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    }</div>
 </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
-<div class="foldopen" id="foldopen00081" data-start="{" data-end="}">
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">   81</a></span>    <span class="keyword">inline</span> <span class="keyword">virtual</span> <span class="keywordtype">char</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">getchar</a>()<span class="keyword"> const override</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="keyword">    </span>{</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keywordflow">return</span> updated() ? _pressed_key : 0;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    }</div>
+<div class="foldopen" id="foldopen00076" data-start="{" data-end="}">
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">   76</a></span>    <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">config</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html">config_t</a>&amp; cfg)</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    {</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>        _cfg = cfg;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    }</div>
 </div>
-<div class="foldopen" id="foldopen00087" data-start="{" data-end="}">
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">   87</a></span>    <span class="keyword">inline</span> uint8_t <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">available</a>()<span class="keyword"> const</span></div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="keyword">    </span>{</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <span class="keywordflow">return</span> (updated() &amp;&amp; _pressed_key) ? 1 : 0;</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    }</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="foldopen" id="foldopen00088" data-start="{" data-end="}">
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">   88</a></span>    <span class="keyword">inline</span> <span class="keyword">virtual</span> <span class="keywordtype">char</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">getchar</a>()<span class="keyword"> const override</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>        <span class="keywordflow">return</span> updated() ? _pressed_key : 0;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    }</div>
 </div>
-<div class="foldopen" id="foldopen00093" data-start="{" data-end="}">
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">   93</a></span>    <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">discard</a>()</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    {</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        _pressed_key = 0;</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    }</div>
+<div class="foldopen" id="foldopen00095" data-start="{" data-end="}">
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">   95</a></span>    <span class="keyword">inline</span> uint8_t <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">available</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>        <span class="keywordflow">return</span> (updated() &amp;&amp; _pressed_key) ? 1 : 0;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    }</div>
 </div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
-<div class="foldopen" id="foldopen00105" data-start="{" data-end="}">
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">  105</a></span>    <span class="keyword">inline</span> uint8_t <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">firmwareVersion</a>()<span class="keyword"> const</span></div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="keyword">    </span>{</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        <span class="keywordflow">return</span> _firmware_version;</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    }</div>
+<div class="foldopen" id="foldopen00101" data-start="{" data-end="}">
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">  101</a></span>    <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">discard</a>()</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    {</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        _pressed_key = 0;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    }</div>
 </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a2ad2fa2518108ca86ad5a58fca0b8cb2">readFirmwareVersion</a>(uint8_t&amp; ver);</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="keyword">protected</span>:</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    config_t _cfg{};</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    uint8_t _pressed_key{};</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    uint8_t _firmware_version{};</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>};</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>}  <span class="comment">// namespace unit</span></div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>}  <span class="comment">// namespace m5</span></div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="preprocessor">#endif</span></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html">m5::unit::UnitCardKB2</a></div><div class="ttdoc">Card-size 42 key QWERTY keyboard — I2C mode (SKU:U215)</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_a08feb99d323b4a0b54840d65c099c78a"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">m5::unit::UnitCardKB2::available</a></div><div class="ttdeci">uint8_t available() const</div><div class="ttdoc">Number of available characters (0 or 1)</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:87</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_a2ad2fa2518108ca86ad5a58fca0b8cb2"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#a2ad2fa2518108ca86ad5a58fca0b8cb2">m5::unit::UnitCardKB2::readFirmwareVersion</a></div><div class="ttdeci">bool readFirmwareVersion(uint8_t &amp;ver)</div><div class="ttdoc">Read the firmware version.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.cpp:72</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_aa7c6430f22440f47ec38d128634081ef"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#aa7c6430f22440f47ec38d128634081ef">m5::unit::UnitCardKB2::update</a></div><div class="ttdeci">virtual void update(const bool force=false) override</div><div class="ttdef"><b>Definition</b> unit_CardKB2.cpp:44</div></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="foldopen" id="foldopen00113" data-start="{" data-end="}">
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">  113</a></span>    <span class="keyword">inline</span> uint8_t <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">firmwareVersion</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        <span class="keywordflow">return</span> _firmware_version;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    }</div>
+</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classm5_1_1unit_1_1_unit_card_k_b2.html#a2ad2fa2518108ca86ad5a58fca0b8cb2">readFirmwareVersion</a>(uint8_t&amp; ver);</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    config_t _cfg{};</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    uint8_t _pressed_key{};</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    uint8_t _firmware_version{};</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>};</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>}  <span class="comment">// namespace unit</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>}  <span class="comment">// namespace m5</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="preprocessor">#endif</span></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_a08feb99d323b4a0b54840d65c099c78a"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a">m5::unit::UnitCardKB2::available</a></div><div class="ttdeci">uint8_t available() const</div><div class="ttdoc">Number of available characters (0 or 1)</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:95</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_a2ad2fa2518108ca86ad5a58fca0b8cb2"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#a2ad2fa2518108ca86ad5a58fca0b8cb2">m5::unit::UnitCardKB2::readFirmwareVersion</a></div><div class="ttdeci">bool readFirmwareVersion(uint8_t &amp;ver)</div><div class="ttdoc">Read the firmware version.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.cpp:76</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_a67f8ba7d7c6ffb4caa4a09216d8c8ed9"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#a67f8ba7d7c6ffb4caa4a09216d8c8ed9">m5::unit::UnitCardKB2::UnitCardKB2</a></div><div class="ttdeci">UnitCardKB2(const uint8_t addr=DEFAULT_ADDRESS)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:57</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_aa7c6430f22440f47ec38d128634081ef"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#aa7c6430f22440f47ec38d128634081ef">m5::unit::UnitCardKB2::update</a></div><div class="ttdeci">virtual void update(const bool force=false) override</div><div class="ttdef"><b>Definition</b> unit_CardKB2.cpp:48</div></div>
 <div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_ac5b0752558d03483480c10c6e3d72f21"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#ac5b0752558d03483480c10c6e3d72f21">m5::unit::UnitCardKB2::begin</a></div><div class="ttdeci">virtual bool begin() override</div><div class="ttdef"><b>Definition</b> unit_CardKB2.cpp:23</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_aeba5875eabb0510803906f527c1fee84"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">m5::unit::UnitCardKB2::discard</a></div><div class="ttdeci">void discard()</div><div class="ttdoc">Discard current character.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:93</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af69645fb862461adcc6d9bdb58366161"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">m5::unit::UnitCardKB2::firmwareVersion</a></div><div class="ttdeci">uint8_t firmwareVersion() const</div><div class="ttdoc">Gets the firmware version.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:105</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af86020d5487718a24a7f11789fcae1f9"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">m5::unit::UnitCardKB2::config</a></div><div class="ttdeci">void config(const config_t &amp;cfg)</div><div class="ttdoc">Set the configuration.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:69</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af94d6ac53802a8f58bb24bde86d3aa2f"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">m5::unit::UnitCardKB2::getchar</a></div><div class="ttdeci">virtual char getchar() const override</div><div class="ttdoc">Gets the character if input.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:81</div></div>
-<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_afea397a019d71aa294a0aa8285da48ab"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#afea397a019d71aa294a0aa8285da48ab">m5::unit::UnitCardKB2::config</a></div><div class="ttdeci">config_t config()</div><div class="ttdoc">Gets the configuration.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:64</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_aeba5875eabb0510803906f527c1fee84"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84">m5::unit::UnitCardKB2::discard</a></div><div class="ttdeci">void discard()</div><div class="ttdoc">Discard current character.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:101</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af46f8657a14252d08b0de24040ddd414"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af46f8657a14252d08b0de24040ddd414">m5::unit::UnitCardKB2::config</a></div><div class="ttdeci">config_t config() const</div><div class="ttdoc">Gets the configuration.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:68</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af69645fb862461adcc6d9bdb58366161"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161">m5::unit::UnitCardKB2::firmwareVersion</a></div><div class="ttdeci">uint8_t firmwareVersion() const</div><div class="ttdoc">Gets the firmware version.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:113</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af86020d5487718a24a7f11789fcae1f9"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9">m5::unit::UnitCardKB2::config</a></div><div class="ttdeci">void config(const config_t &amp;cfg)</div><div class="ttdoc">Set the configuration.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:76</div></div>
+<div class="ttc" id="aclassm5_1_1unit_1_1_unit_card_k_b2_html_af94d6ac53802a8f58bb24bde86d3aa2f"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f">m5::unit::UnitCardKB2::getchar</a></div><div class="ttdeci">virtual char getchar() const override</div><div class="ttdoc">Gets the character if input.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:88</div></div>
 <div class="ttc" id="aclassm5_1_1unit_1_1_unit_keyboard_html"><div class="ttname"><a href="classm5_1_1unit_1_1_unit_keyboard.html">m5::unit::UnitKeyboard</a></div><div class="ttdoc">Base class of the Keyboard Unit.</div></div>
-<div class="ttc" id="anamespacem5_html"><div class="ttname"><a href="namespacem5.html">m5</a></div><div class="ttdoc">Top level namespace of M5stack.</div></div>
+<div class="ttc" id="anamespacem5_html"><div class="ttname"><a href="namespacem5.html">m5</a></div><div class="ttdoc">Top level namespace of M5Stack.</div></div>
 <div class="ttc" id="anamespaceunit_html"><div class="ttname"><a href="namespaceunit.html">unit</a></div><div class="ttdoc">Unit-related namespace.</div></div>
 <div class="ttc" id="astructm5_1_1unit_1_1_unit_card_k_b2_1_1config__t_html"><div class="ttname"><a href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html">m5::unit::UnitCardKB2::config_t</a></div><div class="ttdoc">Settings for begin.</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:46</div></div>
 <div class="ttc" id="astructm5_1_1unit_1_1_unit_card_k_b2_1_1config__t_html_a2248bcb48e7a222cc5c4ba83f37e478b"><div class="ttname"><a href="structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html#a2248bcb48e7a222cc5c4ba83f37e478b">m5::unit::UnitCardKB2::config_t::interval</a></div><div class="ttdeci">uint32_t interval</div><div class="ttdoc">Periodic interval (ms)</div><div class="ttdef"><b>Definition</b> unit_CardKB2.hpp:50</div></div>

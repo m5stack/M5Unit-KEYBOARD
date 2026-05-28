@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['mode_0',['Mode',['../unit___keyboard_8hpp.html#a13868f0f03acd9cf28de0c5a8f288cd8',1,'m5::unit::keyboard']]]
+  ['buttonevent_0',['ButtonEvent',['../button__event__detector_8hpp.html#af56cded8b1d5ed4f1911e173782b876c',1,'m5::unit::keyboard_bitwise']]]
 ];

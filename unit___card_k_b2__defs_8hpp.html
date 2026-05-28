@@ -27,7 +27,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.0.1 git rev:a483db1</span>
+   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.1.0 git rev:b58d024</span>
    </div>
   </td>
  </tr>
@@ -113,7 +113,7 @@ $(function(){initNavTree('unit___card_k_b2__defs_8hpp.html',''); initResizable(t
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacem5.html">m5</a></td></tr>
-<tr class="memdesc:namespacem5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Top level namespace of M5stack. <br /></td></tr>
+<tr class="memdesc:namespacem5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Top level namespace of M5Stack. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
@@ -129,6 +129,7 @@ Functions</h2></td></tr>
 Variables</h2></td></tr>
 <tr class="memitem:a63d2b1e767190a48f6ad25b02714b1c8" id="r_a63d2b1e767190a48f6ad25b02714b1c8"><td class="memItemLeft" align="right" valign="top"><a id="a63d2b1e767190a48f6ad25b02714b1c8" name="a63d2b1e767190a48f6ad25b02714b1c8"></a>
 constexpr uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>m5::unit::cardkb2::NUMBER_OF_KEYS</b> {43}</td></tr>
+<tr class="memdesc:a63d2b1e767190a48f6ad25b02714b1c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of keys in the CardKB2 scan matrix. <br /></td></tr>
 <tr class="separator:a63d2b1e767190a48f6ad25b02714b1c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">key index (bit position in scan result)</div></td></tr>
 <tr class="memitem:a3b43aa63666cbe6de292464f8751039f" id="r_a3b43aa63666cbe6de292464f8751039f"><td class="memItemLeft" align="right" valign="top"><a id="a3b43aa63666cbe6de292464f8751039f" name="a3b43aa63666cbe6de292464f8751039f"></a>
@@ -290,6 +291,12 @@ constexpr char&#160;</td><td class="memItemRight" valign="bottom"><b>m5::unit::c
 </div><div class="memdoc">
 
 <p>Character to key index. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ch</td><td>ASCII character </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
     <tr><td class="paramname">!=</td><td>0xFF keyboard::key_index_t </td></tr>
@@ -316,6 +323,12 @@ constexpr char&#160;</td><td class="memItemRight" valign="bottom"><b>m5::unit::c
 </div><div class="memdoc">
 
 <p>Character to mode bits. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ch</td><td>ASCII character </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="retval"><dt>Return values</dt><dd>
   <table class="retval">
     <tr><td class="paramname">==</td><td>0 Not exists </td></tr>

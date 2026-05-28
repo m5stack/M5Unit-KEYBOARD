@@ -12,6 +12,7 @@ var unit___keyboard_8hpp =
     [ "MODIFIER_ALT_BIT", "unit___keyboard_8hpp.html#a2ba9fe6e0f4bd999fa14d5a8ae0adde4", null ],
     [ "MODIFIER_CONTROL_BIT", "unit___keyboard_8hpp.html#a3ec69c776d23231d7fbecb83517fc9c0", null ],
     [ "MODIFIER_FUNCTION_BIT", "unit___keyboard_8hpp.html#a4b230a9270afcc4a4f2439495c4fa651", null ],
+    [ "MODIFIER_MASK", "unit___keyboard_8hpp.html#a49b8c3351999fb95c7262a92c3fb0298", null ],
     [ "MODIFIER_OPTION_BIT", "unit___keyboard_8hpp.html#ae198fe1ee5043a05ad9f97e6dc383481", null ],
     [ "MODIFIER_SHIFT_BIT", "unit___keyboard_8hpp.html#a8f477fefb1e218e1e6b2d97f83d77153", null ],
     [ "MODIFIER_SYMBOL_BIT", "unit___keyboard_8hpp.html#a2ef92d143e806c5ad7d7c36ea5a8c3d6", null ]

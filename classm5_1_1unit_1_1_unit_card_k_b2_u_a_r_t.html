@@ -27,7 +27,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.0.1 git rev:a483db1</span>
+   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.1.0 git rev:b58d024</span>
    </div>
   </td>
  </tr>
@@ -132,12 +132,13 @@ Classes</h2></td></tr>
 Public Types</h2></td></tr>
 <tr class="memitem:afcd00f6a90dffccccdcf9e63d028d87e" id="r_afcd00f6a90dffccccdcf9e63d028d87e"><td class="memItemLeft" align="right" valign="top"><a id="afcd00f6a90dffccccdcf9e63d028d87e" name="afcd00f6a90dffccccdcf9e63d028d87e"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>Packet</b> = std::array&lt;uint8_t, 5&gt;</td></tr>
+<tr class="memdesc:afcd00f6a90dffccccdcf9e63d028d87e"><td class="mdescLeft">&#160;</td><td class="mdescRight">5-byte UART packet: {0xAA, 0x03, key_id, key_state, checksum} <br /></td></tr>
 <tr class="separator:afcd00f6a90dffccccdcf9e63d028d87e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a26b49c21d84910d1846babc5509a7c47" id="r_a26b49c21d84910d1846babc5509a7c47"><td class="memItemLeft" align="right" valign="top"><a id="a26b49c21d84910d1846babc5509a7c47" name="a26b49c21d84910d1846babc5509a7c47"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>UnitCardKB2UART</b> (const uint8_t addr=DEFAULT_ADDRESS)</td></tr>
+<tr class="memitem:a26b49c21d84910d1846babc5509a7c47" id="r_a26b49c21d84910d1846babc5509a7c47"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a26b49c21d84910d1846babc5509a7c47">UnitCardKB2UART</a> (const uint8_t addr=DEFAULT_ADDRESS)</td></tr>
+<tr class="memdesc:a26b49c21d84910d1846babc5509a7c47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <br /></td></tr>
 <tr class="separator:a26b49c21d84910d1846babc5509a7c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28c25640025c152dfa5fa7ed593fe71b" id="r_a28c25640025c152dfa5fa7ed593fe71b"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a28c25640025c152dfa5fa7ed593fe71b">begin</a> () override</td></tr>
 <tr class="separator:a28c25640025c152dfa5fa7ed593fe71b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,13 +148,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ad4b5240fd086140d241932fcac1c10e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Obtains the key index corresponding to the specified character.     <br /></td></tr>
 <tr class="separator:ad4b5240fd086140d241932fcac1c10e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Settings for begin</div></td></tr>
-<tr class="memitem:a619551c36a5cab0147f36618e246ac46" id="r_a619551c36a5cab0147f36618e246ac46"><td class="memItemLeft" align="right" valign="top"><a id="a619551c36a5cab0147f36618e246ac46" name="a619551c36a5cab0147f36618e246ac46"></a>
-<a class="el" href="structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html">config_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>config</b> ()</td></tr>
-<tr class="memdesc:a619551c36a5cab0147f36618e246ac46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the configuration. <br /></td></tr>
-<tr class="separator:a619551c36a5cab0147f36618e246ac46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed1db1c7eadafabe7a21b6e16501e6d7" id="r_aed1db1c7eadafabe7a21b6e16501e6d7"><td class="memItemLeft" align="right" valign="top"><a id="aed1db1c7eadafabe7a21b6e16501e6d7" name="aed1db1c7eadafabe7a21b6e16501e6d7"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>config</b> (const <a class="el" href="structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html">config_t</a> &amp;cfg)</td></tr>
-<tr class="memdesc:aed1db1c7eadafabe7a21b6e16501e6d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the configuration. <br /></td></tr>
+<tr class="memitem:a3ff5b04898b67034ffc7b45f934f8b76" id="r_a3ff5b04898b67034ffc7b45f934f8b76"><td class="memItemLeft" align="right" valign="top"><a id="a3ff5b04898b67034ffc7b45f934f8b76" name="a3ff5b04898b67034ffc7b45f934f8b76"></a>
+<a class="el" href="structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html">config_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>config</b> () const</td></tr>
+<tr class="memdesc:a3ff5b04898b67034ffc7b45f934f8b76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the configuration. <br /></td></tr>
+<tr class="separator:a3ff5b04898b67034ffc7b45f934f8b76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed1db1c7eadafabe7a21b6e16501e6d7" id="r_aed1db1c7eadafabe7a21b6e16501e6d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed1db1c7eadafabe7a21b6e16501e6d7">config</a> (const <a class="el" href="structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html">config_t</a> &amp;cfg)</td></tr>
+<tr class="memdesc:aed1db1c7eadafabe7a21b6e16501e6d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the configuration.  <br /></td></tr>
 <tr class="separator:aed1db1c7eadafabe7a21b6e16501e6d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">Firmware</div></td></tr>
 <tr class="memitem:afb6b7a23e158c218cb9aaac07d252ddb" id="r_afb6b7a23e158c218cb9aaac07d252ddb"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb6b7a23e158c218cb9aaac07d252ddb">readFirmwareVersion</a> (uint8_t &amp;ver) override</td></tr>
@@ -164,7 +164,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>config</b> (const <a 
 <tr class="memdesc:ac9e6cd385e31796e2b1fa71b785522dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not supported on CardKB2UART.  <br /></td></tr>
 <tr class="separator:ac9e6cd385e31796e2b1fa71b785522dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f1beab89b7c4bf4d93f7cdbcae5b37f" id="r_a2f1beab89b7c4bf4d93f7cdbcae5b37f"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2f1beab89b7c4bf4d93f7cdbcae5b37f">writeMode</a> (const <a class="el" href="unit___keyboard_8hpp.html#a13868f0f03acd9cf28de0c5a8f288cd8">keyboard::Mode</a>) override</td></tr>
-<tr class="memdesc:a2f1beab89b7c4bf4d93f7cdbcae5b37f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not supported on CardKB2UART.     <br /></td></tr>
+<tr class="memdesc:a2f1beab89b7c4bf4d93f7cdbcae5b37f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Not supported on CardKB2UART.  <br /></td></tr>
 <tr class="separator:a2f1beab89b7c4bf4d93f7cdbcae5b37f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html">m5::unit::UnitKeyboardBitwise</a></td></tr>
 <tr class="memitem:a2d8057d9d236d5b1520dea6beb69b3c9 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a2d8057d9d236d5b1520dea6beb69b3c9"><td class="memItemLeft" align="right" valign="top">
@@ -189,9 +189,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>startPeriodicMeasurem
 <tr class="memitem:ad03b632342ccb672cda111bb5220eb21 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_ad03b632342ccb672cda111bb5220eb21"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#ad03b632342ccb672cda111bb5220eb21">stopPeriodicMeasurement</a> ()</td></tr>
 <tr class="memdesc:ad03b632342ccb672cda111bb5220eb21 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop periodic measurement.  <br /></td></tr>
 <tr class="separator:ad03b632342ccb672cda111bb5220eb21 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17e6e1dfaac4b7d3f77923b3f577f845 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a17e6e1dfaac4b7d3f77923b3f577f845"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>nowBits</b> () const</td></tr>
-<tr class="memdesc:a17e6e1dfaac4b7d3f77923b3f577f845 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the bits of the key being pressed. <br /></td></tr>
+<tr class="memitem:a17e6e1dfaac4b7d3f77923b3f577f845 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a17e6e1dfaac4b7d3f77923b3f577f845"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a17e6e1dfaac4b7d3f77923b3f577f845">nowBits</a> () const</td></tr>
+<tr class="memdesc:a17e6e1dfaac4b7d3f77923b3f577f845 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the bits of the key being pressed.  <br /></td></tr>
 <tr class="separator:a17e6e1dfaac4b7d3f77923b3f577f845 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ac57e2b1e36bc00e7d3ff72f1f1d258 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a8ac57e2b1e36bc00e7d3ff72f1f1d258"><td class="memItemLeft" align="right" valign="top">
 <a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>previousBits</b> () const</td></tr>
@@ -221,9 +220,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>startPeriodicMeasurem
 <a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>modifierBits</b> () const</td></tr>
 <tr class="memdesc:a135c3a96b902ecf75ec7a82b5385addc inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the bits of the modifier key being pressed. <br /></td></tr>
 <tr class="separator:a135c3a96b902ecf75ec7a82b5385addc inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19df761cf6ecad800dd1c8f49c765922 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a19df761cf6ecad800dd1c8f49c765922"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isModifier</b> () const</td></tr>
-<tr class="memdesc:a19df761cf6ecad800dd1c8f49c765922 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is any modifier keys pressed? <br /></td></tr>
+<tr class="memitem:a19df761cf6ecad800dd1c8f49c765922 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a19df761cf6ecad800dd1c8f49c765922"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a19df761cf6ecad800dd1c8f49c765922">isModifier</a> () const</td></tr>
+<tr class="memdesc:a19df761cf6ecad800dd1c8f49c765922 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is any modifier key pressed?  <br /></td></tr>
 <tr class="separator:a19df761cf6ecad800dd1c8f49c765922 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a984843f9d8ccfde6ffe0dc4161f30c83 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a984843f9d8ccfde6ffe0dc4161f30c83"><td class="memItemLeft" align="right" valign="top">
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isShift</b> () const</td></tr>
@@ -273,13 +271,11 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isControlEqual</b> ()
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isOptionEqual</b> () const</td></tr>
 <tr class="memdesc:a247d83566892b8b7a0571c50105da57c inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is only option pressed among the modifier keys? <br /></td></tr>
 <tr class="separator:a247d83566892b8b7a0571c50105da57c inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8595ba942d1e1397e30d6404bd13b495 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a8595ba942d1e1397e30d6404bd13b495"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isPressed</b> () const</td></tr>
-<tr class="memdesc:a8595ba942d1e1397e30d6404bd13b495 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is any key press? <br /></td></tr>
+<tr class="memitem:a8595ba942d1e1397e30d6404bd13b495 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a8595ba942d1e1397e30d6404bd13b495"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a8595ba942d1e1397e30d6404bd13b495">isPressed</a> () const</td></tr>
+<tr class="memdesc:a8595ba942d1e1397e30d6404bd13b495 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is any key pressed?  <br /></td></tr>
 <tr class="separator:a8595ba942d1e1397e30d6404bd13b495 inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac06d065b681da42d31dcf196d3852ad inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_aac06d065b681da42d31dcf196d3852ad"><td class="memItemLeft" align="right" valign="top">
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isReleased</b> () const</td></tr>
-<tr class="memdesc:aac06d065b681da42d31dcf196d3852ad inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is all key release? <br /></td></tr>
+<tr class="memitem:aac06d065b681da42d31dcf196d3852ad inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_aac06d065b681da42d31dcf196d3852ad"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#aac06d065b681da42d31dcf196d3852ad">isReleased</a> () const</td></tr>
+<tr class="memdesc:aac06d065b681da42d31dcf196d3852ad inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="mdescLeft">&#160;</td><td class="mdescRight">Are all keys released?  <br /></td></tr>
 <tr class="separator:aac06d065b681da42d31dcf196d3852ad inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add4be0f242738b9e29589481ee74a6dc inherit pub_methods_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_add4be0f242738b9e29589481ee74a6dc"><td class="memItemLeft" align="right" valign="top">
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>wasPressed</b> () const</td></tr>
@@ -371,7 +367,7 @@ Protected Member Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>update_uart</b> (const bool force)</td></tr>
 <tr class="separator:a500f53fd3033ff8960fe5d80399951f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95781f307876ac7d5483bd773ca9c409" id="r_a95781f307876ac7d5483bd773ca9c409"><td class="memItemLeft" align="right" valign="top"><a id="a95781f307876ac7d5483bd773ca9c409" name="a95781f307876ac7d5483bd773ca9c409"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>read_data</b> (Packet &amp;rbuf)</td></tr>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>read_data</b> (<a class="el" href="#afcd00f6a90dffccccdcf9e63d028d87e">Packet</a> &amp;rbuf)</td></tr>
 <tr class="separator:a95781f307876ac7d5483bd773ca9c409"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae888343d4bdd800abb36231f87dfe2c0" id="r_ae888343d4bdd800abb36231f87dfe2c0"><td class="memItemLeft" align="right" valign="top">virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae888343d4bdd800abb36231f87dfe2c0">to_mode_bits</a> (const char ch) const override</td></tr>
 <tr class="separator:ae888343d4bdd800abb36231f87dfe2c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -419,39 +415,9 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a8b2beddec15c5fd6be9a3a38309520bd inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a8b2beddec15c5fd6be9a3a38309520bd"><td class="memItemLeft" align="right" valign="top">
 std::unique_ptr&lt; m5::container::CircularBuffer&lt; uint8_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_data</b> {}</td></tr>
 <tr class="separator:a8b2beddec15c5fd6be9a3a38309520bd inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a97234c804b0aaf4ef0d962d20b07da3d inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a97234c804b0aaf4ef0d962d20b07da3d"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_now</b> {}</td></tr>
-<tr class="separator:a97234c804b0aaf4ef0d962d20b07da3d inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a36b9177a90298a16f9ca266f77375529 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a36b9177a90298a16f9ca266f77375529"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_prev</b> {}</td></tr>
-<tr class="separator:a36b9177a90298a16f9ca266f77375529 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace5defb01bf8dc07ffea0a9881af2b50 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_ace5defb01bf8dc07ffea0a9881af2b50"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_wasPressed</b> {}</td></tr>
-<tr class="separator:ace5defb01bf8dc07ffea0a9881af2b50 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a989bbfffd8873f487dedbd6bb9247a76 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a989bbfffd8873f487dedbd6bb9247a76"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_wasReleased</b> {}</td></tr>
-<tr class="separator:a989bbfffd8873f487dedbd6bb9247a76 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6d53e9564df476d06bdf5116afddedf7 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a6d53e9564df476d06bdf5116afddedf7"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_wasHold</b> {}</td></tr>
-<tr class="separator:a6d53e9564df476d06bdf5116afddedf7 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a074961bac01a713fdb2097b2166fe3 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a8a074961bac01a713fdb2097b2166fe3"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_holding</b> {}</td></tr>
-<tr class="separator:a8a074961bac01a713fdb2097b2166fe3 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf2a82ede1b0a236d72d9137277936c0 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_acf2a82ede1b0a236d72d9137277936c0"><td class="memItemLeft" align="right" valign="top">
-<a class="el" href="unit___keyboard_8hpp.html#a376a6a0cd4a3ec83dd6a559642a8b3ae">keyboard::key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>_repeating</b> {}</td></tr>
-<tr class="separator:acf2a82ede1b0a236d72d9137277936c0 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6eedc6bb4ff778cc088f587860ef8b5 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_ad6eedc6bb4ff778cc088f587860ef8b5"><td class="memItemLeft" align="right" valign="top">
-std::vector&lt; types::elapsed_time_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_repeat_start_at</b> {}</td></tr>
-<tr class="separator:ad6eedc6bb4ff778cc088f587860ef8b5 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a003a97fe77e5227bff7a7b92d58198c1 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a003a97fe77e5227bff7a7b92d58198c1"><td class="memItemLeft" align="right" valign="top">
-std::vector&lt; types::elapsed_time_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_hold_start_at</b> {}</td></tr>
-<tr class="separator:a003a97fe77e5227bff7a7b92d58198c1 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b07d21fd2a10ef7fdd330b5b3eb13fc inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a1b07d21fd2a10ef7fdd330b5b3eb13fc"><td class="memItemLeft" align="right" valign="top">
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>_repeating_threshold</b> {400}</td></tr>
-<tr class="separator:a1b07d21fd2a10ef7fdd330b5b3eb13fc inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa0c1effbaf7a73ec6e489121358b7859 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_aa0c1effbaf7a73ec6e489121358b7859"><td class="memItemLeft" align="right" valign="top">
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>_holding_threshold</b> {800}</td></tr>
-<tr class="separator:aa0c1effbaf7a73ec6e489121358b7859 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cbfb4cf1e739b14c26c2af35f96d8e8 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a7cbfb4cf1e739b14c26c2af35f96d8e8"><td class="memItemLeft" align="right" valign="top">
+m5::unit::keyboard_bitwise::BitwiseState&lt; 64 &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>_state</b></td></tr>
+<tr class="separator:a7cbfb4cf1e739b14c26c2af35f96d8e8 inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e48a3de00d6d1dae190d6910952565b inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise" id="r_a7e48a3de00d6d1dae190d6910952565b"><td class="memItemLeft" align="right" valign="top">
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>_firmware_version</b> {}</td></tr>
 <tr class="separator:a7e48a3de00d6d1dae190d6910952565b inherit pro_attribs_classm5_1_1unit_1_1_unit_keyboard_bitwise"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -473,7 +439,41 @@ Fn+D/Z/X/C arrow keys work in UART mode (hold Fn, then press D/Z/X/C). Fn+1 (ESC
 <dd>
 Unlike CardKB/FacesQWERTY, CardKB2 does not support software mode switching via <a class="el" href="#ac9e6cd385e31796e2b1fa71b785522dd" title="Not supported on CardKB2UART.">readMode()</a>/writeMode(). </dd></dl>
 <dl class="section warning"><dt>Warning</dt><dd>After switching communication mode (Fn+Sym+1/2), press the RST button on CardKB2 to reset modifier state. This will be fixed in a future firmware update. </dd></dl>
-</div><h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a26b49c21d84910d1846babc5509a7c47" name="a26b49c21d84910d1846babc5509a7c47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a26b49c21d84910d1846babc5509a7c47">&#9670;&#160;</a></span>UnitCardKB2UART()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">m5::unit::UnitCardKB2UART::UnitCardKB2UART </td>
+          <td>(</td>
+          <td class="paramtype">const uint8_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span><span class="paramdefsep"> = </span><span class="paramdefval">DEFAULT_ADDRESS</span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructor. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addr</td><td>Reserved for API compatibility (UART transport ignores I2C address) </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
 <a id="a28c25640025c152dfa5fa7ed593fe71b" name="a28c25640025c152dfa5fa7ed593fe71b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a28c25640025c152dfa5fa7ed593fe71b">&#9670;&#160;</a></span>begin()</h2>
 
@@ -500,6 +500,39 @@ Unlike CardKB/FacesQWERTY, CardKB2 does not support software mode switching via 
 <p></p>
 
 <p>Reimplemented from <a class="el" href="classm5_1_1unit_1_1_unit_keyboard.html#ab5557025133dd4b859274bdffd45fbbb">m5::unit::UnitKeyboard</a>.</p>
+
+</div>
+</div>
+<a id="aed1db1c7eadafabe7a21b6e16501e6d7" name="aed1db1c7eadafabe7a21b6e16501e6d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed1db1c7eadafabe7a21b6e16501e6d7">&#9670;&#160;</a></span>config()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void m5::unit::UnitCardKB2UART::config </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html">config_t</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>cfg</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set the configuration. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cfg</td><td>Configuration to apply </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -684,8 +717,8 @@ Unlike CardKB/FacesQWERTY, CardKB2 does not support software mode switching via 
 </table>
 </div><div class="memdoc">
 
-<p>Not supported on CardKB2UART.    </p>
-<dl class="section return"><dt>Returns</dt><dd>Always false    </dd></dl>
+<p>Not supported on CardKB2UART. </p>
+<dl class="section return"><dt>Returns</dt><dd>Always false </dd></dl>
 
 <p>Reimplemented from <a class="el" href="classm5_1_1unit_1_1_unit_keyboard_bitwise.html#ad889b0dc78e881030306fbc6b7191010">m5::unit::UnitKeyboardBitwise</a>.</p>
 

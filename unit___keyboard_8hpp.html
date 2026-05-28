@@ -27,7 +27,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.0.1 git rev:a483db1</span>
+   <div id="projectname">M5Unit-KEYBOARD<span id="projectnumber">&#160;0.1.0 git rev:b58d024</span>
    </div>
   </td>
  </tr>
@@ -111,6 +111,7 @@ $(function(){initNavTree('unit___keyboard_8hpp.html',''); initResizable(true); }
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;M5UnitComponent.hpp&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;<a class="el" href="bitwise__state_8hpp_source.html">../utility/bitwise_state.hpp</a>&quot;</code><br />
 </div>
 <p><a href="unit___keyboard_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -126,7 +127,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacem5.html">m5</a></td></tr>
-<tr class="memdesc:namespacem5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Top level namespace of M5stack. <br /></td></tr>
+<tr class="memdesc:namespacem5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Top level namespace of M5Stack. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacekeyboard.html">keyboard</a></td></tr>
 <tr class="memdesc:namespacekeyboard"><td class="mdescLeft">&#160;</td><td class="mdescRight">For keyboard. <br /></td></tr>
@@ -153,9 +154,8 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a6772d638dc2baa0a539b978cf2dab98c" id="r_a6772d638dc2baa0a539b978cf2dab98c"><td class="memItemLeft" align="right" valign="top"><a id="a6772d638dc2baa0a539b978cf2dab98c" name="a6772d638dc2baa0a539b978cf2dab98c"></a>
-constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m5::unit::keyboard::modifier_bits</b> (const <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a> kbs)</td></tr>
-<tr class="memdesc:a6772d638dc2baa0a539b978cf2dab98c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the modifier bits from key_status_bits_t. <br /></td></tr>
+<tr class="memitem:a6772d638dc2baa0a539b978cf2dab98c" id="r_a6772d638dc2baa0a539b978cf2dab98c"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6772d638dc2baa0a539b978cf2dab98c">m5::unit::keyboard::modifier_bits</a> (const <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a> kbs)</td></tr>
+<tr class="memdesc:a6772d638dc2baa0a539b978cf2dab98c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the modifier bits from key_status_bits_t.  <br /></td></tr>
 <tr class="separator:a6772d638dc2baa0a539b978cf2dab98c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
@@ -194,6 +194,9 @@ constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bit
 constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>m5::unit::keyboard::MODIFIER_OPTION_BIT</b> {0x2000000000000000}</td></tr>
 <tr class="memdesc:ae198fe1ee5043a05ad9f97e6dc383481"><td class="mdescLeft">&#160;</td><td class="mdescRight">Option. <br /></td></tr>
 <tr class="separator:ae198fe1ee5043a05ad9f97e6dc383481"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49b8c3351999fb95c7262a92c3fb0298" id="r_a49b8c3351999fb95c7262a92c3fb0298"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a49b8c3351999fb95c7262a92c3fb0298">m5::unit::keyboard::MODIFIER_MASK</a></td></tr>
+<tr class="memdesc:a49b8c3351999fb95c7262a92c3fb0298"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shift.  <br /></td></tr>
+<tr class="separator:a49b8c3351999fb95c7262a92c3fb0298"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Base class for units. </p>
@@ -227,6 +230,74 @@ constexpr <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bit
 <p>CardKB, FacesQWERTY:Gets the pressed key status </p><dl class="section warning"><dt>Warning</dt><dd>M5Unit-KEYBOARD firmware must be written </dd></dl>
 </td></tr>
 </table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a6772d638dc2baa0a539b978cf2dab98c" name="a6772d638dc2baa0a539b978cf2dab98c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6772d638dc2baa0a539b978cf2dab98c">&#9670;&#160;</a></span>modifier_bits()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">key_status_bits_t m5::unit::keyboard::modifier_bits </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="#a376a6a0cd4a3ec83dd6a559642a8b3ae">key_status_bits_t</a></td>          <td class="paramname"><span class="paramname"><em>kbs</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Gets the modifier bits from key_status_bits_t. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">kbs</td><td>Key status bits </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Bits with only the modifier flags set </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a id="a49b8c3351999fb95c7262a92c3fb0298" name="a49b8c3351999fb95c7262a92c3fb0298"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49b8c3351999fb95c7262a92c3fb0298">&#9670;&#160;</a></span>MODIFIER_MASK</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">key_status_bits_t m5::unit::keyboard::MODIFIER_MASK</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">{<a class="code hl_variable" href="#a8f477fefb1e218e1e6b2d97f83d77153">MODIFIER_SHIFT_BIT</a> | <a class="code hl_variable" href="#a2ef92d143e806c5ad7d7c36ea5a8c3d6">MODIFIER_SYMBOL_BIT</a> | <a class="code hl_variable" href="#a4b230a9270afcc4a4f2439495c4fa651">MODIFIER_FUNCTION_BIT</a> |</div>
+<div class="line">                                          <a class="code hl_variable" href="#a2ba9fe6e0f4bd999fa14d5a8ae0adde4">MODIFIER_ALT_BIT</a> | <a class="code hl_variable" href="#a3ec69c776d23231d7fbecb83517fc9c0">MODIFIER_CONTROL_BIT</a> | <a class="code hl_variable" href="#ae198fe1ee5043a05ad9f97e6dc383481">MODIFIER_OPTION_BIT</a>}</div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_a2ba9fe6e0f4bd999fa14d5a8ae0adde4"><div class="ttname"><a href="#a2ba9fe6e0f4bd999fa14d5a8ae0adde4">m5::unit::keyboard::MODIFIER_ALT_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_ALT_BIT</div><div class="ttdoc">Alt.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:35</div></div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_a2ef92d143e806c5ad7d7c36ea5a8c3d6"><div class="ttname"><a href="#a2ef92d143e806c5ad7d7c36ea5a8c3d6">m5::unit::keyboard::MODIFIER_SYMBOL_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_SYMBOL_BIT</div><div class="ttdoc">Symbol.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:33</div></div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_a3ec69c776d23231d7fbecb83517fc9c0"><div class="ttname"><a href="#a3ec69c776d23231d7fbecb83517fc9c0">m5::unit::keyboard::MODIFIER_CONTROL_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_CONTROL_BIT</div><div class="ttdoc">Control.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:36</div></div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_a4b230a9270afcc4a4f2439495c4fa651"><div class="ttname"><a href="#a4b230a9270afcc4a4f2439495c4fa651">m5::unit::keyboard::MODIFIER_FUNCTION_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_FUNCTION_BIT</div><div class="ttdoc">Function.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:34</div></div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_a8f477fefb1e218e1e6b2d97f83d77153"><div class="ttname"><a href="#a8f477fefb1e218e1e6b2d97f83d77153">m5::unit::keyboard::MODIFIER_SHIFT_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_SHIFT_BIT</div><div class="ttdoc">Shift.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:32</div></div>
+<div class="ttc" id="aunit___keyboard_8hpp_html_ae198fe1ee5043a05ad9f97e6dc383481"><div class="ttname"><a href="#ae198fe1ee5043a05ad9f97e6dc383481">m5::unit::keyboard::MODIFIER_OPTION_BIT</a></div><div class="ttdeci">constexpr key_status_bits_t MODIFIER_OPTION_BIT</div><div class="ttdoc">Option.</div><div class="ttdef"><b>Definition</b> unit_Keyboard.hpp:37</div></div>
+</div><!-- fragment -->
+<p>Shift. </p>
 
 </div>
 </div>

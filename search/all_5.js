@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['getchar_0',['getchar',['../classm5_1_1unit_1_1_unit_card_k_b2.html#af94d6ac53802a8f58bb24bde86d3aa2f',1,'m5::unit::UnitCardKB2::getchar()'],['../classm5_1_1unit_1_1_unit_keyboard.html#a13a506f5c6b4c5a88db85a77f0d336e7',1,'m5::unit::UnitKeyboard::getchar()'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#afd4ea5814503015788bc4f2cf2373bce',1,'m5::unit::UnitKeyboardBitwise::getchar()']]]
+  ['faces_0',['faces',['../namespacefaces.html',1,'']]],
+  ['facestype_1',['facesType',['../classm5_1_1unit_1_1_unit_faces_q_w_e_r_t_y.html#a5b2b086c7a5a2323961f7f472fe658af',1,'m5::unit::UnitFacesQWERTY']]],
+  ['firmwareversion_2',['firmwareVersion',['../classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161',1,'m5::unit::UnitCardKB2::firmwareVersion()'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#adbb4216e5913dce30031aaf6a1741698',1,'m5::unit::UnitKeyboardBitwise::firmwareVersion()'],['../classm5_1_1unit_1_1_unit_tab5_keyboard.html#afccd83924a034fa4f9d54c3a0f8258ee',1,'m5::unit::UnitTab5Keyboard::firmwareVersion()']]]
 ];

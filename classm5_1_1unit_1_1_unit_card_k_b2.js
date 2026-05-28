@@ -1,9 +1,10 @@
 var classm5_1_1unit_1_1_unit_card_k_b2 =
 [
     [ "config_t", "structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html", "structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t" ],
+    [ "UnitCardKB2", "classm5_1_1unit_1_1_unit_card_k_b2.html#a67f8ba7d7c6ffb4caa4a09216d8c8ed9", null ],
     [ "available", "classm5_1_1unit_1_1_unit_card_k_b2.html#a08feb99d323b4a0b54840d65c099c78a", null ],
     [ "begin", "classm5_1_1unit_1_1_unit_card_k_b2.html#ac5b0752558d03483480c10c6e3d72f21", null ],
-    [ "config", "classm5_1_1unit_1_1_unit_card_k_b2.html#afea397a019d71aa294a0aa8285da48ab", null ],
+    [ "config", "classm5_1_1unit_1_1_unit_card_k_b2.html#af46f8657a14252d08b0de24040ddd414", null ],
     [ "config", "classm5_1_1unit_1_1_unit_card_k_b2.html#af86020d5487718a24a7f11789fcae1f9", null ],
     [ "discard", "classm5_1_1unit_1_1_unit_card_k_b2.html#aeba5875eabb0510803906f527c1fee84", null ],
     [ "firmwareVersion", "classm5_1_1unit_1_1_unit_card_k_b2.html#af69645fb862461adcc6d9bdb58366161", null ],

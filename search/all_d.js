@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['setholdingthreshold_0',['setHoldingThreshold',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a90bc2fc80ca6e35d9fa46f472fe6d8f3',1,'m5::unit::UnitKeyboardBitwise']]],
-  ['setrepeatingthreshold_1',['setRepeatingThreshold',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a3e2592ff30c64ae50ee80c1aea174087',1,'m5::unit::UnitKeyboardBitwise']]],
-  ['start_5fperiodic_2',['start_periodic',['../structm5_1_1unit_1_1_unit_card_k_b_1_1config__t.html#acd25a3d6e9463dd88b2660f266d6dc20',1,'m5::unit::UnitCardKB::config_t::start_periodic'],['../structm5_1_1unit_1_1_unit_card_k_b2_1_1config__t.html#aee0b71cf0c6745d47147d42b914ac0f7',1,'m5::unit::UnitCardKB2::config_t::start_periodic'],['../structm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t_1_1config__t.html#acef25b1f27e2d2e21fad20772f798572',1,'m5::unit::UnitCardKB2UART::config_t::start_periodic'],['../structm5_1_1unit_1_1_unit_faces_q_w_e_r_t_y_1_1config__t.html#ad07f23a77cecf250873b63d7c3155ddb',1,'m5::unit::UnitFacesQWERTY::config_t::start_periodic']]],
-  ['startperiodicmeasurement_3',['startPeriodicMeasurement',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a2454ba097ff0e3a12dfe1c0a961f7641',1,'m5::unit::UnitKeyboardBitwise::startPeriodicMeasurement(const uint32_t interval)'],['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a96cdbdc6e58c52d67175cbdcf11d7661',1,'m5::unit::UnitKeyboardBitwise::startPeriodicMeasurement()']]],
-  ['stopperiodicmeasurement_4',['stopPeriodicMeasurement',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#ad03b632342ccb672cda111bb5220eb21',1,'m5::unit::UnitKeyboardBitwise']]]
+  ['packet_0',['Packet',['../classm5_1_1unit_1_1_unit_card_k_b2_u_a_r_t.html#afcd00f6a90dffccccdcf9e63d028d87e',1,'m5::unit::UnitCardKB2UART']]],
+  ['pressed_1',['pressed',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#abc09532d84d642c50e7843ac1170b717',1,'m5::unit::UnitKeyboardBitwise']]],
+  ['pressedbits_2',['pressedBits',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a8666aa9721d28f3db97cc23b13a22850',1,'m5::unit::UnitKeyboardBitwise::pressedBits()'],['../classm5_1_1unit_1_1_unit_tab5_keyboard.html#a5e19e2ce82bc1bc8054388e3492694bc',1,'m5::unit::UnitTab5Keyboard::pressedBits()']]],
+  ['previousbits_3',['previousBits',['../classm5_1_1unit_1_1_unit_keyboard_bitwise.html#a8ac57e2b1e36bc00e7d3ff72f1f1d258',1,'m5::unit::UnitKeyboardBitwise::previousBits()'],['../classm5_1_1unit_1_1_unit_tab5_keyboard.html#a505e834c45cb8986977aa4f7584247af',1,'m5::unit::UnitTab5Keyboard::previousBits()']]]
 ];
