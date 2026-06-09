@@ -1,0 +1,26 @@
+# Shared ESP-IDF defaults for all M5Unit-KEYBOARD UnitUnified examples.
+# NOTE: never put an inline comment on a value line (KEY=val # ...); kconfiglib folds it into
+# the value and silently ignores the assignment.
+
+# 1 ms FreeRTOS tick for finer delay() granularity.
+CONFIG_FREERTOS_HZ=1000
+
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Run loop on CPU1 and leave IDLE1 unwatched by the TWDT (IDLE0 stays watched).
+CONFIG_ESP_MAIN_TASK_AFFINITY_CPU1=y
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+
+CONFIG_COMPILER_OPTIMIZATION_SIZE=y
+
+# Enable PSRAM (required by M5GFX on PSRAM boards like M5Tab5). IGNORE_NOTFOUND lets
+# boards without PSRAM still boot.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_IGNORE_NOTFOUND=y
+
+# Keep upstream warnings as warnings (Kconfig default: y on IDF 5.4/5.5, n on 6.0+). Pin to y.
+CONFIG_COMPILER_DISABLE_DEFAULT_ERRORS=y
+
+# ESP32 classic: suppress M5Unified's legacy touch_sensor.h deprecation #warning
+# (becomes a hard error under -Werror). Ignored on targets without touch.
+CONFIG_TOUCH_SUPPRESS_DEPRECATE_WARN=y

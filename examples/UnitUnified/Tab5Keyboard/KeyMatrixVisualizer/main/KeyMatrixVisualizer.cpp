@@ -23,6 +23,7 @@
 #include <M5UnitUnifiedKEYBOARD.h>
 #include <M5HAL.hpp>
 #include <M5Utility.h>
+#include <wiring/m5_unit_unified_wiring.hpp>  // m5::unit::wiring::failStop()
 
 // This example targets UnitTab5Keyboard (Normal mode) only.
 // `M5UnitUnifiedKEYBOARD.h` always includes `unit_Tab5Keyboard.hpp`, so no
@@ -39,8 +40,8 @@ m5::unit::UnitTab5Keyboard unit;
 //   INT = GPIO50 (J9 pin 10) -- handled by config_t default (irq_pin = 50)
 //   SDA = GPIO0  (J9 pin 7)
 //   SCL = GPIO1  (J9 pin 8)
-constexpr int8_t TAB5_KEYBOARD_SDA = 0;
-constexpr int8_t TAB5_KEYBOARD_SCL = 1;
+constexpr int8_t TAB5_KEYBOARD_SDA{0};
+constexpr int8_t TAB5_KEYBOARD_SCL{1};
 
 // Matrix geometry (5 rows x 14 cols) -- pulled from the unit's namespace constants
 // so the code automatically tracks any future change in KEY_COL_COUNT / KEY_COUNT.
@@ -84,9 +85,22 @@ bool setup_tab5_keyboard()
     }
 
     M5_LOGI("Tab5 ExtPort1 I2C: SDA:%d SCL:%d", TAB5_KEYBOARD_SDA, TAB5_KEYBOARD_SCL);
+#if defined(ARDUINO)
+    // Arduino: hardware I2C via Wire on the fixed ExtPort1 pins (GPIO0/1).
     Wire.end();
     Wire.begin(TAB5_KEYBOARD_SDA, TAB5_KEYBOARD_SCL, unit.component_config().clock);
-    if (!Units.add(unit, Wire) || !Units.begin()) {
+    const bool unit_ready = Units.add(unit, Wire) && Units.begin();
+#else
+    // ESP-IDF native (5.2+ new I2C master driver): build a hardware I2C bus on the fixed pins
+    // (NOT SoftwareI2C). add(port,sda,scl) is legacy-driver only (#if !__has_include
+    // <driver/i2c_master.h>); on the new driver use wiring::i2cBusHandle (-> i2c_new_master_bus)
+    // + add(unit, bus). clock comes from the unit's component_config().clock.
+    auto bus =
+        m5::unit::wiring::i2cBusHandle(I2C_NUM_0, static_cast<gpio_num_t>(TAB5_KEYBOARD_SDA),
+                                       static_cast<gpio_num_t>(TAB5_KEYBOARD_SCL), unit.component_config().clock);
+    const bool unit_ready = Units.add(unit, bus) && Units.begin();
+#endif
+    if (!unit_ready) {
         return false;
     }
 
@@ -350,10 +364,7 @@ void setup()
 
     if (!setup_tab5_keyboard()) {
         M5_LOGE("Failed to begin UnitTab5Keyboard");
-        lcd.fillScreen(TFT_RED);
-        while (true) {
-            m5::utility::delay(10000);
-        }
+        m5::unit::wiring::failStop();
     }
     M5_LOGI("M5UnitUnified initialized");
     M5_LOGI("%s", Units.debugInfo().c_str());
@@ -377,3 +388,16 @@ void loop()
     draw_dirty_cells();
     m5::utility::delay(1000 / 60);
 }
+
+#if !defined(ARDUINO)
+// Tab5 (ESP32-P4) is dual-core: the loop runs on CPU1 (CONFIG_ESP_MAIN_TASK_AFFINITY_CPU1=y)
+// while IDLE0 keeps the system tasks fed on CPU0, so no per-iteration yield is needed here.
+// (Single-core examples that also target C3/C6/H2 need an IDLE-feed; this Tab5-only one does not.)
+extern "C" void app_main(void)
+{
+    setup();
+    for (;;) {
+        loop();
+    }
+}
+#endif

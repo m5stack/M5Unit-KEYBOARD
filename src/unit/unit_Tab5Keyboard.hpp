@@ -23,7 +23,10 @@ class TestTab5Keyboard;
 #include "../utility/bitwise_state.hpp"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP_PLATFORM)
-#include "driver/gpio.h"
+// isr_handler() is declared IRAM_ATTR; that macro is defined in <esp_attr.h> (esp_common),
+// which ships in every ESP-IDF 4.x/5.x and Arduino-ESP32 core. Including only esp_attr.h keeps
+// this public header free of the GPIO driver, so `driver` stays a .cpp-only PRIV_REQUIRES.
+#include <esp_attr.h>
 #endif
 
 namespace m5 {

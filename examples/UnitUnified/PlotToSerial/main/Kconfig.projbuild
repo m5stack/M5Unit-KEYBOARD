@@ -1,0 +1,2 @@
+# The "Target unit / board" choice is shared by all M5Unit-KEYBOARD UnitUnified examples.
+rsource "../../common/Kconfig.variant"

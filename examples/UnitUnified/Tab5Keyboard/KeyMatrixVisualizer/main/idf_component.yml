@@ -1,0 +1,8 @@
+# ESP-IDF deps for the Tab5Keyboard KeyMatrixVisualizer example.
+# M5Unit-KEYBOARD is this repo (path: self-reference); M5UnitUnified comes in transitively
+# via its root manifest. M5Unified >=0.2.17 (0.2.16 was missing the M5GFX transitive dep).
+dependencies:
+  idf: ">=5.0"
+  m5stack/M5Unit-KEYBOARD:
+    path: "../../../../.."
+  m5stack/M5Unified: ">=0.2.17"

@@ -12,6 +12,7 @@
 #include <M5UnitUnifiedKEYBOARD.h>
 #include <M5HAL.hpp>
 #include <M5Utility.h>
+#include <wiring/m5_unit_unified_wiring.hpp>  // wiring::addI2C / addUART / i2cClass / i2cBusHandle / failStop
 #include <cctype>
 #include <string>
 
@@ -161,42 +162,14 @@ const char* const mode_label = "Conventional";
 #if !defined(USING_UART_FOR_CARDKB2) && !defined(USING_UNIT_TAB5_KEYBOARD)
 // Tab5 Keyboard uses ExtPort1 (G0/G1) — its own setup path, not setup_i2c().
 // Guard prevents -Wunused-function in Tab5-only builds.
-// NessoN1: Arduino Wire (I2C_NUM_0) cannot be used for GROVE port.
-//   Wire is used by M5Unified In_I2C for internal devices (IOExpander etc.).
-//   Wire1 exists but is reserved for HatPort — cannot be used for GROVE.
-//   Reconfiguring Wire to GROVE pins breaks In_I2C, causing ESP_ERR_INVALID_STATE in M5.update().
-//   Solution: Use SoftwareI2C via M5HAL (bit-banging) for the GROVE port.
-// NanoC6: Wire.begin() on GROVE pins conflicts with m5::I2C_Class registered by Ex_I2C.setPort()
-//   on the same I2C_NUM_0, causing sporadic NACK errors.
-//   Solution: Use M5.Ex_I2C (m5::I2C_Class) directly instead of Arduino Wire.
+// wiring::addI2C is board-aware: NessoN1 -> SoftwareI2C (GROVE on port_b), NanoC6/NanoH2 -> Ex_I2C,
+// others -> Wire on port_a. Same one-liner on Arduino and ESP-IDF native.
+// (Background: skills m5-i2c-three-way-branch / m5-i2c-c6-constraint.)
 bool setup_i2c()
 {
-    auto board = M5.getBoard();
-    if (board == m5::board_t::board_ArduinoNessoN1) {
-        // NessoN1: GROVE is on port_b (GPIO 5/4), not port_a (which maps to Wire pins 8/10)
-        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_b_out);
-        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_b_in);
-        M5_LOGI("getPin(M5HAL): SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
-        m5::hal::bus::I2CBusConfig i2c_cfg;
-        i2c_cfg.pin_sda = m5::hal::gpio::getPin(pin_num_sda);
-        i2c_cfg.pin_scl = m5::hal::gpio::getPin(pin_num_scl);
-        auto i2c_bus    = m5::hal::bus::i2c::getBus(i2c_cfg);
-        M5_LOGI("Bus:%d", i2c_bus.has_value());
-        return Units.add(unit, i2c_bus ? i2c_bus.value() : nullptr) && Units.begin();
-    } else if (board == m5::board_t::board_M5NanoC6) {
-        // NanoC6: Use M5.Ex_I2C (m5::I2C_Class, not Arduino Wire)
-        M5_LOGI("Using M5.Ex_I2C");
-        return Units.add(unit, M5.Ex_I2C) && Units.begin();
-    } else {
-        auto pin_num_sda = M5.getPin(m5::pin_name_t::port_a_sda);
-        auto pin_num_scl = M5.getPin(m5::pin_name_t::port_a_scl);
-        M5_LOGI("getPin: SDA:%u SCL:%u", pin_num_sda, pin_num_scl);
-        Wire.end();
-        Wire.begin(pin_num_sda, pin_num_scl, 100 * 1000U);
-        return Units.add(unit, Wire) && Units.begin();
-    }
+    return m5::unit::wiring::addI2C(Units, unit) && Units.begin();
 }
-#endif  // !defined(USING_UART_FOR_CARDKB2)
+#endif  // !defined(USING_UART_FOR_CARDKB2) && !defined(USING_UNIT_TAB5_KEYBOARD)
 
 #if defined(USING_UNIT_CARDKB)
 bool setup_cardkb()
@@ -223,43 +196,16 @@ bool setup_cardkb2_i2c()
 #if defined(USING_UART_FOR_CARDKB2)
 bool setup_cardkb2_uart()
 {
-    // UART mode: CardKB2 must be switched to UART mode first (Fn+Sym+2 on the device)
-    // Port C primary, Port A fallback (NessoN1: Port B fallback — Port A is Wire pins)
-    auto board      = M5.getBoard();
-    auto pin_num_rx = M5.getPin(m5::pin_name_t::port_c_rxd);
-    auto pin_num_tx = M5.getPin(m5::pin_name_t::port_c_txd);
-    if (pin_num_rx < 0 || pin_num_tx < 0) {
-        if (board == m5::board_t::board_ArduinoNessoN1) {
-            M5_LOGW("PortC is not available, using PortB");
-            pin_num_rx = M5.getPin(m5::pin_name_t::port_b_in);
-            pin_num_tx = M5.getPin(m5::pin_name_t::port_b_out);
-        } else {
-            M5_LOGW("PortC is not available, using PortA");
-            Wire.end();
-            pin_num_rx = M5.getPin(m5::pin_name_t::port_a_pin1);
-            pin_num_tx = M5.getPin(m5::pin_name_t::port_a_pin2);
-        }
-    }
-    M5_LOGI("getPin: RX:%d TX:%d", pin_num_rx, pin_num_tx);
-
-    // NOTE: setExtPower does not fully reset CardKB2 (Sym state may persist).
-    // Only works on boards with AXP power management (Core2, CoreS3).
-    // Press RST button on CardKB2 if Sym LED remains after mode switch.
+    // UART mode: CardKB2 must be switched to UART mode first (Fn+Sym+2 on the device).
+    // NOTE: setExtPower does not fully reset CardKB2 (Sym state may persist). Only works on boards
+    // with AXP power management (Core2, CoreS3). Press RST on CardKB2 if Sym LED remains.
     M5.Power.setExtPower(false);
     m5::utility::delay(100);
     M5.Power.setExtPower(true);
     m5::utility::delay(100);
-#if defined(CONFIG_IDF_TARGET_ESP32C6)
-    auto& serial = Serial1;
-#elif SOC_UART_NUM > 2
-    auto& serial = Serial2;
-#elif SOC_UART_NUM > 1
-    auto& serial = Serial1;
-#else
-#error "Not enough Serial"
-#endif
-    serial.begin(115200, SERIAL_8N1, pin_num_rx, pin_num_tx);
-    if (!Units.add(unit, serial) || !Units.begin()) {
+    // wiring::addUART selects the board UART pins (PortC preferred, PortA fallback) and the right
+    // HardwareSerial / uart_port on both Arduino and ESP-IDF native.
+    if (!m5::unit::wiring::addUART(Units, unit, 115200) || !Units.begin()) {
         return false;
     }
     M5.Log.printf("Firmware:Unknown (UART mode)\n");
@@ -318,11 +264,21 @@ bool setup_tab5_keyboard()
     }
 
     M5_LOGI("Tab5 ExtPort1 I2C: SDA:%d SCL:%d", TAB5_KEYBOARD_SDA, TAB5_KEYBOARD_SCL);
+#if defined(ARDUINO)
     Wire.end();
     Wire.begin(TAB5_KEYBOARD_SDA, TAB5_KEYBOARD_SCL, unit.component_config().clock);
     if (!Units.add(unit, Wire) || !Units.begin()) {
         return false;
     }
+#else
+    // ESP-IDF native (5.2+): hardware I2C bus on the fixed ExtPort1 pins (NOT SoftwareI2C).
+    auto bus =
+        m5::unit::wiring::i2cBusHandle(I2C_NUM_0, static_cast<gpio_num_t>(TAB5_KEYBOARD_SDA),
+                                       static_cast<gpio_num_t>(TAB5_KEYBOARD_SCL), unit.component_config().clock);
+    if (!Units.add(unit, bus) || !Units.begin()) {
+        return false;
+    }
+#endif
 
     // begin() applies cfg.mode and (when start_periodic is true) enables the matching INT
     // and starts draining events, so no manual writeInterruptEnable()/startPeriodicMeasurement().
@@ -857,12 +813,7 @@ void setup()
         // If using UART, ensure the device is in UART mode (Fn+Sym+2).
         M5_LOGE("Check CardKB2 communication mode (Fn+Sym+1:I2C, Fn+Sym+2:UART)");
 #endif
-        if (has_lcd) {
-            lcd.fillScreen(TFT_RED);
-        }
-        while (true) {
-            m5::utility::delay(10000);
-        }
+        m5::unit::wiring::failStop();
     }
     M5_LOGI("M5UnitUnified initialized");
     M5_LOGI("%s", Units.debugInfo().c_str());
@@ -872,10 +823,7 @@ void setup()
         canvas.setColorDepth(1);
         if (!canvas.createSprite(lcd.width(), lcd.height())) {
             M5_LOGE("Failed to create sprite");
-            lcd.fillScreen(TFT_RED);
-            while (true) {
-                m5::utility::delay(10000);
-            }
+            m5::unit::wiring::failStop();
         }
         canvas.setFont(&fonts::AsciiFont8x16);
         canvas.fillScreen(TFT_DARKGREEN);
@@ -941,3 +889,36 @@ void loop()
         }
     }
 }
+
+#if !defined(ARDUINO)
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <esp_timer.h>
+
+#if CONFIG_FREERTOS_UNICORE
+// Single-core targets (e.g. CardKB on C3/C6/H2): feed IDLE every 2 s without per-iteration yields.
+// Dual-core SoCs (S3/Tab5/Core 系) compile this out; IDLE runs on the other core.
+static inline void feedIdleTaskPeriodically(void)
+{
+    constexpr uint32_t FEED_INTERVAL_MS   = 2000;
+    constexpr TickType_t FEED_SLEEP_TICKS = pdMS_TO_TICKS(5);
+    static uint32_t s_next_feed_ms        = 0;
+    const uint32_t now_ms                 = static_cast<uint32_t>(esp_timer_get_time() / 1000);
+    if (now_ms >= s_next_feed_ms) {
+        s_next_feed_ms = now_ms + FEED_INTERVAL_MS;
+        vTaskDelay(FEED_SLEEP_TICKS);
+    }
+}
+#endif
+
+extern "C" void app_main(void)
+{
+    setup();
+    for (;;) {
+#if CONFIG_FREERTOS_UNICORE
+        feedIdleTaskPeriodically();
+#endif
+        loop();
+    }
+}
+#endif

@@ -1,0 +1,24 @@
+# Shared "Target unit / board" selection for the M5Unit-KEYBOARD UnitUnified examples (ESP-IDF).
+# rsource'd from each example's main/Kconfig.projbuild. The chosen CONFIG_EXAMPLE_USING_* is mapped
+# to the source-level USING_* macro in common/variant.cmake (shared with the Arduino build).
+menu "M5Unit-KEYBOARD example"
+
+choice EXAMPLE_KEYBOARD_VARIANT
+    prompt "Target unit / board"
+    default EXAMPLE_USING_UNIT_CARDKB
+    help
+        Which keyboard unit this example drives.
+
+    config EXAMPLE_USING_UNIT_CARDKB
+        bool "UnitCardKB (I2C / GROVE)"
+    config EXAMPLE_USING_UNIT_CARDKB2_I2C
+        bool "UnitCardKB2 (I2C / GROVE)"
+    config EXAMPLE_USING_UNIT_CARDKB2_UART
+        bool "UnitCardKB2 (UART)"
+    config EXAMPLE_USING_UNIT_FACES_QWERTY
+        bool "UnitFacesQWERTY (I2C / M-Bus)"
+    config EXAMPLE_USING_UNIT_TAB5_KEYBOARD
+        bool "UnitTab5Keyboard (I2C / Tab5 ExtPort1)"
+endchoice
+
+endmenu

@@ -17,6 +17,9 @@
 #include "../utility/hid_keycode.hpp"
 
 #if defined(ARDUINO_ARCH_ESP32) || defined(ESP_PLATFORM)
+// GPIO ISR API (gpio_config / gpio_install_isr_service / gpio_isr_handler_add / ...) used below.
+// The public header only pulls in <esp_attr.h> for IRAM_ATTR, so the driver include lives here.
+#include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
 #endif
