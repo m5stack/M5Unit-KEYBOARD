@@ -73,6 +73,26 @@ You must choose a define symbol for the unit you will use.
 #endif
 ```
 
+### For ESP-IDF settings
+
+> **NOTE:** The library and examples target ESP-IDF **5.x** (>=5.0).  
+> `M5Unified` / `M5GFX` do not yet support ESP-IDF 6.x; stay on the latest 5.x release until upstream support lands.
+
+On ESP-IDF native builds (`idf.py`), the unit/board is selected via Kconfig instead of editing the
+source `#define`. `examples/UnitUnified/common/variant.cmake` maps the chosen `CONFIG_EXAMPLE_USING_*`
+to the source-level `USING_*` macro shared with the Arduino build, so the example source itself does
+not need to be edited.
+
+Pick the variant with `menuconfig`:
+
+```sh
+cd examples/UnitUnified/PlotToSerial
+idf.py set-target esp32s3              # or esp32 / esp32c6 / esp32p4 / ...
+idf.py menuconfig
+# -> M5Unit-KEYBOARD example -> Target unit / board -> choose ONE of the options offered
+idf.py build flash monitor
+```
+
 ## New firmware (CardKB / FacesQWERTY)
 See also [examples/firmware](examples/firmware)
 
@@ -107,5 +127,4 @@ If you want to output Git commit hashes to html, do it for the git cloned folder
 
 ### Required
 - [Doxygen](https://www.doxygen.nl/)
-- [pcregrep](https://formulae.brew.sh/formula/pcre2)
 - [Git](https://git-scm.com/) (Output commit hash to html)
