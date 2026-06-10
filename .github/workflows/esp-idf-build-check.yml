@@ -1,0 +1,153 @@
+name: Build(esp-idf-native)
+
+on:
+  push:
+    tags-ignore:
+      - '*.*.*'
+      - 'v*.*.*'
+    branches:
+      - '*'
+    paths:
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
+      - 'CMakeLists.txt'
+      - 'idf_component.yml'
+      - 'examples/UnitUnified/**.cpp'
+      - 'examples/UnitUnified/**.hpp'
+      - 'examples/UnitUnified/**.h'
+      - 'examples/UnitUnified/**.c'
+      - 'examples/UnitUnified/**/CMakeLists.txt'
+      - 'examples/UnitUnified/**/Kconfig.projbuild'
+      - 'examples/UnitUnified/common/**'
+      - '.github/workflows/esp-idf-build-check.yml'
+  pull_request:
+    paths:
+      - 'src/**.cpp'
+      - 'src/**.hpp'
+      - 'src/**.h'
+      - 'src/**.c'
+      - 'CMakeLists.txt'
+      - 'idf_component.yml'
+      - 'examples/UnitUnified/**.cpp'
+      - 'examples/UnitUnified/**.hpp'
+      - 'examples/UnitUnified/**.h'
+      - 'examples/UnitUnified/**.c'
+      - 'examples/UnitUnified/**/CMakeLists.txt'
+      - 'examples/UnitUnified/**/Kconfig.projbuild'
+      - 'examples/UnitUnified/common/**'
+      - '.github/workflows/esp-idf-build-check.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Cross design (keeps the build count down): one job sweeps every unit on a representative SoC
+# (variant coverage), another sweeps every SoC with the default unit (chip coverage), and a third
+# covers the Tab5/esp32p4 examples. idf is pinned to 3 boundary versions per job.
+jobs:
+  # Variant coverage: build every unit on esp32s3 (dual-core, LCD-capable representative).
+  build-variants:
+    name: ${{ matrix.idf }} esp32s3 ${{ matrix.variant.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        # idf boundaries: 5.1.7 = oldest legacy-driver (5.0.x dropped: M5GFX needs esp_mm, added in
+        # 5.1), 5.4.4 = new driver/*_master.h + touch_sens.h era, 5.5.4 = latest.
+        idf: [v5.1.7, v5.4.4, v5.5.4]
+        variant:
+          - { label: UnitCardKB, sym: USING_UNIT_CARDKB }
+          - { label: UnitCardKB2-I2C, sym: USING_UNIT_CARDKB2_I2C }
+          - { label: UnitCardKB2-UART, sym: USING_UNIT_CARDKB2_UART }
+          - { label: UnitFacesQWERTY, sym: USING_UNIT_FACES_QWERTY }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Kconfig variant
+        # The example's own sdkconfig.defaults is not read (top CMakeLists points SDKCONFIG_DEFAULTS
+        # at common/sdkconfig.defaults). Append the choice to common/ in the CI workspace only.
+        run: |
+          echo "" >> examples/UnitUnified/common/sdkconfig.defaults
+          echo "CONFIG_EXAMPLE_${{ matrix.variant.sym }}=y" >> examples/UnitUnified/common/sdkconfig.defaults
+
+      - name: ESP-IDF build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ matrix.idf }}
+          target: esp32s3
+          path: examples/UnitUnified/PlotToSerial
+
+  # Chip coverage: build the default unit (UnitCardKB) on every other supported SoC, so PlotToSerial
+  # is exercised across all chips. esp32 (classic) covers the M5Unified touch-deprecation path;
+  # esp32c6 / esp32h2 are single-core and cover the app_main CONFIG_FREERTOS_UNICORE feedIdle path.
+  build-chips:
+    name: ${{ matrix.idf }} ${{ matrix.target }} UnitCardKB
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        target: [esp32, esp32c6, esp32h2]
+        idf: [v5.1.7, v5.4.4, v5.5.4]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Kconfig variant
+        run: |
+          echo "" >> examples/UnitUnified/common/sdkconfig.defaults
+          echo "CONFIG_EXAMPLE_USING_UNIT_CARDKB=y" >> examples/UnitUnified/common/sdkconfig.defaults
+
+      - name: ESP-IDF build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ matrix.idf }}
+          target: ${{ matrix.target }}
+          path: examples/UnitUnified/PlotToSerial
+
+  # esp32p4 (M5Stack Tab5). M5GFX P4 support is verified on IDF 5.4/5.5. Builds the built-in
+  # Tab5Keyboard via PlotToSerial and the Tab5-only KeyMatrixVisualizer (selects unit in source,
+  # so it skips the Select step).
+  build-esp32p4:
+    name: ${{ matrix.idf }} ${{ matrix.example_config.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        idf: [v5.4.4, v5.5.4]
+        example_config:
+          - label: PlotToSerial UnitTab5Keyboard
+            example_path: examples/UnitUnified/PlotToSerial
+            variant: USING_UNIT_TAB5_KEYBOARD
+          - label: KeyMatrixVisualizer UnitTab5Keyboard
+            example_path: examples/UnitUnified/Tab5Keyboard/KeyMatrixVisualizer
+            variant: ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Kconfig variant
+        if: ${{ matrix.example_config.variant != '' }}
+        run: |
+          echo "" >> examples/UnitUnified/common/sdkconfig.defaults
+          echo "CONFIG_EXAMPLE_${{ matrix.example_config.variant }}=y" >> examples/UnitUnified/common/sdkconfig.defaults
+
+      - name: ESP-IDF build
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: ${{ matrix.idf }}
+          target: esp32p4
+          path: ${{ matrix.example_config.example_path }}
